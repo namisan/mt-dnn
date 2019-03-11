@@ -1,22 +1,19 @@
 # Copyright (c) Microsoft. All rights reserved.
-import os
-import json
-import tqdm
-import pickle
-import re
-import collections
 import argparse
-from sys import path
-from data_utils.vocab import Vocabulary
+import os
+
 from pytorch_pretrained_bert.tokenization import BertTokenizer
-from data_utils.log_wrapper import create_logger
-from data_utils.label_map import GLOBAL_MAP
+
 from data_utils.glue_utils import *
-DEBUG_MODE=False
+from data_utils.label_map import GLOBAL_MAP
+from data_utils.log_wrapper import create_logger
+
+DEBUG_MODE = False
 MAX_SEQ_LEN = 512
 
 bert_tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 logger = create_logger(__name__, to_disk=True, log_file='bert_data_proc_512.log')
+
 
 def _truncate_seq_pair(tokens_a, tokens_b, max_length):
     """Truncates a sequence pair in place to the maximum length.
@@ -35,6 +32,7 @@ def _truncate_seq_pair(tokens_a, tokens_b, max_length):
         else:
             tokens_b.pop()
 
+
 def build_data(data, dump_path, max_seq_len=MAX_SEQ_LEN, is_train=True, tolower=True):
     """Build data of sentence pair tasks
     """
@@ -45,10 +43,11 @@ def build_data(data, dump_path, max_seq_len=MAX_SEQ_LEN, is_train=True, tolower=
             hypothesis = bert_tokenizer.tokenize(sample['hypothesis'])
             label = sample['label']
             _truncate_seq_pair(premise, hypothesis, max_seq_len - 3)
-            input_ids =bert_tokenizer.convert_tokens_to_ids(['[CLS]'] + hypothesis + ['[SEP]'] + premise + ['[SEP]'])
-            type_ids = [0] * ( len(hypothesis) + 2) + [1] * (len(premise) + 1)
+            input_ids = bert_tokenizer.convert_tokens_to_ids(['[CLS]'] + hypothesis + ['[SEP]'] + premise + ['[SEP]'])
+            type_ids = [0] * (len(hypothesis) + 2) + [1] * (len(premise) + 1)
             features = {'uid': ids, 'label': label, 'token_id': input_ids, 'type_id': type_ids}
             writer.write('{}\n'.format(json.dumps(features)))
+
 
 def build_qnli(data, dump_path, max_seq_len=MAX_SEQ_LEN, is_train=True, tolower=True, gold_path=None):
     """Build QNLI as a pair-wise ranking task
@@ -61,13 +60,17 @@ def build_qnli(data, dump_path, max_seq_len=MAX_SEQ_LEN, is_train=True, tolower=
             hypothesis_2 = bert_tokenizer.tokenize(sample['hypothesis'][1])
             label = sample['label']
             _truncate_seq_pair(premise, hypothesis_1, max_seq_len - 3)
-            input_ids_1 =bert_tokenizer.convert_tokens_to_ids(['[CLS]'] + hypothesis_1 + ['[SEP]'] + premise + ['[SEP]'])
-            type_ids_1 = [0] * ( len(hypothesis_1) + 2) + [1] * (len(premise) + 1)
+            input_ids_1 = bert_tokenizer.convert_tokens_to_ids(
+                ['[CLS]'] + hypothesis_1 + ['[SEP]'] + premise + ['[SEP]'])
+            type_ids_1 = [0] * (len(hypothesis_1) + 2) + [1] * (len(premise) + 1)
             _truncate_seq_pair(premise, hypothesis_2, max_seq_len - 3)
-            input_ids_2 =bert_tokenizer.convert_tokens_to_ids(['[CLS]'] + hypothesis_2 + ['[SEP]'] + premise + ['[SEP]'])
-            type_ids_2 = [0] * ( len(hypothesis_2) + 2) + [1] * (len(premise) + 1)
-            features = {'uid': ids, 'label': label, 'token_id': [input_ids_1, input_ids_2], 'type_id': [type_ids_1, type_ids_2], 'ruid':sample['ruid'], 'olabel':sample['olabel']}
+            input_ids_2 = bert_tokenizer.convert_tokens_to_ids(
+                ['[CLS]'] + hypothesis_2 + ['[SEP]'] + premise + ['[SEP]'])
+            type_ids_2 = [0] * (len(hypothesis_2) + 2) + [1] * (len(premise) + 1)
+            features = {'uid': ids, 'label': label, 'token_id': [input_ids_1, input_ids_2],
+                        'type_id': [type_ids_1, type_ids_2], 'ruid': sample['ruid'], 'olabel': sample['olabel']}
             writer.write('{}\n'.format(json.dumps(features)))
+
 
 def build_data_single(data, dump_path, max_seq_len=MAX_SEQ_LEN):
     """Build data of single sentence tasks
@@ -77,12 +80,13 @@ def build_data_single(data, dump_path, max_seq_len=MAX_SEQ_LEN):
             ids = sample['uid']
             premise = bert_tokenizer.tokenize(sample['premise'])
             label = sample['label']
-            if len(premise) >  max_seq_len - 3:
-                premise = premise[:max_seq_len - 3] 
-            input_ids =bert_tokenizer.convert_tokens_to_ids(['[CLS]'] + premise + ['[SEP]'])
-            type_ids = [0] * ( len(premise) + 2)
+            if len(premise) > max_seq_len - 3:
+                premise = premise[:max_seq_len - 3]
+            input_ids = bert_tokenizer.convert_tokens_to_ids(['[CLS]'] + premise + ['[SEP]'])
+            type_ids = [0] * (len(premise) + 2)
             features = {'uid': ids, 'label': label, 'token_id': input_ids, 'type_id': type_ids}
             writer.write('{}\n'.format(json.dumps(features)))
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Preprocessing GLUE/SNLI/SciTail dataset.')
@@ -90,6 +94,7 @@ def parse_args():
     parser.add_argument('--root_dir', type=str, default='data')
     args = parser.parse_args()
     return args
+
 
 def main(args):
     root = args.root_dir
@@ -109,7 +114,7 @@ def main(args):
     ######################################
     # GLUE tasks
     ######################################
-    multi_train_path =  os.path.join(root, 'MNLI/train.tsv')
+    multi_train_path = os.path.join(root, 'MNLI/train.tsv')
     multi_dev_matched_path = os.path.join(root, 'MNLI/dev_matched.tsv')
     multi_dev_mismatched_path = os.path.join(root, 'MNLI/dev_mismatched.tsv')
     multi_test_matched_path = os.path.join(root, 'MNLI/test_matched.tsv')
@@ -146,7 +151,7 @@ def main(args):
     cola_train_path = os.path.join(root, 'CoLA/train.tsv')
     cola_dev_path = os.path.join(root, 'CoLA/dev.tsv')
     cola_test_path = os.path.join(root, 'CoLA/test.tsv')
-    
+
     ######################################
     # Loading DATA
     ######################################
@@ -189,7 +194,7 @@ def main(args):
     logger.info('Loaded {} QNLI train samples'.format(len(qnli_train_data)))
     logger.info('Loaded {} QNLI dev samples'.format(len(qnli_dev_data)))
     logger.info('Loaded {} QNLI test samples'.format(len(qnli_test_data)))
-    
+
     qnnli_train_data = load_qnnli(qnli_train_path, GLOBAL_MAP['qnli'])
     qnnli_dev_data = load_qnnli(qnli_dev_path, GLOBAL_MAP['qnli'])
     qnnli_test_data = load_qnnli(qnli_test_path, GLOBAL_MAP['qnli'], is_train=False)
@@ -346,6 +351,7 @@ def main(args):
     build_data_single(cola_dev_data, cola_dev_fout)
     build_data_single(cola_test_data, cola_test_fout)
     logger.info('done with cola')
+
 
 if __name__ == '__main__':
     args = parse_args()

@@ -1,18 +1,13 @@
 # coding=utf-8
 # Copyright (c) Microsoft. All rights reserved.
-import os
-import sys
 import json
-import torch
 import random
-import string
-import logging
-import numpy as np
-import pickle as pkl
-from shutil import copyfile
 
-UNK_ID=100
-BOS_ID=101
+import torch
+
+UNK_ID = 100
+BOS_ID = 101
+
 
 class BatchGen:
     def __init__(self, data, batch_size=32, gpu=True, is_train=True,
@@ -33,7 +28,7 @@ class BatchGen:
         self.pairwise = pairwise
         self.pairwise_size = 1
         self.data_type = data_type
-        self.task_type=task_type
+        self.task_type = task_type
         if do_batch:
             if is_train:
                 indices = list(range(len(self.data)))
@@ -75,7 +70,8 @@ class BatchGen:
     def __random_select__(self, arr):
         if self.dropout_w > 0:
             return [UNK_ID if random.uniform(0, 1) < self.dropout_w else e for e in arr]
-        else: return arr
+        else:
+            return arr
 
     def __len__(self):
         return len(self.data)
@@ -100,9 +96,9 @@ class BatchGen:
                 type_id = sample['type_id'][idx]
                 uid = sample['ruid'][idx]
                 olab = sample['olabel'][idx]
-                newbatch.append({'uid': uid, 'token_id': token_id, 'type_id': type_id, 'label':sample['label'], 'true_label': olab})
+                newbatch.append({'uid': uid, 'token_id': token_id, 'type_id': type_id, 'label': sample['label'],
+                                 'true_label': olab})
         return newbatch
-
 
     def __iter__(self):
         while self.offset < len(self):
@@ -140,7 +136,7 @@ class BatchGen:
                     'mask': 2,
                     'premise_mask': 3,
                     'hypothesis_mask': 4
-                    }
+                }
                 batch_data = [token_ids, type_ids, masks, premise_masks, hypothesis_masks]
                 current_idx = 5
                 valid_input_len = 5
@@ -149,7 +145,7 @@ class BatchGen:
                     'token_id': 0,
                     'segment_id': 1,
                     'mask': 2
-                    }
+                }
                 batch_data = [token_ids, type_ids, masks]
                 current_idx = 3
                 valid_input_len = 3

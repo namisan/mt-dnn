@@ -1,8 +1,10 @@
 # Copyright (c) Microsoft. All rights reserved.
-import json
-import numpy as np
 from random import shuffle
+
+import numpy as np
+
 from .label_map import METRIC_FUNC, METRIC_META, METRIC_NAME
+
 
 def load_scitail(file, label_dict):
     """Loading data of scitail
@@ -19,6 +21,7 @@ def load_scitail(file, label_dict):
             cnt += 1
     return rows
 
+
 def load_snli(file, label_dict, header=True):
     rows = []
     cnt = 0
@@ -32,12 +35,14 @@ def load_snli(file, label_dict, header=True):
             if blocks[-1] == '-': continue
             lab = label_dict[blocks[-1]]
             if lab is None:
-                import pdb; pdb.set_trace()
+                import pdb
+                pdb.set_trace()
             lab = 0 if lab is None else lab
             sample = {'uid': blocks[0], 'premise': blocks[7], 'hypothesis': blocks[8], 'label': lab}
             rows.append(sample)
             cnt += 1
     return rows
+
 
 def load_mnli(file, label_dict, header=True, multi_snli=False, is_train=True):
     rows = []
@@ -54,12 +59,14 @@ def load_mnli(file, label_dict, header=True, multi_snli=False, is_train=True):
             if is_train:
                 lab = label_dict[blocks[-1]]
             if lab is None:
-                import pdb; pdb.set_trace()
+                import pdb
+                pdb.set_trace()
             lab = 0 if lab is None else lab
             sample = {'uid': blocks[0], 'premise': blocks[8], 'hypothesis': blocks[9], 'label': lab}
             rows.append(sample)
             cnt += 1
     return rows
+
 
 def load_mrpc(file, header=True, is_train=True):
     rows = []
@@ -79,6 +86,7 @@ def load_mrpc(file, header=True, is_train=True):
             cnt += 1
     return rows
 
+
 def load_qnli(file, label_dict, header=True, is_train=True):
     """QNLI for classification"""
     rows = []
@@ -94,12 +102,14 @@ def load_qnli(file, label_dict, header=True, is_train=True):
             if is_train:
                 lab = label_dict[blocks[-1]]
             if lab is None:
-                import pdb; pdb.set_trace()
+                import pdb
+                pdb.set_trace()
             lab = 0 if lab is None else lab
             sample = {'uid': blocks[0], 'premise': blocks[1], 'hypothesis': blocks[2], 'label': lab}
             rows.append(sample)
             cnt += 1
     return rows
+
 
 def load_qnnli(file, label_dict, header=True, is_train=True):
     """QNLI for ranking"""
@@ -132,10 +142,12 @@ def load_qnnli(file, label_dict, header=True, is_train=True):
                     mis_matched_cnt += 1
                     continue
             lab = int(np.argmax([lab1, lab2]))
-            sample = {'uid': cnt, 'premise': block1[1], 'hypothesis': [block1[2], block2[2]], 'label': lab, 'ruid':[block1[0], block2[0]], 'olabel':[lab1, lab2]}
+            sample = {'uid': cnt, 'premise': block1[1], 'hypothesis': [block1[2], block2[2]], 'label': lab,
+                      'ruid': [block1[0], block2[0]], 'olabel': [lab1, lab2]}
             cnt += 1
             rows.append(sample)
     return rows
+
 
 def load_qqp(file, header=True, is_train=True):
     rows = []
@@ -161,13 +173,14 @@ def load_qqp(file, header=True, is_train=True):
             cnt += 1
     return rows
 
+
 def load_rte(file, label_dict, header=True, is_train=True):
     rows = []
     cnt = 0
     with open(file, encoding="utf8") as f:
         for line in f:
             if header:
-                header =False
+                header = False
                 continue
             blocks = line.strip().split('\t')
             if is_train and len(blocks) < 4: continue
@@ -182,13 +195,14 @@ def load_rte(file, label_dict, header=True, is_train=True):
             cnt += 1
     return rows
 
+
 def load_wnli(file, header=True, is_train=True):
     rows = []
     cnt = 0
     with open(file, encoding="utf8") as f:
         for line in f:
             if header:
-                header =False
+                header = False
                 continue
             blocks = line.strip().split('\t')
             if is_train and len(blocks) < 4: continue
@@ -200,6 +214,7 @@ def load_wnli(file, header=True, is_train=True):
             rows.append(sample)
             cnt += 1
     return rows
+
 
 def load_diag(file, label_dict, header=True):
     rows = []
@@ -215,6 +230,7 @@ def load_diag(file, label_dict, header=True):
             rows.append(sample)
             cnt += 1
     return rows
+
 
 def load_sst(file, header=True, is_train=True):
     rows = []
@@ -237,6 +253,7 @@ def load_sst(file, header=True, is_train=True):
             rows.append(sample)
     return rows
 
+
 def load_cola(file, header=True, is_train=True):
     rows = []
     cnt = 0
@@ -257,6 +274,7 @@ def load_cola(file, header=True, is_train=True):
             cnt += 1
     return rows
 
+
 def load_sts(file, header=True, is_train=True):
     rows = []
     cnt = 0
@@ -270,16 +288,17 @@ def load_sts(file, header=True, is_train=True):
             score = 0.0
             if is_train:
                 score = float(blocks[-1])
-                sample = {'uid': cnt, 'premise': blocks[-3],'hypothesis': blocks[-2], 'label': score}
+                sample = {'uid': cnt, 'premise': blocks[-3], 'hypothesis': blocks[-2], 'label': score}
             else:
-                sample = {'uid': cnt, 'premise': blocks[-2],'hypothesis': blocks[-1], 'label': score}
+                sample = {'uid': cnt, 'premise': blocks[-2], 'hypothesis': blocks[-1], 'label': score}
             rows.append(sample)
             cnt += 1
     return rows
 
+
 def submit(path, data, label_dict=None):
     header = 'index\tprediction'
-    with open(path ,'w') as writer:
+    with open(path, 'w') as writer:
         predictions, uids = data['predictions'], data['uids']
         writer.write('{}\n'.format(header))
         assert len(predictions) == len(uids)
@@ -293,6 +312,7 @@ def submit(path, data, label_dict=None):
                 assert type(pred) is int
                 writer.write('{}\t{}\n'.format(uid, label_dict[pred]))
 
+
 def _truncate_seq_pair(tokens_a, tokens_b, max_length):
     while True:
         total_length = len(tokens_a) + len(tokens_b)
@@ -302,6 +322,7 @@ def _truncate_seq_pair(tokens_a, tokens_b, max_length):
             tokens_a.pop()
         else:
             tokens_b.pop()
+
 
 def eval_model(model, data, dataset, use_cuda=True, with_label=True):
     data.reset()

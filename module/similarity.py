@@ -1,12 +1,14 @@
 # Copyright (c) Microsoft. All rights reserved.
+import numpy
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy
-from torch.nn.utils import weight_norm
 from torch.nn.parameter import Parameter
+from torch.nn.utils import weight_norm
+
 from .common import activation
 from .dropout_wrapper import DropoutWrapper
+
 
 class DotProduct(nn.Module):
     def __init__(self, x1_dim, x2_dim, prefix='sim', opt={}, dropout=None):
@@ -51,9 +53,9 @@ class DotProductProject(nn.Module):
                 self.proj_2 = weight_norm(self.proj_2)
 
         if self.scale_on:
-            self.scalar = Parameter(torch.ones(1,1,1) / (self.hidden_size ** 0.5), requires_grad=False)
+            self.scalar = Parameter(torch.ones(1, 1, 1) / (self.hidden_size ** 0.5), requires_grad=False)
         else:
-            self.sclalar = Parameter(torch.ones(1,1, self.hidden_size), requires_grad=True)
+            self.sclalar = Parameter(torch.ones(1, 1, self.hidden_size), requires_grad=True)
 
     def forward(self, x1, x2):
         assert x1.size(2) == x2.size(2)
@@ -137,6 +139,7 @@ class BilinearSum(nn.Module):
 
 class Trilinear(nn.Module):
     """Function used in BiDAF"""
+
     def __init__(self, x1_dim, x2_dim, prefix='sim', opt={}, dropout=None):
         super(Trilinear, self).__init__()
         self.prefix = prefix
@@ -234,6 +237,7 @@ class LinearSelfAttn(nn.Module):
     """Self attention over a sequence:
     * o_i = softmax(Wx_i) for x_i in X.
     """
+
     def __init__(self, input_size, dropout=None):
         super(LinearSelfAttn, self).__init__()
         self.linear = nn.Linear(input_size, 1)
@@ -305,7 +309,8 @@ class DeepAttentionWrapper(nn.Module):
         self.attn_list = nn.ModuleList()
         for i in range(0, att_cnt):
             if opt['multihead_on']:
-                attention = MultiheadAttentionWrapper(self.x1_dim, self.x2_dim, self.x3_dims[i], prefix, opt, dropout=dropout)
+                attention = MultiheadAttentionWrapper(self.x1_dim, self.x2_dim, self.x3_dims[i], prefix, opt,
+                                                      dropout=dropout)
             else:
                 attention = AttentionWrapper(self.x1_dim, self.x2_dim, self.x3_dims[i], prefix, opt, self.dropout)
             self.attn_list.append(attention)
@@ -323,6 +328,7 @@ class BilinearFlatSim(nn.Module):
     """A bilinear attention layer over a sequence X w.r.t y:
     * o_i = x_i'Wy for x_i in X.
     """
+
     def __init__(self, x_size, y_size, opt={}, prefix='seqatt', dropout=None):
         super(BilinearFlatSim, self).__init__()
         self.opt = opt
@@ -462,10 +468,12 @@ class FlatSimilarityWrapper(nn.Module):
         scores = self.score_func(x1, x2, mask)
         return scores
 
+
 class MultiheadAttentionWrapper(nn.Module):
     """Multi-headed attention.
     See "Attention Is All You Need" for more details.
     """
+
     def __init__(self, query_dim, key_dim, value_dim, prefix='attention', opt={}, dropout=None):
         super().__init__()
         self.prefix = prefix
@@ -494,18 +502,19 @@ class MultiheadAttentionWrapper(nn.Module):
 
             self.qkv_head_dim = [self.hidden_size // self.num_heads] * 3
             self.qkv_head_dim[2] = value_dim // self.num_heads
-            assert self.qkv_head_dim[0] * self.num_heads == self.hidden_size, "hidden size must be divisible by num_heads"
+            assert self.qkv_head_dim[
+                       0] * self.num_heads == self.hidden_size, "hidden size must be divisible by num_heads"
             assert self.qkv_head_dim[2] * self.num_heads == value_dim, "value size must be divisible by num_heads"
 
         else:
             self.qkv_head_dim = [emb // self.num_heads for emb in self.qkv_dim]
-            #import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             assert self.qkv_head_dim[0] * self.num_heads == self.qkv_dim[0], "query size must be divisible by num_heads"
             assert self.qkv_head_dim[1] * self.num_heads == self.qkv_dim[1], "key size must be divisible by num_heads"
             assert self.qkv_head_dim[2] * self.num_heads == self.qkv_dim[2], "value size must be divisible by num_heads"
 
         if self.scale_on:
-            self.scaling = self.qkv_head_dim[0]**-0.5
+            self.scaling = self.qkv_head_dim[0] ** -0.5
         self.drop_diagonal = opt.get('{}_drop_diagonal'.format(self.prefix), False)
         self.output_size = self.qkv_dim[2]
 
@@ -531,9 +540,9 @@ class MultiheadAttentionWrapper(nn.Module):
         if self.scale_on:
             q *= self.scaling
 
-        q = q.contiguous().view(tgt_len, bsz*self.num_heads, self.qkv_head_dim[0]).transpose(0, 1)
-        k = k.contiguous().view(src_len, bsz*self.num_heads, self.qkv_head_dim[1]).transpose(0, 1)
-        v = v.contiguous().view(src_len, bsz*self.num_heads, self.qkv_head_dim[2]).transpose(0, 1)
+        q = q.contiguous().view(tgt_len, bsz * self.num_heads, self.qkv_head_dim[0]).transpose(0, 1)
+        k = k.contiguous().view(src_len, bsz * self.num_heads, self.qkv_head_dim[1]).transpose(0, 1)
+        v = v.contiguous().view(src_len, bsz * self.num_heads, self.qkv_head_dim[2]).transpose(0, 1)
 
         attn_weights = torch.bmm(q, k.transpose(1, 2))
         assert list(attn_weights.size()) == [bsz * self.num_heads, tgt_len, src_len]
@@ -549,7 +558,8 @@ class MultiheadAttentionWrapper(nn.Module):
 
         if self.drop_diagonal:
             assert attn_weights.size(1) == attn_weights.size(2)
-            diag_mask = torch.diag(attn_weights.data.new(attn_weights.size(1)).zero_() + 1).byte().unsqueeze(0).expand_as(attn_weights)
+            diag_mask = torch.diag(attn_weights.data.new(attn_weights.size(1)).zero_() + 1).byte().unsqueeze(
+                0).expand_as(attn_weights)
             attn_weights.data.masked_fill_(diag_mask, -float('inf'))
 
         attn_weights = F.softmax(attn_weights.float(), dim=-1).type_as(attn_weights)

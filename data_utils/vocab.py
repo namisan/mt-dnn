@@ -1,17 +1,8 @@
 # Copyright (c) Microsoft. All rights reserved.
-import re
-import warnings
-import tqdm
-import logging
-import spacy
-import unicodedata
-from collections import Counter
-from functools import partial
-from multiprocessing import Pool as ThreadPool
 
 PAD = 'PADPAD'
 UNK = 'UNKUNK'
-STA= 'BOSBOS'
+STA = 'BOSBOS'
 END = 'EOSEOS'
 
 PAD_ID = 0
@@ -19,13 +10,15 @@ UNK_ID = 1
 STA_ID = 2
 END_ID = 3
 
+
 class Vocabulary(object):
     INIT_LEN = 4
+
     def __init__(self, neat=False):
         self.neat = neat
         if not neat:
             self.tok2ind = {PAD: PAD_ID, UNK: UNK_ID, STA: STA_ID, END: END_ID}
-            self.ind2tok = {PAD_ID: PAD, UNK_ID: UNK, STA_ID: STA, END_ID:END}
+            self.ind2tok = {PAD_ID: PAD, UNK_ID: UNK, STA_ID: STA, END_ID: END}
         else:
             self.tok2ind = {}
             self.ind2tok = {}
@@ -46,7 +39,7 @@ class Vocabulary(object):
         if type(key) == int:
             return self.ind2tok.get(key, -1) if self.neat else self.ind2tok.get(key, UNK)
         if type(key) == str:
-            return self.tok2ind.get(key, None) if self.neat else self.tok2ind.get(key,self.tok2ind.get(UNK))
+            return self.tok2ind.get(key, None) if self.neat else self.tok2ind.get(key, self.tok2ind.get(UNK))
 
     def __setitem__(self, key, item):
         if type(key) == int and type(item) == str:
@@ -67,7 +60,7 @@ class Vocabulary(object):
             words = [self[k] for k in range(0, len(self))]
         else:
             words = [k for k in self.tok2ind.keys()
-                      if k not in {PAD, UNK, STA, END}]
+                     if k not in {PAD, UNK, STA, END}]
         return words
 
     def toidx(self, tokens):

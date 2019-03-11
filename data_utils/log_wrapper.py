@@ -1,7 +1,8 @@
 # Copyright (c) Microsoft. All rights reserved.
 import logging
-from time import gmtime, strftime
 import sys
+from time import gmtime, strftime
+
 
 def create_logger(name, silent=False, to_disk=False, log_file=None):
     """Logger wrapper

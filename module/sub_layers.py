@@ -1,16 +1,16 @@
 # Copyright (c) Microsoft. All rights reserved.
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from torch.nn.parameter import Parameter
 
+
 class LayerNorm(nn.Module):
-    #ref: https://github.com/pytorch/pytorch/issues/1959
+    # ref: https://github.com/pytorch/pytorch/issues/1959
     #   :https://arxiv.org/pdf/1607.06450.pdf
     def __init__(self, hidden_size, eps=1e-4):
         super(LayerNorm, self).__init__()
-        self.alpha = Parameter(torch.ones(1,1,hidden_size)) # gain g
-        self.beta = Parameter(torch.zeros(1,1,hidden_size)) # bias b
+        self.alpha = Parameter(torch.ones(1, 1, hidden_size))  # gain g
+        self.beta = Parameter(torch.zeros(1, 1, hidden_size))  # bias b
         self.eps = eps
 
     def forward(self, x):

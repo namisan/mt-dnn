@@ -1,25 +1,27 @@
 # Copyright (c) Microsoft. All rights reserved.
-import torch
 import random
+
+import torch
 import torch.nn as nn
-from torch.nn.utils import weight_norm
+import torch.nn.functional as F
 from torch.autograd import Variable
 from torch.nn.parameter import Parameter
-import torch.nn.functional as F
-import numpy as np
-from module.dropout_wrapper import DropoutWrapper
-from module.similarity import FlatSimilarityWrapper, SelfAttnWrapper
-from module.my_optim import weight_norm as WN
+from torch.nn.utils import weight_norm
 
-SMALL_POS_NUM=1.0e-30
+from module.dropout_wrapper import DropoutWrapper
+from module.my_optim import weight_norm as WN
+from module.similarity import FlatSimilarityWrapper, SelfAttnWrapper
+
+SMALL_POS_NUM = 1.0e-30
+
 
 def generate_mask(new_data, dropout_p=0.0, is_training=False):
     if not is_training: dropout_p = 0.0
-    new_data = (1-dropout_p) * (new_data.zero_() + 1)
+    new_data = (1 - dropout_p) * (new_data.zero_() + 1)
     for i in range(new_data.size(0)):
-        one = random.randint(0, new_data.size(1)-1)
+        one = random.randint(0, new_data.size(1) - 1)
         new_data[i][one] = 1
-    mask = Variable(1.0/(1 - dropout_p) * torch.bernoulli(new_data), requires_grad=False)
+    mask = Variable(1.0 / (1 - dropout_p) * torch.bernoulli(new_data), requires_grad=False)
     return mask
 
 
@@ -51,10 +53,12 @@ class Classifier(nn.Module):
         scores = self.proj(x)
         return scores
 
+
 class SANClassifier(nn.Module):
     """Implementation of Stochastic Answer Networks for Natural Language Inference, Xiaodong Liu, Kevin Duh and Jianfeng Gao
     https://arxiv.org/abs/1804.07888
     """
+
     def __init__(self, x_size, h_size, label_size, opt={}, prefix='decoder', dropout=None):
         super(SANClassifier, self).__init__()
         if dropout is None:
@@ -65,7 +69,7 @@ class SANClassifier(nn.Module):
         self.query_wsum = SelfAttnWrapper(x_size, prefix='mem_cum', opt=opt, dropout=self.dropout)
         self.attn = FlatSimilarityWrapper(x_size, h_size, prefix, opt, self.dropout)
         self.rnn_type = '{}{}'.format(opt.get('{}_rnn_type'.format(prefix), 'gru').upper(), 'Cell')
-        self.rnn =getattr(nn, self.rnn_type)(x_size, h_size)
+        self.rnn = getattr(nn, self.rnn_type)(x_size, h_size)
         self.num_turn = opt.get('{}_num_turn'.format(prefix), 5)
         self.opt = opt
         self.mem_random_drop = opt.get('{}_mem_drop_p'.format(prefix), 0)
@@ -99,7 +103,8 @@ class SANClassifier(nn.Module):
         if self.mem_type == 1:
             mask = generate_mask(self.alpha.data.new(x.size(0), self.num_turn), self.mem_random_drop, self.training)
             mask = [m.contiguous() for m in torch.unbind(mask, 1)]
-            tmp_scores_list = [mask[idx].view(x.size(0), 1).expand_as(inp) * F.softmax(inp, 1) for idx, inp in enumerate(scores_list)]
+            tmp_scores_list = [mask[idx].view(x.size(0), 1).expand_as(inp) * F.softmax(inp, 1) for idx, inp in
+                               enumerate(scores_list)]
             scores = torch.stack(tmp_scores_list, 2)
             scores = torch.mean(scores, 2)
             scores = torch.log(scores)

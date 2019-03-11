@@ -1,12 +1,15 @@
 # Copyright (c) Microsoft. All rights reserved.
 import random
-import torch
-import numpy
-from torch.autograd import Variable
 import subprocess
+
+import numpy
+import torch
+from torch.autograd import Variable
+
 
 class AverageMeter(object):
     """Computes and stores the average and current value."""
+
     def __init__(self):
         self.reset()
 
@@ -22,6 +25,7 @@ class AverageMeter(object):
         self.count += n
         self.avg = self.sum / self.count
 
+
 def set_environment(seed, set_cuda=False):
     random.seed(seed)
     numpy.random.seed(seed)
@@ -29,12 +33,14 @@ def set_environment(seed, set_cuda=False):
     if torch.cuda.is_available() and set_cuda:
         torch.cuda.manual_seed_all(seed)
 
+
 def patch_var(v, cuda=True):
     if cuda:
         v = Variable(v.cuda(async=True))
     else:
         v = Variable(v)
     return v
+
 
 def get_gpu_memory_map():
     result = subprocess.check_output(
@@ -45,6 +51,7 @@ def get_gpu_memory_map():
     gpu_memory = [int(x) for x in result.strip().split('\n')]
     gpu_memory_map = dict(zip(range(len(gpu_memory)), gpu_memory))
     return gpu_memory_map
+
 
 def get_pip_env():
     result = subprocess.call(["pip", "freeze"])
