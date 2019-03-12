@@ -13,12 +13,12 @@ mkdir ${BERT_DIR}
 
 ## DOWNLOAD GLUE DATA
 ## Please refer glue-baseline install requirments or other issues.
-git clone https://github.com/nyu-mll/GLUE-baselines.git
-cd GLUE-baselines
-python download_glue_data.py --data_dir glue_data --tasks all
-mv glue_data/* $DATA_DIR
+git clone https://github.com/jsalt18-sentence-repl/jiant.git
+cd jiant
+python scripts/download_glue_data.py --data_dir $DATA_DIR --tasks all
+
 cd ..
-rm -rf GLUE-baselines
+rm -rf jiant
 #########################
 
 ## DOWNLOAD SciTail 
