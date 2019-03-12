@@ -3,6 +3,7 @@ import math
 import torch
 from torch.optim import Optimizer
 from torch.nn.utils import clip_grad_norm_
+from pytorch_pretrained_bert.optimization import warmup_constant, warmup_cosine, warmup_linear
 
 
 def warmup_linear_xdl(x, warmup=0.002):
@@ -15,7 +16,7 @@ def schedule_func(sch):
     try:
         f = eval(sch)
     except:
-        f = linear
+        f = warmup_linear
     return f
 
 
