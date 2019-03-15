@@ -42,7 +42,7 @@ class MTDNNModel(object):
             ]
         # note that adamax are modified based on the BERT code
         if opt['optimizer'] == 'sgd':
-            self.optimizer = optim.sgd(parameters, opt['learning_rate'],
+            self.optimizer = optim.sgd(optimizer_parameters, opt['learning_rate'],
                                        weight_decay=opt['weight_decay'])
 
         elif opt['optimizer'] == 'adamax':
@@ -50,7 +50,8 @@ class MTDNNModel(object):
                                         opt['learning_rate'],
                                         warmup=opt['warmup'],
                                         t_total=num_train_step,
-                                        max_grad_norm=opt['grad_clipping'])
+                                        max_grad_norm=opt['grad_clipping'],
+                                        schedule=opt['warmup_schedule'])
             if opt.get('have_lr_scheduler', False): opt['have_lr_scheduler'] = False
         elif opt['optimizer'] == 'adadelta':
             self.optimizer = optim.Adadelta(optimizer_parameters,
@@ -61,7 +62,8 @@ class MTDNNModel(object):
                                         lr=opt['learning_rate'],
                                         warmup=opt['warmup'],
                                         t_total=num_train_step,
-                                        max_grad_norm=opt['grad_clipping'])
+                                        max_grad_norm=opt['grad_clipping'],
+                                        schedule=opt['warmup_schedule'])
             if opt.get('have_lr_scheduler', False): opt['have_lr_scheduler'] = False
         else:
             raise RuntimeError('Unsupported optimizer: %s' % opt['optimizer'])

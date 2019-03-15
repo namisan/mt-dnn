@@ -14,7 +14,7 @@ def schedule_func(sch):
     try:
         f = eval(sch)
     except:
-        f = linear
+        f = warmup_linear
     return f
 
 class Adamax(Optimizer):
