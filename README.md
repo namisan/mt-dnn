@@ -2,9 +2,10 @@
 
 This PyTorch package implements the Multi-Task Deep Neural Networks (MT-DNN) for Natural Language Understanding, as described in:
 
-Xiaodong Liu, Pengcheng He, Weizhu Chen and Jianfeng Gao<br/>
+Xiaodong Liu\*, Pengcheng He\*, Weizhu Chen and Jianfeng Gao<br/>
 Multi-Task Deep Neural Networks for Natural Language Understanding<br/>
-[arXiv version](https://arxiv.org/abs/1901.11504) 
+[arXiv version](https://arxiv.org/abs/1901.11504) <br/>
+\*: Equal contribution
 
 
 ## Quickstart 
@@ -53,7 +54,7 @@ Here, we preovide two examples, STS-B and RTE. You can use similar scripts to fi
    ```> scripts\run_rte.sh``` </br>
    You should get about 83.8 on RTE dev in terms of accuracy. </br>  
 
-###SciTail & SNIL Result reproduce (Domain Adaptation)
+### SciTail & SNIL Result reproduce (Domain Adaptation)
 1. Domain Adaptation on SciTail  </br>
    ```>scripts\scitail_domain_adaptation_bash.sh```
 
@@ -65,7 +66,7 @@ BERT pytorch is from: https://github.com/huggingface/pytorch-pretrained-BERT <br
 BERT : https://github.com/google-research/bert <br/>
 We also used some code from: https://github.com/kevinduh/san_mrc <br/>
 
-###How do I cite MT-DNN?
+### How do I cite MT-DNN?
 
 For now, please cite [arXiv version](https://arxiv.org/abs/1901.11504):
 
