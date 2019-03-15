@@ -139,9 +139,6 @@ class MTDNNModel(object):
             else:
                 loss = F.cross_entropy(logits, y)
 
-        if self.config['bert_l2norm'] > 0:
-            loss = loss + self.config['bert_l2norm'] * self.network.bertl2norm()
-
         self.train_loss.update(loss.item(), logits.size(0))
         self.optimizer.zero_grad()
 
