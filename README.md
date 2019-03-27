@@ -61,6 +61,27 @@ Here, we provide two examples, STS-B and RTE. You can use similar scripts to fin
 2. Domain Adaptation on SNLI </br>
   ```>scripts\snli_domain_adaptation_bash.sh```
 
+
+## FAQ
+
+### Do you shared the pretrained mt-dnn models?
+Yes. After you clone the code, you may run the sh ```>sh download.sh```, and then you will find two models under the mt_dnn_modles folder: mt_dnn_base.pt is a multi-task refinement model based on Bert_base while mt-dnn_large.pt is a multi-task refinement based on Bert_Large
+
+### Why SciTail doesn't enable SAN?
+SAN is a technique we introduced in the GLUE leaderboard. We run SciTail experiment for the SailTail leaderboard before we start the GLUE effort
+
+### What is the difference between V1 and V2
+The difference is in the QNLI dataset. Please refere to the GLUE official homepage for more details. 
+
+### Do you fine-tune single task for your GLUE leaderboard submission? 
+We can use the multi-task refinement model to run the prediction and produce a reasonable result. But to achieve a better result, it requires a fine-tuneing on each task. It is worthing noting the paper in arxiv is a littled out-dated and on the old GLUE dataset. We will update the paper as we mentioned below. 
+
+## Notes and Acknowledgments
+BERT pytorch is from: https://github.com/huggingface/pytorch-pretrained-BERT <br/>
+BERT: https://github.com/google-research/bert <br/>
+We also used some code from: https://github.com/kevinduh/san_mrc <br/>
+
+
 ## Notes and Acknowledgments
 BERT pytorch is from: https://github.com/huggingface/pytorch-pretrained-BERT <br/>
 BERT: https://github.com/google-research/bert <br/>
