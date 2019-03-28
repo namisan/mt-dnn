@@ -20,7 +20,7 @@ from pytorch_pretrained_bert.modeling import BertConfig
 
 def model_config(parser):
     parser.add_argument('--update_bert_opt',  default=0, type=int)
-    parser.add_argument('--multi_gpu_on', action='store_false')
+    parser.add_argument('--multi_gpu_on', action='store_true')
     parser.add_argument('--mem_cum_type', type=str, default='simple',
                         help='bilinear/simple/defualt')
     parser.add_argument('--answer_num_turn', type=int, default=5)
@@ -38,9 +38,9 @@ def model_config(parser):
     parser.add_argument('--answer_weight_norm_on', action='store_true')
     parser.add_argument('--dump_state_on', action='store_true')
     parser.add_argument('--answer_opt', type=int, default=0, help='0,1')
-    parser.add_argument('--label_size', type=str, default='3,3,2')
-    parser.add_argument('--mtl_opt', type=int, default=1)
-    parser.add_argument('--ratio', type=float, default=0.5)
+    parser.add_argument('--label_size', type=str, default='3')
+    parser.add_argument('--mtl_opt', type=int, default=0)
+    parser.add_argument('--ratio', type=float, default=0)
     parser.add_argument('--mix_opt', type=int, default=0)
     parser.add_argument('--max_seq_len', type=int, default=512)
     parser.add_argument('--init_ratio', type=float, default=1)
