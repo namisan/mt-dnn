@@ -17,26 +17,26 @@ Multi-Task Deep Neural Networks for Natural Language Understanding<br/>
 2. install requirements </br>
    ```> pip install -r requirements.txt```
 
-#### Use  docker:
-1. pull docker </br>
+#### Use docker:
+1. Pull docker </br>
    ```> docker pull allenlao/pytorch-mt-dnn:v0.1```
 
-2. run docker </br>
+2. Run docker </br>
    ```> docker run -it --rm --runtime nvidia  allenlao/pytorch-mt-dnn:v0.1 bash``` </br>
     Please refere the following link if you first use docker: https://docs.docker.com/
 
 ### Train a toy MT-DNN model
-1. download data </br>
+1. Download data </br>
    ```> sh download.sh``` </br>
    Please refer to download GLUE dataset: https://gluebenchmark.com/
 
-2. preprocess data </br>
+2. Preprocess data </br>
    ```> python prepro.py```
 
-3. training </br>
+3. Training </br>
    ```> python train.py```
 
-**Note that we ran experiments on 4 V100 GPUs for base mt-dnn models. You may need to reduce batch size for other GPUs.** <br/>
+**Note that we ran experiments on 4 V100 GPUs for base MT-DNN models. You may need to reduce batch size for other GPUs.** <br/>
 
 ### GLUE Result reproduce
 1. MTL refinement: refine MT-DNN (shared layers), initialized with the pre-trained BERT model, via MTL using all GLUE tasks excluding WNLI to learn a new shared representation. </br>
@@ -46,7 +46,7 @@ Multi-Task Deep Neural Networks for Natural Language Understanding<br/>
    ```>scripts\run_mt_dnn.sh```
 
 2. Finetuning: finetune MT-DNN to each of the GLUE tasks to get task-specific models. </br>
-Here, we preovide two examples, STS-B and RTE. You can use similar scripts to finetune all the GLUE tasks. </br>
+Here, we provide two examples, STS-B and RTE. You can use similar scripts to finetune all the GLUE tasks. </br>
    + Finetune on the STS-B task </br>
    ```> scripts\run_stsb.sh``` </br>
    You should get about 90.5/90.4 on STS-B dev in terms of Pearson/Spearman correlation. </br>
@@ -63,7 +63,7 @@ Here, we preovide two examples, STS-B and RTE. You can use similar scripts to fi
 
 ## Notes and Acknowledgments
 BERT pytorch is from: https://github.com/huggingface/pytorch-pretrained-BERT <br/>
-BERT : https://github.com/google-research/bert <br/>
+BERT: https://github.com/google-research/bert <br/>
 We also used some code from: https://github.com/kevinduh/san_mrc <br/>
 
 ### How do I cite MT-DNN?
