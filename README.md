@@ -71,18 +71,13 @@ To obtain the similar models:
 2. strip the task-specific layers via ```scritps\strip_model.py```. </br>
 
 ### Why SciTail/SNLI do not enable SAN?
-For SciTail/SNLI tasks, the purpose is to test generalization of the learned embedding and how easy it is adapted to a new domain instead of complicated model structures for a direct comparison with BERT. Thus, we use a linear projection on the all domain adaptation settings.
+For SciTail/SNLI tasks, the purpose is to test generalization of the learned embedding and how easy it is adapted to a new domain instead of complicated model structures for a direct comparison with BERT. Thus, we use a linear projection on the all **domain adaptation** settings.
 
 ### What is the difference between V1 and V2
 The difference is in the QNLI dataset. Please refere to the GLUE official homepage for more details. 
 
 ### Do you fine-tune single task for your GLUE leaderboard submission? 
 We can use the multi-task refinement model to run the prediction and produce a reasonable result. But to achieve a better result, it requires a fine-tuneing on each task. It is worthing noting the paper in arxiv is a littled out-dated and on the old GLUE dataset. We will update the paper as we mentioned below. 
-
-## Notes and Acknowledgments
-BERT pytorch is from: https://github.com/huggingface/pytorch-pretrained-BERT <br/>
-BERT: https://github.com/google-research/bert <br/>
-We also used some code from: https://github.com/kevinduh/san_mrc <br/>
 
 
 ## Notes and Acknowledgments
