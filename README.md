@@ -52,7 +52,7 @@ Here, we provide two examples, STS-B and RTE. You can use similar scripts to fin
    You should get about 90.5/90.4 on STS-B dev in terms of Pearson/Spearman correlation. </br>
    + Finetune on the RTE task  </br>
    ```> scripts\run_rte.sh``` </br>
-   You should get about 83.8 on RTE dev in terms of accuracy. </br>  
+   You should get about 83.8 on RTE dev in terms of accuracy. </br>
 
 ### SciTail & SNIL Result reproduce (Domain Adaptation)
 1. Domain Adaptation on SciTail  </br>
@@ -65,10 +65,13 @@ Here, we provide two examples, STS-B and RTE. You can use similar scripts to fin
 ## FAQ
 
 ### Do you shared the pretrained mt-dnn models?
-Yes. After you clone the code, you may run the sh ```>sh download.sh```, and then you will find two models under the mt_dnn_modles folder: mt_dnn_base.pt is a multi-task refinement model based on Bert_base while mt-dnn_large.pt is a multi-task refinement based on Bert_Large
+Yes, we released the pretrained shared embedings via MTL which are aliged to BERT base/large models: ```mt_dnn_base.pt``` and ```mt_dnn_large.pt```. </br>
+To obtain the similar models:
+1. run the sh ```>sh download.sh```, and then pick the best checkpoint based on the average dev preformance of MNLI/RTE. </br>
+2. strip the task-specific layers via ```scritps\strip_model.py```. </br>
 
-### Why SciTail doesn't enable SAN?
-SAN is a technique we introduced in the GLUE leaderboard. We run SciTail experiment for the SailTail leaderboard before we start the GLUE effort
+### Why SciTail/SNLI do not enable SAN?
+For SciTail/SNLI tasks, the purpose is to test generalization of the learned embedding and how easy it is adapted to a new domain instead of complicated model structures for a direct comparison with BERT. Thus, we use a linear projection on the all domain adaptation settings.
 
 ### What is the difference between V1 and V2
 The difference is in the QNLI dataset. Please refere to the GLUE official homepage for more details. 
