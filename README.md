@@ -65,7 +65,7 @@ Here, we provide two examples, STS-B and RTE. You can use similar scripts to fin
 ## FAQ
 
 ### Do you shared the pretrained mt-dnn models?
-Yes, we released the pretrained shared embedings via MTL which are aliged to BERT base/large models: ```mt_dnn_base.pt``` and ```mt_dnn_large.pt```. </br>
+Yes, we released the pretrained shared embedings via MTL which are aligned to BERT base/large models: ```mt_dnn_base.pt``` and ```mt_dnn_large.pt```. </br>
 To obtain the similar models:
 1. run the ```>sh scripts\run_mt_dnn.sh```, and then pick the best checkpoint based on the average dev preformance of MNLI/RTE. </br>
 2. strip the task-specific layers via ```scritps\strip_model.py```. </br>
