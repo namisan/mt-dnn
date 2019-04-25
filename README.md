@@ -66,7 +66,7 @@ Here, we provide two examples, STS-B and RTE. You can use similar scripts to fin
   ```>scripts\snli_domain_adaptation_bash.sh```
 
 ### TODO
-[ ] Release codes/models MT-DNN with Knowledge Distillation.
+[ ] Release codes/models MT-DNN with Knowledge Distillation. </br>
 [ ] Publish pretrained Tensorflow checkpoints.
 
 ## FAQ
