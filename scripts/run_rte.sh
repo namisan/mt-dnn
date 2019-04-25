@@ -14,7 +14,7 @@ train_datasets="rte"
 test_datasets="rte"
 MODEL_ROOT="checkpoints"
 BERT_PATH="../mt_dnn_models/mt_dnn_large.pt"
-DATA_DIR="../data"
+DATA_DIR="../data/mt_dnn"
 
 answer_opt=0
 optim="adamax"
