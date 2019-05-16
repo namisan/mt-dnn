@@ -8,7 +8,7 @@ Multi-Task Deep Neural Networks for Natural Language Understanding<br/>
 \*: Equal contribution <br/>
 
 Xiaodong Liu, Pengcheng He, Weizhu Chen and Jianfeng Gao<br/>
-Improving Multi-Task Deep Neural Networks via Knowledge Distillation for Natural Language Understanding
+Improving Multi-Task Deep Neural Networks via Knowledge Distillation for Natural Language Understanding <br/>
 [arXiv version](https://arxiv.org/abs/1904.09482) <br/>
 
 
