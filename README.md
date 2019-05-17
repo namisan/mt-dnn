@@ -16,7 +16,7 @@ Improving Multi-Task Deep Neural Networks via Knowledge Distillation for Natural
 
 ### Setup Environment
 #### Install via pip:
-1. python3.6
+1. python3.6 </br>
    Reference to download and install : https://www.python.org/downloads/release/python-360/
 
 2. install requirements </br>
