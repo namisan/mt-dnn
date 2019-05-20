@@ -117,7 +117,7 @@ def load_qnnli(file, label_dict, header=True, is_train=True):
             block2 = lines[idx + 1].strip().split('\t')
             # train shuffle
             assert len(block1) > 2 and len(block2) > 2
-            if is_train and block1[1] != block2[1]:
+            if block1[1] != block2[1]:
                 mis_matched_cnt += 1
                 continue
             assert block1[1] == block2[1]
