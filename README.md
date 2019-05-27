@@ -16,7 +16,8 @@ Improving Multi-Task Deep Neural Networks via Knowledge Distillation for Natural
 
 ### Setup Environment
 #### Install via pip:
-1. python3.6
+1. python3.6 </br>
+   Reference to download and install : https://www.python.org/downloads/release/python-360/
 
 2. install requirements </br>
    ```> pip install -r requirements.txt```
@@ -27,7 +28,7 @@ Improving Multi-Task Deep Neural Networks via Knowledge Distillation for Natural
 
 2. Run docker </br>
    ```> docker run -it --rm --runtime nvidia  allenlao/pytorch-mt-dnn:v0.1 bash``` </br>
-    Please refere the following link if you first use docker: https://docs.docker.com/
+   Please refer to the following link if you first use docker: https://docs.docker.com/
 
 ### Train a toy MT-DNN model
 1. Download data </br>
@@ -71,7 +72,7 @@ Here, we provide two examples, STS-B and RTE. You can use similar scripts to fin
 
 ## FAQ
 
-### Do you shared the pretrained mt-dnn models?
+### Did you share the pretrained mt-dnn models?
 Yes, we released the pretrained shared embedings via MTL which are aligned to BERT base/large models: ```mt_dnn_base.pt``` and ```mt_dnn_large.pt```. </br>
 To obtain the similar models:
 1. run the ```>sh scripts\run_mt_dnn.sh```, and then pick the best checkpoint based on the average dev preformance of MNLI/RTE. </br>
@@ -83,7 +84,7 @@ For SciTail/SNLI tasks, the purpose is to test generalization of the learned emb
 ### What is the difference between V1 and V2
 The difference is in the QNLI dataset. Please refere to the GLUE official homepage for more details. 
 
-### Do you fine-tune single task for your GLUE leaderboard submission? 
+### Did you fine-tune single task for your GLUE leaderboard submission? 
 We can use the multi-task refinement model to run the prediction and produce a reasonable result. But to achieve a better result, it requires a fine-tuneing on each task. It is worthing noting the paper in arxiv is a littled out-dated and on the old GLUE dataset. We will update the paper as we mentioned below. 
 
 
