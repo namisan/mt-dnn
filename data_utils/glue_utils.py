@@ -1,5 +1,4 @@
 # Copyright (c) Microsoft. All rights reserved.
-import json
 import numpy as np
 from random import shuffle
 from .label_map import METRIC_FUNC, METRIC_META, METRIC_NAME
