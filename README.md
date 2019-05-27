@@ -82,7 +82,9 @@ To obtain the similar models:
 For SciTail/SNLI tasks, the purpose is to test generalization of the learned embedding and how easy it is adapted to a new domain instead of complicated model structures for a direct comparison with BERT. Thus, we use a linear projection on the all **domain adaptation** settings.
 
 ### What is the difference between V1 and V2
-The difference is in the QNLI dataset. Please refere to the GLUE official homepage for more details. 
+The difference is in the QNLI dataset. Please refere to the GLUE official homepage for more details. If you want to formulate QNLI as pair-wise ranking task as our paper, make sure that you use the old QNLI data. </br>
+Then run the prepro script with flags:   ```> python prepro.py --old_glue``` </br>
+If you have issues to access the old version of the data, please contact the GLUE team.
 
 ### Did you fine-tune single task for your GLUE leaderboard submission? 
 We can use the multi-task refinement model to run the prediction and produce a reasonable result. But to achieve a better result, it requires a fine-tuneing on each task. It is worthing noting the paper in arxiv is a littled out-dated and on the old GLUE dataset. We will update the paper as we mentioned below. 
