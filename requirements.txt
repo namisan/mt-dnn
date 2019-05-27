@@ -4,3 +4,6 @@ tqdm
 colorlog
 boto3
 pytorch-pretrained-bert==v0.6.0
+regex
+spacy
+sklearn
