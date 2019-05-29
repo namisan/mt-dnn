@@ -36,10 +36,18 @@ class MTDNNModel(object):
         self.total_param = sum([p.nelement() for p in self.network.parameters() if p.requires_grad])
 
         no_decay = ['bias', 'gamma', 'beta', 'LayerNorm.bias', 'LayerNorm.weight']
-        optimizer_parameters = [
-            {'params': [p for n, p in self.network.named_parameters() if n not in no_decay], 'weight_decay_rate': 0.01},
-            {'params': [p for n, p in self.network.named_parameters() if n in no_decay], 'weight_decay_rate': 0.0}
-            ]
+
+        group0 = {'params': [], 'weight_decay_rate': 0.01, 'names': []}
+        group1 = {'params': [], 'weight_decay_rate': 0.0, 'names': []}
+        for n, p in self.network.named_parameters():
+            if not any(nd in n for nd in no_decay):
+                group0['params'].append(p)
+                group0['names'].append(n)
+            else:
+                group1['params'].append(p)
+                group1['names'].append(n)
+        optimizer_parameters = [group0, group1]
+
         # note that adamax are modified based on the BERT code
         if opt['optimizer'] == 'sgd':
             self.optimizer = optim.sgd(optimizer_parameters, opt['learning_rate'],
