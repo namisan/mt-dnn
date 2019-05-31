@@ -88,13 +88,14 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Preprocessing GLUE/SNLI/SciTail dataset.')
     parser.add_argument('--seed', type=int, default=13)
     parser.add_argument('--root_dir', type=str, default='data')
+    parser.add_argument('--old_glue', action='store_true', help='whether it is old GLUE, refer official GLUE webpage for details')
     args = parser.parse_args()
     return args
 
 def main(args):
     root = args.root_dir
     assert os.path.exists(root)
-
+    is_old_glue = args.old_glue
     ######################################
     # SNLI/SciTail Tasks
     ######################################
@@ -190,12 +191,13 @@ def main(args):
     logger.info('Loaded {} QNLI dev samples'.format(len(qnli_dev_data)))
     logger.info('Loaded {} QNLI test samples'.format(len(qnli_test_data)))
     
-    qnnli_train_data = load_qnnli(qnli_train_path, GLOBAL_MAP['qnli'])
-    qnnli_dev_data = load_qnnli(qnli_dev_path, GLOBAL_MAP['qnli'])
-    qnnli_test_data = load_qnnli(qnli_test_path, GLOBAL_MAP['qnli'], is_train=False)
-    logger.info('Loaded {} QNLI train samples'.format(len(qnli_train_data)))
-    logger.info('Loaded {} QNLI dev samples'.format(len(qnli_dev_data)))
-    logger.info('Loaded {} QNLI test samples'.format(len(qnli_test_data)))
+    if is_old_glue:
+        qnnli_train_data = load_qnnli(qnli_train_path, GLOBAL_MAP['qnli'])
+        qnnli_dev_data = load_qnnli(qnli_dev_path, GLOBAL_MAP['qnli'])
+        qnnli_test_data = load_qnnli(qnli_test_path, GLOBAL_MAP['qnli'], is_train=False)
+        logger.info('Loaded {} QNLI train samples'.format(len(qnli_train_data)))
+        logger.info('Loaded {} QNLI dev samples'.format(len(qnli_dev_data)))
+        logger.info('Loaded {} QNLI test samples'.format(len(qnli_test_data)))
 
     qqp_train_data = load_qqp(qqp_train_path)
     qqp_dev_data = load_qqp(qqp_dev_path)
@@ -290,14 +292,15 @@ def main(args):
     build_data(qnli_test_data, qnli_test_fout)
     logger.info('done with qnli')
 
-    qnli_train_fout = os.path.join(mt_dnn_root, 'qnnli_train.json')
-    qnli_dev_fout = os.path.join(mt_dnn_root, 'qnnli_dev.json')
-    qnli_test_fout = os.path.join(mt_dnn_root, 'qnnli_test.json')
-    qnli_dev_gold_fout = os.path.join(mt_dnn_root, 'qnli_gold_dev.tsv')
-    build_qnli(qnnli_train_data, qnli_train_fout)
-    build_qnli(qnnli_dev_data, qnli_dev_fout)
-    build_qnli(qnnli_train_data, qnli_test_fout)
-    logger.info('done with qnli')
+    if is_old_glue:
+        qnli_train_fout = os.path.join(mt_dnn_root, 'qnnli_train.json')
+        qnli_dev_fout = os.path.join(mt_dnn_root, 'qnnli_dev.json')
+        qnli_test_fout = os.path.join(mt_dnn_root, 'qnnli_test.json')
+        qnli_dev_gold_fout = os.path.join(mt_dnn_root, 'qnli_gold_dev.tsv')
+        build_qnli(qnnli_train_data, qnli_train_fout)
+        build_qnli(qnnli_dev_data, qnli_dev_fout)
+        build_qnli(qnnli_train_data, qnli_test_fout)
+        logger.info('done with qnli')
 
     qqp_train_fout = os.path.join(mt_dnn_root, 'qqp_train.json')
     qqp_dev_fout = os.path.join(mt_dnn_root, 'qqp_dev.json')
