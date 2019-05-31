@@ -34,6 +34,8 @@ class MTDNNModel(object):
             self.network.load_state_dict(state_dict['state'])
         self.mnetwork = nn.DataParallel(self.network) if opt['multi_gpu_on'] else self.network
         self.total_param = sum([p.nelement() for p in self.network.parameters() if p.requires_grad])
+        if opt['cuda']:
+            self.network.cuda()
 
         no_decay = ['bias', 'gamma', 'beta', 'LayerNorm.bias', 'LayerNorm.weight']
 
@@ -86,6 +88,8 @@ class MTDNNModel(object):
         self.ema = None
         if opt['ema_opt'] > 0:
             self.ema = EMA(self.config['ema_gamma'], self.network)
+            if opt['cuda']:
+                self.ema.cuda()
         self.para_swapped=False
 
     def setup_ema(self):
