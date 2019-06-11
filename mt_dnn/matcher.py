@@ -13,7 +13,7 @@ from module.san import SANClassifier, Classifier
 class SANBertNetwork(nn.Module):
     def __init__(self, opt, bert_config=None):
         super(SANBertNetwork, self).__init__()
-        self.dropout_list = []
+        self.dropout_list = nn.ModuleList()
         self.bert_config = BertConfig.from_dict(opt)
         self.bert = BertModel(self.bert_config)
         if opt['update_bert_opt'] > 0:
