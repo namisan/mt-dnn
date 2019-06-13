@@ -109,6 +109,11 @@ class MTDNNModel(object):
     def update(self, batch_meta, batch_data):
         self.network.train()
         labels = batch_data[batch_meta['label']]
+        soft_labels = None
+        temperature = 1.0
+        if self.config.get('mkd_opt', 0) > 0 and ('soft_label' in batch_meta):
+            soft_labels = batch_meta['soft_label']
+
         if batch_meta['pairwise']:
             labels = labels.contiguous().view(-1, batch_meta['pairwise_size'])[:, 0]
         if self.config['cuda']:
@@ -135,11 +140,19 @@ class MTDNNModel(object):
                 loss = torch.mean(F.mse_loss(logits.squeeze(), y, reduce=False) * weight)
             else:
                 loss = torch.mean(F.cross_entropy(logits, y, reduce=False) * weight)
+                if soft_labels is not None:
+                    # compute KL
+                    kd_loss = F.kl_div(F.log_softmax(logits.view(-1, soft_labels.size(1)).float(), 1), soft_labels)
+                    loss = loss + kd_loss
         else:
             if task_type > 0:
                 loss = F.mse_loss(logits.squeeze(), y)
             else:
                 loss = F.cross_entropy(logits, y)
+                if soft_labels is not None:
+                    # compute KL
+                    kd_loss = F.kl_div(F.log_softmax(logits.view(-1, soft_labels.size(1)).float(), 1), soft_labels)
+                    loss = loss + kd_loss
 
         self.train_loss.update(loss.item(), logits.size(0))
         self.optimizer.zero_grad()
