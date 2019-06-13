@@ -142,7 +142,8 @@ class MTDNNModel(object):
                 loss = torch.mean(F.cross_entropy(logits, y, reduce=False) * weight)
                 if soft_labels is not None:
                     # compute KL
-                    kd_loss = F.kl_div(F.log_softmax(logits.view(-1, soft_labels.size(1)).float(), 1), soft_labels)
+                    label_size = soft_labels.size(1)
+                    kd_loss = F.kl_div(F.log_softmax(logits.view(-1, label_size).float(), 1), soft_labels) * label_size
                     loss = loss + kd_loss
         else:
             if task_type > 0:
@@ -151,7 +152,8 @@ class MTDNNModel(object):
                 loss = F.cross_entropy(logits, y)
                 if soft_labels is not None:
                     # compute KL
-                    kd_loss = F.kl_div(F.log_softmax(logits.view(-1, soft_labels.size(1)).float(), 1), soft_labels)
+                    label_size = soft_labels.size(1)
+                    kd_loss = F.kl_div(F.log_softmax(logits.view(-1, label_size).float(), 1), soft_labels) * label_size
                     loss = loss + kd_loss
 
         self.train_loss.update(loss.item(), logits.size(0))
