@@ -195,7 +195,9 @@ def load_wnli(file, header=True, is_train=True):
             lab = 0
             if is_train:
                 lab = int(blocks[-1])
-            sample = {'uid': cnt, 'premise': blocks[-2], 'hypothesis': blocks[-1], 'label': lab}
+                sample = {'uid': cnt, 'premise': blocks[-3], 'hypothesis': blocks[-2], 'label': lab}
+            else:
+                sample = {'uid': cnt, 'premise': blocks[-2], 'hypothesis': blocks[-1], 'label': lab}
             rows.append(sample)
             cnt += 1
     return rows
