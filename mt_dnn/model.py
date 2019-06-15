@@ -153,6 +153,9 @@ class MTDNNModel(object):
                 if soft_labels is not None:
                     # compute KL
                     label_size = soft_labels.size(1)
+                    # note that kl_div return element-wised mean, thus it requires to time with the label size
+                    # In the pytorch v1.x, it simply uses the flag: reduction='batchmean'
+                    # TODO: updated the package to support the latest PyTorch (xiaodl)
                     kd_loss = F.kl_div(F.log_softmax(logits.view(-1, label_size).float(), 1), soft_labels) * label_size
                     loss = loss + kd_loss
 

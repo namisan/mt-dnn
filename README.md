@@ -36,7 +36,7 @@ Improving Multi-Task Deep Neural Networks via Knowledge Distillation for Natural
    Please refer to download GLUE dataset: https://gluebenchmark.com/
 
 2. Preprocess data </br>
-   ```> python prepro.py```
+   ```> python prepro.py --bert_model bert-base-uncased --do_lower_case```
 
 3. Training </br>
    ```> python train.py```
@@ -107,7 +107,6 @@ For now, please cite [arXiv version](https://arxiv.org/abs/1901.11504):
   year={2019}
 }
 
-and a new version of the paper will be shared later.
 
 @article{liu2019mt-dnn-kd,
   title={Improving Multi-Task Deep Neural Networks via Knowledge Distillation for Natural Language Understanding},
@@ -116,7 +115,6 @@ and a new version of the paper will be shared later.
   year={2019}
 }
 ```
-***Typo:*** there is no activation fuction in Equation 2. 
 ### Contact Information
 
 For help or issues using MT-DNN, please submit a GitHub issue.
