@@ -16,6 +16,9 @@ class SANBertNetwork(nn.Module):
         self.dropout_list = nn.ModuleList()
         self.bert_config = BertConfig.from_dict(opt)
         self.bert = BertModel(self.bert_config)
+        if opt.get('dump_feature', False):
+            self.opt = opt
+            return
         if opt['update_bert_opt'] > 0:
             for p in self.bert.parameters():
                 p.requires_grad = False

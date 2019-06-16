@@ -5,18 +5,15 @@ import os
 import random
 from datetime import datetime
 from pprint import pprint
-
 import numpy as np
 import torch
-
+from pytorch_pretrained_bert.modeling import BertConfig
 from data_utils.glue_utils import submit, eval_model
 from data_utils.label_map import DATA_META, GLOBAL_MAP, DATA_TYPE, DATA_SWAP, TASK_TYPE, generate_decoder_opt
 from data_utils.log_wrapper import create_logger
 from data_utils.utils import set_environment
 from mt_dnn.batcher import BatchGen
 from mt_dnn.model import MTDNNModel
-from pytorch_pretrained_bert.modeling import BertModel
-from pytorch_pretrained_bert.modeling import BertConfig
 
 def model_config(parser):
     parser.add_argument('--update_bert_opt',  default=0, type=int)
