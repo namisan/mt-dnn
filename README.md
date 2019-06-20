@@ -71,11 +71,11 @@ Here, we provide two examples, STS-B and RTE. You can use similar scripts to fin
 
 ### Extract embeddings
 1. Extracting embeddings of a pair text example </br>
-   ```>python extractor.py --finput input_examples\pair-input.txt --foutput input_examples\pair-output.json --bert_model bert-base-uncased --checkpoint mt_dnn_models\mt_dnn_base.pt``` </br>
+   ```>python extractor.py --do_lower_case --finput input_examples\pair-input.txt --foutput input_examples\pair-output.json --bert_model bert-base-uncased --checkpoint mt_dnn_models\mt_dnn_base.pt``` </br>
    Note that the pair of text is split by a special token ```|||```. You may refer ``` input_examples\pair-output.json``` as example. </br>
 
 2. Extracting embeddings of a single sentence example </br>
-   ```>python extractor.py --finput input_examples\single-input.txt --foutput input_examples\single-output.json --bert_model bert-base-uncased --checkpoint mt_dnn_models\mt_dnn_base.pt``` </br>
+   ```>python extractor.py  --do_lower_case --finput input_examples\single-input.txt --foutput input_examples\single-output.json --bert_model bert-base-uncased --checkpoint mt_dnn_models\mt_dnn_base.pt``` </br>
 
 ### TODO
 [ ] Publish pretrained Tensorflow checkpoints.
