@@ -13,8 +13,8 @@ tstr=$(date +"%FT%H%M")
 train_datasets="mnli,rte,qqp,qnli,mrpc,sst,cola,stsb"
 test_datasets="mnli_matched,mnli_mismatched,rte"
 MODEL_ROOT="checkpoints"
-BERT_PATH="../mt_dnn_models/bert_model_large.pt"
-DATA_DIR="../data/mt_dnn"
+BERT_PATH="../mt_dnn_models/bert_model_large_uncased.pt"
+DATA_DIR="../data/mt_dnn_uncased_lower"
 
 answer_opt=1
 optim="adamax"

@@ -13,8 +13,8 @@ tstr=$(date +"%FT%H%M")
 train_datasets="stsb"
 test_datasets="stsb"
 MODEL_ROOT="checkpoints"
-BERT_PATH="../mt_dnn_models/mt_dnn_large.pt"
-DATA_DIR="../data/mt_dnn"
+BERT_PATH="../mt_dnn_models/mt_dnn_large_uncased.pt"
+DATA_DIR="../data/mt_dnn_uncased_lower"
 
 answer_opt=0
 optim="adamax"

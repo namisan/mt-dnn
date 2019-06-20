@@ -1,4 +1,5 @@
-:tw-1f388::tw-1f388::tw-1f388: ***New Release: ***  1.  MT-DNN with Knowledge Distillation code and model; 2. Feature extraction script :tw-1f388::tw-1f388::tw-1f388:
+**New Release ** <br/>
+ MT-DNN with Knowledge Distillation code and model.
 
 # Multi-Task Deep Neural Networks for Natural Language Understanding
 
