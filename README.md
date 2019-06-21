@@ -78,6 +78,14 @@ Here, we provide two examples, STS-B and RTE. You can use similar scripts to fin
 2. Extracting embeddings of a single sentence example </br>
    ```>python extractor.py  --do_lower_case --finput input_examples\single-input.txt --foutput input_examples\single-output.json --bert_model bert-base-uncased --checkpoint mt_dnn_models\mt_dnn_base.pt``` </br>
 
+
+### Convert Tensorflow BERT model to the MT-DNN format
+Here, we go through how to convert a Chinese Tensorflow BERT model into mt-dnn format. <br/>
+1. Download BERT model from the Google bert web: https://github.com/google-research/bert <br/>
+
+2. Run the following script for MT-DNN format</br>
+   ```python scripts\convert_tf_to_pt.py --tf_checkpoint_root chinese_L-12_H-768_A-12\ --pytorch_checkpoint_path chinese_L-12_H-768_A-12\bert_base_chinese.pt```
+
 ### TODO
 [ ] Publish pretrained Tensorflow checkpoints.
 
