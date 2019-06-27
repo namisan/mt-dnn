@@ -134,3 +134,4 @@ bert_models
 run_baseline*
 mt_dnn_models
 *pyc
+run_test/
