@@ -2,12 +2,14 @@ import os
 import argparse
 from data_utils.log_wrapper import create_logger
 from data_utils.glue_utils_new import *
+import random
 
 logger = create_logger(__name__, to_disk=True, log_file='glue_prepro.log')
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Preprocessing GLUE/SNLI/SciTail dataset.')
+    parser.add_argument('--seed', type=int, default=13)
     parser.add_argument('--root_dir', type=str, default='data')
     parser.add_argument('--old_glue', action='store_true', help='whether it is old GLUE, refer official GLUE webpage for details')
     args = parser.parse_args()
@@ -115,6 +117,7 @@ def main(args):
     logger.info('Loaded {} QNLI test samples'.format(len(qnli_test_data)))
 
     if is_old_glue:
+        random.seed(args.seed)
         qnnli_train_data = load_qnnli(qnli_train_path)
         qnnli_dev_data = load_qnnli(qnli_dev_path)
         qnnli_test_data = load_qnnli(qnli_test_path, is_train=False)
@@ -265,13 +268,13 @@ def main(args):
     dump_rows(cola_test_data, cola_test_fout)
     logger.info('done with cola')
 
-    sst_train_fout = os.path.join(canonical_data_root, 'sst_train.tsv')
-    sst_dev_fout = os.path.join(canonical_data_root, 'sst_dev.tsv')
-    sst_test_fout = os.path.join(canonical_data_root, 'sst_test.tsv')
-    dump_rows(sst_train_data, sst_train_fout)
-    dump_rows(sst_dev_data, sst_dev_fout)
-    dump_rows(sst_test_data, sst_test_fout)
-    logger.info('done with sst')
+    stsb_train_fout = os.path.join(canonical_data_root, 'stsb_train.tsv')
+    stsb_dev_fout = os.path.join(canonical_data_root, 'stsb_dev.tsv')
+    stsb_test_fout = os.path.join(canonical_data_root, 'stsb_test.tsv')
+    dump_rows(stsb_train_data, stsb_train_fout)
+    dump_rows(stsb_dev_data, stsb_dev_fout)
+    dump_rows(stsb_test_data, stsb_test_fout)
+    logger.info('done with stsb')
 
 if __name__ == '__main__':
     args = parse_args()

@@ -1,0 +1,56 @@
+cola:
+  data_format: PremiseOnly
+  task_type: Classification
+mnli:
+  data_format: PremiseAndOneHypothesis
+  labels:
+  - contradiction
+  - neutral
+  - entailment
+  split_names:
+  - train
+  - matched_dev
+  - mismatched_dev
+  - matched_test
+  - mismatched_test
+  task_type: Classification
+mrpc:
+  data_format: PremiseAndOneHypothesis
+  task_type: Classification
+qnli:
+  data_format: PremiseAndOneHypothesis
+  labels:
+  - not_entailment
+  - entailment
+  task_type: Classification
+qqp:
+  data_format: PremiseAndOneHypothesis
+  task_type: Classification
+rte:
+  data_format: PremiseAndOneHypothesis
+  labels:
+  - not_entailment
+  - entailment
+  task_type: Classification
+scitail:
+  data_format: PremiseAndOneHypothesis
+  labels:
+  - neutral
+  - entails
+  task_type: Classification
+snli:
+  data_format: PremiseAndOneHypothesis
+  labels:
+  - contradiction
+  - neutral
+  - entailment
+  task_type: Classification
+sst:
+  data_format: PremiseOnly
+  task_type: Classification
+stsb:
+  data_format: PremiseAndOneHypothesis
+  task_type: Regression
+wnli:
+  data_format: PremiseAndOneHypothesis
+  task_type: Classification

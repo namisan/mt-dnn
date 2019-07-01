@@ -85,7 +85,7 @@ def load_qnli(file, header=True, is_train=True):
                 continue
             blocks = line.strip().split('\t')
             assert len(blocks) > 2
-            lab = "contradiction"
+            lab = "not_entailment"
             if is_train:
                 lab = blocks[-1]
             if lab is None:
@@ -130,7 +130,7 @@ def load_rte(file, header=True, is_train=True):
             blocks = line.strip().split('\t')
             if is_train and len(blocks) < 4: continue
             if not is_train: assert len(blocks) == 3
-            lab = "contradiction"
+            lab = "not_entailment"
             if is_train:
                 lab = blocks[-1]
                 sample = {'uid': int(blocks[0]), 'premise': blocks[-3], 'hypothesis': blocks[-2], 'label': lab}
@@ -269,7 +269,9 @@ def load_qnnli(file, header=True, is_train=True):
                     continue
             assert "," not in lab1
             assert "," not in lab2
-            sample = {'uid': cnt, 'premise': block1[1], 'hypothesis': [block1[2], block2[2]],
+            assert "," not in block1[0]
+            assert "," not in block2[0]
+            sample = {'uid': cnt, 'ruid': "%s,%s" % (block1[0], block2[0]), 'premise': block1[1], 'hypothesis': [block1[2], block2[2]],
                       'label': "%s,%s" % (lab1, lab2)}
             cnt += 1
             rows.append(sample)
@@ -277,9 +279,9 @@ def load_qnnli(file, header=True, is_train=True):
 
 from enum import Enum
 class DataFormat(Enum):
-    PREMISE_ONLY = 1
-    PREMISE_AND_ONE_HYPOTHESIS = 2
-    PREMISE_AND_MULTI_HYPOTHESIS = 3
+    PremiseOnly = 1
+    PremiseAndOneHypothesis = 2
+    PremiseAndMultiHypothesis = 3
 
 def dump_rows(rows, out_path):
     """
@@ -290,14 +292,14 @@ def dump_rows(rows, out_path):
     """
 
     def detect_format(row):
-        data_format = DataFormat.PREMISE_ONLY
+        data_format = DataFormat.PremiseOnly
         if "hypothesis" in row:
             hypo = row["hypothesis"]
             if isinstance(hypo, str):
-                data_format = DataFormat.PREMISE_AND_ONE_HYPOTHESIS
+                data_format = DataFormat.PremiseAndOneHypothesis
             else:
                 assert isinstance(hypo, list)
-                data_format = DataFormat.PREMISE_AND_MULTI_HYPOTHESIS
+                data_format = DataFormat.PremiseAndMultiHypothesis
         return data_format
 
     with open(out_path, "w") as out_f:
@@ -305,17 +307,17 @@ def dump_rows(rows, out_path):
         data_format = detect_format(row0)
         for row in rows:
             assert data_format == detect_format(row), row
-            if data_format == DataFormat.PREMISE_ONLY:
+            if data_format == DataFormat.PremiseOnly:
                 for col in ["uid", "label", "premise"]:
                     if "\t" in str(row[col]):
                         import pdb; pdb.set_trace()
                 out_f.write("%s\t%s\t%s\n" % (row["uid"], row["label"], row["premise"]))
-            elif data_format == DataFormat.PREMISE_AND_ONE_HYPOTHESIS:
+            elif data_format == DataFormat.PremiseAndOneHypothesis:
                 for col in ["uid", "label", "premise", "hypothesis"]:
                     if "\t" in str(row[col]):
                         import pdb; pdb.set_trace()
                 out_f.write("%s\t%s\t%s\t%s\n" % (row["uid"], row["label"], row["premise"], row["hypothesis"]))
-            else:
+            elif data_format == DataFormat.PremiseAndMultiHypothesis:
                 for col in ["uid", "label", "premise"]:
                     if "\t" in str(row[col]):
                         import pdb; pdb.set_trace()
@@ -324,7 +326,10 @@ def dump_rows(rows, out_path):
                     if "\t" in str(one_hypo):
                         import pdb; pdb.set_trace()
                 hypothesis = "\t".join(hypothesis)
-                out_f.write("%s\t%s\t%s\t%s\n" % (row["uid"], row["label"], row["premise"], hypothesis))
+                out_f.write("%s\t%s\t%s\t%s\t%s\n" % (row["uid"], row["ruid"], row["label"], row["premise"], hypothesis))
+            else:
+                raise ValueError(data_format)
+
 
 
 
