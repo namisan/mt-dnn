@@ -1,9 +1,8 @@
 # Copyright (c) Microsoft. All rights reserved.
-import numpy as np
 from random import shuffle
 from .label_map import METRIC_FUNC, METRIC_META, METRIC_NAME
 
-def load_scitail(file, label_dict):
+def load_scitail(file):
     """Loading data of scitail
     """
     rows = []
@@ -13,12 +12,12 @@ def load_scitail(file, label_dict):
             blocks = line.strip().split('\t')
             assert len(blocks) > 2
             if blocks[0] == '-': continue
-            sample = {'uid': str(cnt), 'premise': blocks[0], 'hypothesis': blocks[1], 'label': label_dict[blocks[2]]}
+            sample = {'uid': str(cnt), 'premise': blocks[0], 'hypothesis': blocks[1], 'label': blocks[2]}
             rows.append(sample)
             cnt += 1
     return rows
 
-def load_snli(file, label_dict, header=True):
+def load_snli(file, header=True):
     rows = []
     cnt = 0
     with open(file, encoding="utf8") as f:
@@ -29,16 +28,15 @@ def load_snli(file, label_dict, header=True):
             blocks = line.strip().split('\t')
             assert len(blocks) > 10
             if blocks[-1] == '-': continue
-            lab = label_dict[blocks[-1]]
+            lab = blocks[-1]
             if lab is None:
                 import pdb; pdb.set_trace()
-            lab = 0 if lab is None else lab
             sample = {'uid': blocks[0], 'premise': blocks[7], 'hypothesis': blocks[8], 'label': lab}
             rows.append(sample)
             cnt += 1
     return rows
 
-def load_mnli(file, label_dict, header=True, multi_snli=False, is_train=True):
+def load_mnli(file, header=True, multi_snli=False, is_train=True):
     rows = []
     cnt = 0
     with open(file, encoding="utf8") as f:
@@ -49,12 +47,11 @@ def load_mnli(file, label_dict, header=True, multi_snli=False, is_train=True):
             blocks = line.strip().split('\t')
             assert len(blocks) > 9
             if blocks[-1] == '-': continue
-            lab = 0
+            lab = "contradiction"
             if is_train:
-                lab = label_dict[blocks[-1]]
+                lab = blocks[-1]
             if lab is None:
                 import pdb; pdb.set_trace()
-            lab = 0 if lab is None else lab
             sample = {'uid': blocks[0], 'premise': blocks[8], 'hypothesis': blocks[9], 'label': lab}
             rows.append(sample)
             cnt += 1
@@ -78,7 +75,7 @@ def load_mrpc(file, header=True, is_train=True):
             cnt += 1
     return rows
 
-def load_qnli(file, label_dict, header=True, is_train=True):
+def load_qnli(file, header=True, is_train=True):
     """QNLI for classification"""
     rows = []
     cnt = 0
@@ -89,51 +86,14 @@ def load_qnli(file, label_dict, header=True, is_train=True):
                 continue
             blocks = line.strip().split('\t')
             assert len(blocks) > 2
-            lab = 0
+            lab = "not_entailment"
             if is_train:
-                lab = label_dict[blocks[-1]]
+                lab = blocks[-1]
             if lab is None:
                 import pdb; pdb.set_trace()
-            lab = 0 if lab is None else lab
             sample = {'uid': blocks[0], 'premise': blocks[1], 'hypothesis': blocks[2], 'label': lab}
             rows.append(sample)
             cnt += 1
-    return rows
-
-def load_qnnli(file, label_dict, header=True, is_train=True):
-    """QNLI for ranking"""
-    rows = []
-    mis_matched_cnt = 0
-    cnt = 0
-    with open(file, encoding="utf8") as f:
-        lines = f.readlines()
-        if header: lines = lines[1:]
-
-        assert len(lines) % 2 == 0
-        for idx in range(0, len(lines), 2):
-            block1 = lines[idx].strip().split('\t')
-            block2 = lines[idx + 1].strip().split('\t')
-            # train shuffle
-            assert len(block1) > 2 and len(block2) > 2
-            if is_train and block1[1] != block2[1]:
-                mis_matched_cnt += 1
-                continue
-            assert block1[1] == block2[1]
-            lab1, lab2 = 0, 0
-            if is_train:
-                blocks = [block1, block2]
-                shuffle(blocks)
-                block1 = blocks[0]
-                block2 = blocks[1]
-                lab1 = label_dict[block1[-1]]
-                lab2 = label_dict[block2[-1]]
-                if lab1 == lab2:
-                    mis_matched_cnt += 1
-                    continue
-            lab = int(np.argmax([lab1, lab2]))
-            sample = {'uid': cnt, 'premise': block1[1], 'hypothesis': [block1[2], block2[2]], 'label': lab, 'ruid':[block1[0], block2[0]], 'olabel':[lab1, lab2]}
-            cnt += 1
-            rows.append(sample)
     return rows
 
 def load_qqp(file, header=True, is_train=True):
@@ -160,7 +120,7 @@ def load_qqp(file, header=True, is_train=True):
             cnt += 1
     return rows
 
-def load_rte(file, label_dict, header=True, is_train=True):
+def load_rte(file, header=True, is_train=True):
     rows = []
     cnt = 0
     with open(file, encoding="utf8") as f:
@@ -171,9 +131,9 @@ def load_rte(file, label_dict, header=True, is_train=True):
             blocks = line.strip().split('\t')
             if is_train and len(blocks) < 4: continue
             if not is_train: assert len(blocks) == 3
-            lab = 0
+            lab = "not_entailment"
             if is_train:
-                lab = label_dict[blocks[-1]]
+                lab = blocks[-1]
                 sample = {'uid': int(blocks[0]), 'premise': blocks[-3], 'hypothesis': blocks[-2], 'label': lab}
             else:
                 sample = {'uid': int(blocks[0]), 'premise': blocks[-2], 'hypothesis': blocks[-1], 'label': lab}
@@ -202,7 +162,7 @@ def load_wnli(file, header=True, is_train=True):
             cnt += 1
     return rows
 
-def load_diag(file, label_dict, header=True):
+def load_diag(file, header=True):
     rows = []
     cnt = 0
     with open(file, encoding="utf8") as f:
@@ -212,7 +172,7 @@ def load_diag(file, label_dict, header=True):
                 continue
             blocks = line.strip().split('\t')
             assert len(blocks) > 3
-            sample = {'uid': cnt, 'premise': blocks[-3], 'hypothesis': blocks[-2], 'label': label_dict[blocks[-1]]}
+            sample = {'uid': cnt, 'premise': blocks[-3], 'hypothesis': blocks[-2], 'label': blocks[-1]}
             rows.append(sample)
             cnt += 1
     return rows
@@ -268,15 +228,108 @@ def load_sts(file, header=True, is_train=True):
                 continue
             blocks = line.strip().split('\t')
             assert len(blocks) > 8
-            score = 0.0
+            score = "0.0"
             if is_train:
-                score = float(blocks[-1])
+                score = blocks[-1]
                 sample = {'uid': cnt, 'premise': blocks[-3],'hypothesis': blocks[-2], 'label': score}
             else:
                 sample = {'uid': cnt, 'premise': blocks[-2],'hypothesis': blocks[-1], 'label': score}
             rows.append(sample)
             cnt += 1
     return rows
+
+def load_qnnli(file, header=True, is_train=True):
+    """QNLI for ranking"""
+    rows = []
+    mis_matched_cnt = 0
+    cnt = 0
+    with open(file, encoding="utf8") as f:
+        lines = f.readlines()
+        if header: lines = lines[1:]
+
+        assert len(lines) % 2 == 0
+        for idx in range(0, len(lines), 2):
+            block1 = lines[idx].strip().split('\t')
+            block2 = lines[idx + 1].strip().split('\t')
+            # train shuffle
+            assert len(block1) > 2 and len(block2) > 2
+            if is_train and block1[1] != block2[1]:
+                mis_matched_cnt += 1
+                continue
+            assert block1[1] == block2[1]
+            lab1, lab2 = "entailment", "entailment"
+            if is_train:
+                blocks = [block1, block2]
+                shuffle(blocks)
+                block1 = blocks[0]
+                block2 = blocks[1]
+                lab1 = block1[-1]
+                lab2 = block2[-1]
+                if lab1 == lab2:
+                    mis_matched_cnt += 1
+                    continue
+            assert "," not in lab1
+            assert "," not in lab2
+            assert "," not in block1[0]
+            assert "," not in block2[0]
+            sample = {'uid': cnt, 'ruid': "%s,%s" % (block1[0], block2[0]), 'premise': block1[1], 'hypothesis': [block1[2], block2[2]],
+                      'label': "%s,%s" % (lab1, lab2)}
+            cnt += 1
+            rows.append(sample)
+    return rows
+
+from enum import Enum
+class DataFormat(Enum):
+    PremiseOnly = 1
+    PremiseAndOneHypothesis = 2
+    PremiseAndMultiHypothesis = 3
+
+def dump_rows(rows, out_path):
+    """
+    output files should have following format
+    :param rows:
+    :param out_path:
+    :return:
+    """
+
+    def detect_format(row):
+        data_format = DataFormat.PremiseOnly
+        if "hypothesis" in row:
+            hypo = row["hypothesis"]
+            if isinstance(hypo, str):
+                data_format = DataFormat.PremiseAndOneHypothesis
+            else:
+                assert isinstance(hypo, list)
+                data_format = DataFormat.PremiseAndMultiHypothesis
+        return data_format
+
+    with open(out_path, "w") as out_f:
+        row0 = rows[0]
+        data_format = detect_format(row0)
+        for row in rows:
+            assert data_format == detect_format(row), row
+            if data_format == DataFormat.PremiseOnly:
+                for col in ["uid", "label", "premise"]:
+                    if "\t" in str(row[col]):
+                        import pdb; pdb.set_trace()
+                out_f.write("%s\t%s\t%s\n" % (row["uid"], row["label"], row["premise"]))
+            elif data_format == DataFormat.PremiseAndOneHypothesis:
+                for col in ["uid", "label", "premise", "hypothesis"]:
+                    if "\t" in str(row[col]):
+                        import pdb; pdb.set_trace()
+                out_f.write("%s\t%s\t%s\t%s\n" % (row["uid"], row["label"], row["premise"], row["hypothesis"]))
+            elif data_format == DataFormat.PremiseAndMultiHypothesis:
+                for col in ["uid", "label", "premise"]:
+                    if "\t" in str(row[col]):
+                        import pdb; pdb.set_trace()
+                hypothesis = row["hypothesis"]
+                for one_hypo in hypothesis:
+                    if "\t" in str(one_hypo):
+                        import pdb; pdb.set_trace()
+                hypothesis = "\t".join(hypothesis)
+                out_f.write("%s\t%s\t%s\t%s\t%s\n" % (row["uid"], row["ruid"], row["label"], row["premise"], hypothesis))
+            else:
+                raise ValueError(data_format)
 
 def submit(path, data, label_dict=None):
     header = 'index\tprediction'
@@ -293,16 +346,6 @@ def submit(path, data, label_dict=None):
             else:
                 assert type(pred) is int
                 writer.write('{}\t{}\n'.format(uid, label_dict[pred]))
-
-def _truncate_seq_pair(tokens_a, tokens_b, max_length):
-    while True:
-        total_length = len(tokens_a) + len(tokens_b)
-        if total_length <= max_length:
-            break
-        if len(tokens_a) > len(tokens_b):
-            tokens_a.pop()
-        else:
-            tokens_b.pop()
 
 def eval_model(model, data, dataset, use_cuda=True, with_label=True):
     data.reset()
@@ -330,3 +373,4 @@ def eval_model(model, data, dataset, use_cuda=True, with_label=True):
                 metric = metric_func(scores, golds)
             metrics[metric_name] = metric
     return metrics, predictions, scores, golds, ids
+

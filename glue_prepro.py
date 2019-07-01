@@ -1,7 +1,7 @@
 import os
 import argparse
 from data_utils.log_wrapper import create_logger
-from data_utils.glue_utils_new import *
+from data_utils.glue_utils import *
 import random
 
 logger = create_logger(__name__, to_disk=True, log_file='glue_prepro.log')
