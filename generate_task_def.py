@@ -1,5 +1,5 @@
 from data_utils.label_map import TaskType, DATA_TYPE, GLOBAL_MAP, TASK_TYPE
-from data_utils.glue_utils_new import DataFormat
+from data_utils.glue_utils import DataFormat
 
 task_def_dic = {}
 for task in TASK_TYPE.keys():

@@ -6,7 +6,7 @@ import argparse
 import json
 from pytorch_pretrained_bert.tokenization import BertTokenizer
 
-from data_utils.glue_utils_new import *
+from data_utils.glue_utils import *
 from data_utils.label_map import GLOBAL_MAP, TaskType
 from data_utils.log_wrapper import create_logger
 from data_utils.vocab import Vocabulary

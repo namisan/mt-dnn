@@ -11,7 +11,7 @@ from data_utils.log_wrapper import create_logger
 from data_utils.utils import set_environment
 from mt_dnn.batcher import BatchGen
 from mt_dnn.model import MTDNNModel
-from prepro import _truncate_seq_pair
+from prepro_std import _truncate_seq_pair
 
 logger = create_logger(__name__, to_disk=True, log_file='mt_dnn_feature_extractor.log')
 
