@@ -148,3 +148,9 @@ def generate_decoder_opt(task, max_opt):
     if SAN_META[task] and max_opt < 3:
         opt_v = max_opt
     return opt_v
+
+from enum import Enum
+class TaskType(Enum):
+ Classification = 1
+ Regression = 2
+ Ranking = 3
