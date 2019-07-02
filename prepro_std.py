@@ -108,7 +108,7 @@ def load_data(file_path, data_format, task_type, label_dict=None):
         assert data_format == DataFormat.PremiseAndMultiHypothesis
 
     rows = []
-    for line in open(file_path):
+    for line in open(file_path, encoding="utf-8"):
         fields = line.strip("\n").split("\t")
         if data_format == DataFormat.PremiseOnly:
             assert len(fields) == 3

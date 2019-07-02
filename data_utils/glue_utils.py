@@ -303,7 +303,7 @@ def dump_rows(rows, out_path):
                 data_format = DataFormat.PremiseAndMultiHypothesis
         return data_format
 
-    with open(out_path, "w") as out_f:
+    with open(out_path, "w", encoding="utf-8") as out_f:
         row0 = rows[0]
         data_format = detect_format(row0)
         for row in rows:
