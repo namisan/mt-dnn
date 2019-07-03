@@ -39,7 +39,7 @@ Improving Multi-Task Deep Neural Networks via Knowledge Distillation for Natural
    Please refer to download GLUE dataset: https://gluebenchmark.com/
 
 2. Preprocess data </br>
-   ```> sh prepro.sh```
+   ```> sh experiments/glue/prepro.sh```
 
 3. Training </br>
    ```> python train.py```

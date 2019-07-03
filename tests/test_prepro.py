@@ -54,7 +54,7 @@ def test_prepro():
     os.mkdir("./run_test")
     shutil.copytree("./sample_data/input", "./run_test/sample_data")
 
-    result = subprocess.check_output("python glue_prepro.py --root_dir run_test/sample_data", stderr=subprocess.STDOUT, shell=True)
-    result = subprocess.check_output("python prepro_std.py --root_dir run_test/sample_data/canonical_data --do_lower_case", stderr=subprocess.STDOUT, shell=True)
+    result = subprocess.check_output("python experiments/glue/glue_prepro.py --root_dir run_test/sample_data", stderr=subprocess.STDOUT, shell=True)
+    result = subprocess.check_output("python prepro_std.py --root_dir run_test/sample_data/canonical_data --task_def experiments/glue/glue_task_def.yml --do_lower_case", stderr=subprocess.STDOUT, shell=True)
     assert are_dir_trees_equal("./run_test/sample_data/canonical_data/mt_dnn_uncased_lower", "./sample_data/output")
 
