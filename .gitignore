@@ -113,7 +113,6 @@ save/
 book_corpus_test/
 book_corpus_train/
 checkpoints/
-experiments/
 .pt_description_history
 .git-credentials
 pt_bert/philly
