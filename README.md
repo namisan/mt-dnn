@@ -1,5 +1,9 @@
 **New Release ** <br/>
- MT-DNN with Knowledge Distillation code and model.
+We are working on v0.2 version which will be easier to adapt it to new tasks. <br/>
+You are welcomed to test our new version. <br/>
+If you want to use the old version, please use following cmd to clone the code: <br/>
+```git clone -b v0.1 git@github.com:namisan/mt-dnn.git ```
+
 
 # Multi-Task Deep Neural Networks for Natural Language Understanding
 
@@ -87,7 +91,8 @@ Here, we go through how to convert a Chinese Tensorflow BERT model into mt-dnn f
    ```python scripts\convert_tf_to_pt.py --tf_checkpoint_root chinese_L-12_H-768_A-12\ --pytorch_checkpoint_path chinese_L-12_H-768_A-12\bert_base_chinese.pt```
 
 ### TODO
-[ ] Publish pretrained Tensorflow checkpoints.
+- [x] MT-DNN with Knowledge Distillation code and model. <br/>
+- [ ] Publish pretrained Tensorflow checkpoints.
 
 ## FAQ
 
@@ -102,7 +107,7 @@ For SciTail/SNLI tasks, the purpose is to test generalization of the learned emb
 
 ### What is the difference between V1 and V2
 The difference is in the QNLI dataset. Please refere to the GLUE official homepage for more details. If you want to formulate QNLI as pair-wise ranking task as our paper, make sure that you use the old QNLI data. </br>
-Then run the prepro script with flags:   ```> sh prepro.sh --old_glue``` </br>
+Then run the prepro script with flags:   ```> sh experiments/glue/prepro.sh --old_glue``` </br>
 If you have issues to access the old version of the data, please contact the GLUE team.
 
 ### Did you fine-tune single task for your GLUE leaderboard submission? 
@@ -138,4 +143,4 @@ For now, please cite [arXiv version](https://arxiv.org/abs/1901.11504):
 
 For help or issues using MT-DNN, please submit a GitHub issue.
 
-For personal communication related to MT-DNN, please contact Xiaodong Liu (`xiaodl@microsoft.com`), Pengcheng He (`penhe@microsoft.com`), Weizhu Chen (`wzchen@microsoft.com`) or Jianfeng Gao (`jfgao@microsoft.com`).
+For personal communication related to MT-DNN, please contact Xiaodong Liu (`xiaodl@microsoft.com`), Pengcheng He (`penhe@microsoft.com`), Weizhu Chen (`wzchen@microsoft.com`), Jianfeng Gao (`jfgao@microsoft.com`) or Yu Wang (`yuwan@microsoft.com`).
