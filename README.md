@@ -1,8 +1,8 @@
 **New Release ** <br/>
-We are working on v0.2 version which will be easier to adapt it to new tasks. <br/>
+We are working on the v0.2 version which is easier to adapt it to new tasks. <br/>
 You are welcomed to test our new version. <br/>
 If you want to use the old version, please use following cmd to clone the code: <br/>
-```git clone -b v0.1 git@github.com:namisan/mt-dnn.git ```
+```git clone -b v0.1 https://github.com/namisan/mt-dnn.git ```
 
 
 # Multi-Task Deep Neural Networks for Natural Language Understanding
