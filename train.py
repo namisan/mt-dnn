@@ -10,7 +10,7 @@ import torch
 from pytorch_pretrained_bert.modeling import BertConfig
 from experiments.exp_def import TaskDefs
 from data_utils.glue_utils import submit, eval_model
-from data_utils.label_map import DATA_META, DATA_TYPE, TASK_TYPE, generate_decoder_opt
+from data_utils.label_map import DATA_TYPE, TASK_TYPE, generate_decoder_opt
 from data_utils.log_wrapper import create_logger
 from data_utils.utils import set_environment
 from mt_dnn.batcher import BatchGen
@@ -157,10 +157,10 @@ def main():
     for dataset in args.train_datasets:
         prefix = dataset.split('_')[0]
         if prefix in tasks: continue
-        assert prefix in DATA_META
+        assert prefix in task_defs.n_class_map
         assert prefix in DATA_TYPE
         data_type = DATA_TYPE[prefix]
-        nclass = DATA_META[prefix]
+        nclass = task_defs.n_class_map[prefix]
         task_id = len(tasks)
         if args.mtl_opt > 0:
             task_id = tasks_class[nclass] if nclass in tasks_class else len(tasks_class)
@@ -211,7 +211,7 @@ def main():
     test_data_list = []
     for dataset in args.test_datasets:
         prefix = dataset.split('_')[0]
-        task_id = tasks_class[DATA_META[prefix]] if args.mtl_opt > 0 else tasks[prefix]
+        task_id = tasks_class[task_defs.n_class_map[prefix]] if args.mtl_opt > 0 else tasks[prefix]
         task_type = TASK_TYPE[prefix]
 
         pw_task = False

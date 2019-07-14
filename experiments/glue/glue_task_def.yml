@@ -1,5 +1,6 @@
 cola:
   data_format: PremiseOnly
+  n_class: 2
   task_type: Classification
 mnli:
   data_format: PremiseAndOneHypothesis
@@ -7,6 +8,7 @@ mnli:
   - contradiction
   - neutral
   - entailment
+  n_class: 3
   split_names:
   - train
   - matched_dev
@@ -16,27 +18,32 @@ mnli:
   task_type: Classification
 mrpc:
   data_format: PremiseAndOneHypothesis
+  n_class: 2
   task_type: Classification
 qnli:
   data_format: PremiseAndOneHypothesis
   labels:
   - not_entailment
   - entailment
+  n_class: 2
   task_type: Classification
 qqp:
   data_format: PremiseAndOneHypothesis
+  n_class: 2
   task_type: Classification
 rte:
   data_format: PremiseAndOneHypothesis
   labels:
   - not_entailment
   - entailment
+  n_class: 2
   task_type: Classification
 scitail:
   data_format: PremiseAndOneHypothesis
   labels:
   - neutral
   - entails
+  n_class: 2
   task_type: Classification
 snli:
   data_format: PremiseAndOneHypothesis
@@ -44,13 +51,17 @@ snli:
   - contradiction
   - neutral
   - entailment
+  n_class: 3
   task_type: Classification
 sst:
   data_format: PremiseOnly
+  n_class: 2
   task_type: Classification
 stsb:
   data_format: PremiseAndOneHypothesis
+  n_class: 1
   task_type: Regression
 wnli:
   data_format: PremiseAndOneHypothesis
+  n_class: 2
   task_type: Classification

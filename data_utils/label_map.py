@@ -2,23 +2,6 @@
 
 from .metrics import compute_acc, compute_f1, compute_mcc, compute_pearson, compute_spearman
 
-# number of class
-DATA_META = {
- 'mnli': 3,
- 'snli': 3,
- 'scitail': 2,
- 'qqp': 2,
- 'qnli': 2,
- 'qnnli': 1,
- 'wnli': 2,
- 'rte': 2,
- 'mrpc': 2,
- 'diag': 3,
- 'sst': 2,
- 'stsb': 1,
- 'cola': 2,
-}
-
 DATA_TYPE = {
  'mnli': 0,
  'snli': 0,
