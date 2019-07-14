@@ -10,7 +10,7 @@ import torch
 from pytorch_pretrained_bert.modeling import BertConfig
 from experiments.exp_def import TaskDefs
 from data_utils.glue_utils import submit, eval_model
-from data_utils.label_map import DATA_TYPE, TASK_TYPE, generate_decoder_opt
+from data_utils.label_map import TASK_TYPE, generate_decoder_opt
 from data_utils.log_wrapper import create_logger
 from data_utils.utils import set_environment
 from mt_dnn.batcher import BatchGen
@@ -158,8 +158,8 @@ def main():
         prefix = dataset.split('_')[0]
         if prefix in tasks: continue
         assert prefix in task_defs.n_class_map
-        assert prefix in DATA_TYPE
-        data_type = DATA_TYPE[prefix]
+        assert prefix in task_defs.data_type_map
+        data_type = task_defs.data_type_map[prefix]
         nclass = task_defs.n_class_map[prefix]
         task_id = len(tasks)
         if args.mtl_opt > 0:
@@ -218,8 +218,8 @@ def main():
         if prefix in opt['pw_tasks']:
             pw_task = True
 
-        assert prefix in DATA_TYPE
-        data_type = DATA_TYPE[prefix]
+        assert prefix in task_defs.data_type_map
+        data_type = task_defs.data_type_map[prefix]
 
         dev_path = os.path.join(data_dir, '{}_dev.json'.format(dataset))
         dev_data = None

@@ -2,22 +2,6 @@
 
 from .metrics import compute_acc, compute_f1, compute_mcc, compute_pearson, compute_spearman
 
-DATA_TYPE = {
- 'mnli': 0,
- 'snli': 0,
- 'scitail': 0,
- 'qqp': 0,
- 'qnli': 0,
- 'qnnli': 0,
- 'wnli': 0,
- 'rte': 0,
- 'mrpc': 0,
- 'diag': 0,
- 'sst': 1,
- 'stsb': 0,
- 'cola': 1,
-}
-
 # classification/regression
 TASK_TYPE = {
  'mnli': 0,

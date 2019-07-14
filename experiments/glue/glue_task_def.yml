@@ -1,9 +1,11 @@
 cola:
   data_format: PremiseOnly
+  data_type: 1
   n_class: 2
   task_type: Classification
 mnli:
   data_format: PremiseAndOneHypothesis
+  data_type: 0
   labels:
   - contradiction
   - neutral
@@ -18,10 +20,12 @@ mnli:
   task_type: Classification
 mrpc:
   data_format: PremiseAndOneHypothesis
+  data_type: 0
   n_class: 2
   task_type: Classification
 qnli:
   data_format: PremiseAndOneHypothesis
+  data_type: 0
   labels:
   - not_entailment
   - entailment
@@ -29,10 +33,12 @@ qnli:
   task_type: Classification
 qqp:
   data_format: PremiseAndOneHypothesis
+  data_type: 0
   n_class: 2
   task_type: Classification
 rte:
   data_format: PremiseAndOneHypothesis
+  data_type: 0
   labels:
   - not_entailment
   - entailment
@@ -40,6 +46,7 @@ rte:
   task_type: Classification
 scitail:
   data_format: PremiseAndOneHypothesis
+  data_type: 0
   labels:
   - neutral
   - entails
@@ -47,6 +54,7 @@ scitail:
   task_type: Classification
 snli:
   data_format: PremiseAndOneHypothesis
+  data_type: 0
   labels:
   - contradiction
   - neutral
@@ -55,13 +63,16 @@ snli:
   task_type: Classification
 sst:
   data_format: PremiseOnly
+  data_type: 1
   n_class: 2
   task_type: Classification
 stsb:
   data_format: PremiseAndOneHypothesis
+  data_type: 0
   n_class: 1
   task_type: Regression
 wnli:
   data_format: PremiseAndOneHypothesis
+  data_type: 0
   n_class: 2
   task_type: Classification

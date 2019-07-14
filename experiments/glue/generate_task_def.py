@@ -32,10 +32,13 @@ for task in TASK_TYPE.keys():
         split_names = ["train", "matched_dev", "mismatched_dev", "matched_test", "mismatched_test"]
 
     n_class = DATA_META[task]
+    data_type = DATA_TYPE[task]
 
     task_def = {"task_type": task_type.name,
                 "data_format": data_format.name,
-                "n_class": n_class}
+                "n_class": n_class,
+                "data_type": data_type
+                }
     if labels is not None:
         task_def["labels"] = labels
     if split_names is not None:
