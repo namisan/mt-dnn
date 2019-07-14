@@ -7,9 +7,9 @@ import json
 from pytorch_pretrained_bert.tokenization import BertTokenizer
 
 from data_utils.glue_utils import *
-from data_utils.label_map import GLOBAL_MAP, TaskType
+from data_utils.label_map import TaskType
 from data_utils.log_wrapper import create_logger
-from data_utils.vocab import Vocabulary
+from experiments.exp_def import TaskDefs
 
 DEBUG_MODE=False
 MAX_SEQ_LEN = 512
@@ -177,18 +177,14 @@ def main(args):
     if not os.path.isdir(mt_dnn_root):
         os.mkdir(mt_dnn_root)
 
+    task_defs = TaskDefs(args.task_def)
     task_def_dic = yaml.safe_load(open(args.task_def))
 
     for task, task_def in task_def_dic.items():
         logger.info("Task %s" % task)
         data_format = DataFormat[task_def["data_format"]]
         task_type = TaskType[task_def["task_type"]]
-        label_mapper = None
-        if "labels" in task_def:
-            labels = task_def["labels"]
-            label_mapper = Vocabulary(True)
-            for label in labels:
-                label_mapper.add(label)
+        label_mapper = task_defs.global_map.get(task, None)
         split_names = task_def.get("split_names", ["train", "dev", "test"])
         for split_name in split_names:
             rows = load_data(os.path.join(root, "%s_%s.tsv" % (task, split_name)), data_format, task_type, label_mapper)

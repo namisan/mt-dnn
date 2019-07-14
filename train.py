@@ -8,8 +8,9 @@ from pprint import pprint
 import numpy as np
 import torch
 from pytorch_pretrained_bert.modeling import BertConfig
+from experiments.exp_def import TaskDefs
 from data_utils.glue_utils import submit, eval_model
-from data_utils.label_map import DATA_META, GLOBAL_MAP, DATA_TYPE, DATA_SWAP, TASK_TYPE, generate_decoder_opt
+from data_utils.label_map import DATA_META, DATA_TYPE, TASK_TYPE, generate_decoder_opt
 from data_utils.log_wrapper import create_logger
 from data_utils.utils import set_environment
 from mt_dnn.batcher import BatchGen
@@ -51,6 +52,7 @@ def data_config(parser):
     parser.add_argument('--data_dir', default='data/canonical_data/mt_dnn_uncased_lower')
     parser.add_argument('--data_sort_on', action='store_true')
     parser.add_argument('--name', default='farmer')
+    parser.add_argument('--task_def', type=str, default="experiments/glue/glue_task_def.yml")
     parser.add_argument('--train_datasets', default='mnli')
     parser.add_argument('--test_datasets', default='mnli_mismatched,mnli_matched')
     parser.add_argument('--pw_tasks', default='qnnli', type=str)
@@ -127,6 +129,7 @@ log_path = args.log_file
 logger = create_logger(__name__, to_disk=True, log_file=log_path)
 logger.info(args.answer_opt)
 
+task_defs = TaskDefs(args.task_def)
 tasks_config = {}
 if os.path.exists(args.task_config_path):
     with open(args.task_config_path, 'r') as reader:
@@ -349,7 +352,7 @@ def main():
 
         for idx, dataset in enumerate(args.test_datasets):
             prefix = dataset.split('_')[0]
-            label_dict = GLOBAL_MAP.get(prefix, None)
+            label_dict = task_defs.global_map.get(prefix, None)
             dev_data = dev_data_list[idx]
             if dev_data is not None:
                 dev_metrics, dev_predictions, scores, golds, dev_ids = eval_model(model, dev_data, dataset=prefix,

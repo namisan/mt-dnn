@@ -1,32 +1,6 @@
 # Copyright (c) Microsoft. All rights reserved.
 
-from .vocab import Vocabulary
 from .metrics import compute_acc, compute_f1, compute_mcc, compute_pearson, compute_spearman
-# scitail
-ScitailLabelMapper = Vocabulary(True)
-ScitailLabelMapper.add('neutral')
-ScitailLabelMapper.add('entails')
-
-# label map
-SNLI_LabelMapper = Vocabulary(True)
-SNLI_LabelMapper.add('contradiction')
-SNLI_LabelMapper.add('neutral')
-SNLI_LabelMapper.add('entailment')
-
-# qnli
-QNLILabelMapper = Vocabulary(True)
-QNLILabelMapper.add('not_entailment')
-QNLILabelMapper.add('entailment')
-
-GLOBAL_MAP = {
- 'scitail': ScitailLabelMapper,
- 'mnli': SNLI_LabelMapper,
- 'snli': SNLI_LabelMapper,
- 'qnli': QNLILabelMapper,
- 'qnnli': QNLILabelMapper,
- 'rte': QNLILabelMapper,
- 'diag': SNLI_LabelMapper,
-}
 
 # number of class
 DATA_META = {
@@ -59,22 +33,6 @@ DATA_TYPE = {
  'sst': 1,
  'stsb': 0,
  'cola': 1,
-}
-
-DATA_SWAP = {
- 'mnli': 0,
- 'snli': 0,
- 'scitail': 0,
- 'qqp': 1,
- 'qnli': 0,
- 'qnnli': 0,
- 'wnli': 0,
- 'rte': 0,
- 'mrpc': 0,
- 'diag': 0,
- 'sst': 0,
- 'stsb': 0,
- 'cola': 0,
 }
 
 # classification/regression
