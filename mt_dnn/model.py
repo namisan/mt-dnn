@@ -16,6 +16,8 @@ from module.bert_optim import Adamax
 from module.my_optim import EMA
 from .matcher import SANBertNetwork
 
+from data_utils.label_map import TaskType
+
 logger = logging.getLogger(__name__)
 
 
@@ -149,7 +151,7 @@ class MTDNNModel(object):
                 weight = Variable(batch_data[batch_meta['factor']].cuda(async = True))
             else:
                 weight = Variable(batch_data[batch_meta['factor']])
-            if task_type > 0:
+            if task_type == TaskType.Regression:
                 loss = torch.mean(F.mse_loss(logits.squeeze(), y, reduce=False) * weight)
             else:
                 loss = torch.mean(F.cross_entropy(logits, y, reduce=False) * weight)
@@ -159,7 +161,7 @@ class MTDNNModel(object):
                     kd_loss = F.kl_div(F.log_softmax(logits.view(-1, label_size).float(), 1), soft_labels) * label_size
                     loss = loss + kd_loss
         else:
-            if task_type > 0:
+            if task_type == TaskType.Regression:
                 loss = F.mse_loss(logits.squeeze(), y)
             else:
                 loss = F.cross_entropy(logits, y)
@@ -201,8 +203,8 @@ class MTDNNModel(object):
         score = self.mnetwork(*inputs)
         if batch_meta['pairwise']:
             score = score.contiguous().view(-1, batch_meta['pairwise_size'])
-            if task_type < 1:
-                score = F.softmax(score, dim=1)
+            assert task_type == TaskType.Ranking
+            score = F.softmax(score, dim=1)
             score = score.data.cpu()
             score = score.numpy()
             predict = np.zeros(score.shape, dtype=int)
@@ -213,7 +215,7 @@ class MTDNNModel(object):
             score = score.reshape(-1).tolist()
             return score, predict, batch_meta['true_label']
         else:
-            if task_type < 1:
+            if task_type == TaskType.Classification:
                 score = F.softmax(score, dim=1)
             score = score.data.cpu()
             score = score.numpy()

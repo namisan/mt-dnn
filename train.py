@@ -10,9 +10,10 @@ import torch
 from pytorch_pretrained_bert.modeling import BertConfig
 from experiments.exp_def import TaskDefs
 from data_utils.glue_utils import submit, eval_model
-from data_utils.label_map import TASK_TYPE, generate_decoder_opt
+from data_utils.label_map import generate_decoder_opt
 from data_utils.log_wrapper import create_logger
 from data_utils.utils import set_environment
+from data_utils.label_map import TaskType
 from mt_dnn.batcher import BatchGen
 from mt_dnn.model import MTDNNModel
 
@@ -55,8 +56,6 @@ def data_config(parser):
     parser.add_argument('--task_def', type=str, default="experiments/glue/glue_task_def.yml")
     parser.add_argument('--train_datasets', default='mnli')
     parser.add_argument('--test_datasets', default='mnli_mismatched,mnli_matched')
-    parser.add_argument('--pw_tasks', default='qnnli', type=str)
-
     return parser
 
 
@@ -118,7 +117,6 @@ output_dir = args.output_dir
 data_dir = args.data_dir
 args.train_datasets = args.train_datasets.split(',')
 args.test_datasets = args.test_datasets.split(',')
-args.pw_tasks = list(set([pw for pw in args.pw_tasks.split(',') if len(pw.strip()) > 0]))
 pprint(args)
 
 os.makedirs(output_dir, exist_ok=True)
@@ -165,9 +163,9 @@ def main():
         if args.mtl_opt > 0:
             task_id = tasks_class[nclass] if nclass in tasks_class else len(tasks_class)
 
-        task_type = TASK_TYPE[prefix]
+        task_type = task_defs.task_type_map[prefix]
         pw_task = False
-        if prefix in opt['pw_tasks']:
+        if task_type == TaskType.Ranking:
             pw_task = True
 
         dopt = generate_decoder_opt(prefix, opt['answer_opt'])
@@ -212,10 +210,10 @@ def main():
     for dataset in args.test_datasets:
         prefix = dataset.split('_')[0]
         task_id = tasks_class[task_defs.n_class_map[prefix]] if args.mtl_opt > 0 else tasks[prefix]
-        task_type = TASK_TYPE[prefix]
+        task_type = task_defs.task_type_map[prefix]
 
         pw_task = False
-        if prefix in opt['pw_tasks']:
+        if task_type == TaskType.Ranking:
             pw_task = True
 
         assert prefix in task_defs.data_type_map

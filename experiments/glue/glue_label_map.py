@@ -156,6 +156,6 @@ from enum import Enum
 
 
 class TaskType(Enum):
-    Classification = 1
-    Regression = 2
-    Ranking = 3
+    Classification = 0
+    Regression = 1
+    Ranking = 2

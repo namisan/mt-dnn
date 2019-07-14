@@ -10,6 +10,7 @@ import logging
 import numpy as np
 import pickle as pkl
 from shutil import copyfile
+from data_utils.label_map import TaskType
 
 UNK_ID=100
 BOS_ID=101
@@ -21,7 +22,7 @@ class BatchGen:
                  task_id=0,
                  pairwise=False,
                  task=None,
-                 task_type=0,
+                 task_type=TaskType.Classification,
                  data_type=0,
                  soft_label=False):
         self.batch_size = batch_size
@@ -159,7 +160,7 @@ class BatchGen:
 
             if self.is_train:
                 labels = [sample['label'] for sample in batch]
-                if self.task_type > 0:
+                if self.task_type == TaskType.Regression:
                     batch_data.append(torch.FloatTensor(labels))
                 else:
                     batch_data.append(torch.LongTensor(labels))
