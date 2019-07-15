@@ -1,6 +1,5 @@
 cola:
   data_format: PremiseOnly
-  data_type: 1
   dropout_p: 0.05
   enable_san: false
   metric_meta:
@@ -10,7 +9,6 @@ cola:
   task_type: Classification
 mnli:
   data_format: PremiseAndOneHypothesis
-  data_type: 0
   dropout_p: 0.3
   enable_san: true
   labels:
@@ -29,7 +27,6 @@ mnli:
   task_type: Classification
 mrpc:
   data_format: PremiseAndOneHypothesis
-  data_type: 0
   enable_san: true
   metric_meta:
   - ACC
@@ -38,7 +35,6 @@ mrpc:
   task_type: Classification
 qnli:
   data_format: PremiseAndOneHypothesis
-  data_type: 0
   enable_san: true
   labels:
   - not_entailment
@@ -49,7 +45,6 @@ qnli:
   task_type: Classification
 qqp:
   data_format: PremiseAndOneHypothesis
-  data_type: 0
   enable_san: true
   metric_meta:
   - ACC
@@ -58,7 +53,6 @@ qqp:
   task_type: Classification
 rte:
   data_format: PremiseAndOneHypothesis
-  data_type: 0
   enable_san: true
   labels:
   - not_entailment
@@ -69,7 +63,6 @@ rte:
   task_type: Classification
 scitail:
   data_format: PremiseAndOneHypothesis
-  data_type: 0
   enable_san: true
   labels:
   - neutral
@@ -80,7 +73,6 @@ scitail:
   task_type: Classification
 snli:
   data_format: PremiseAndOneHypothesis
-  data_type: 0
   enable_san: true
   labels:
   - contradiction
@@ -92,7 +84,6 @@ snli:
   task_type: Classification
 sst:
   data_format: PremiseOnly
-  data_type: 1
   enable_san: false
   metric_meta:
   - ACC
@@ -100,7 +91,6 @@ sst:
   task_type: Classification
 stsb:
   data_format: PremiseAndOneHypothesis
-  data_type: 0
   enable_san: false
   metric_meta:
   - Pearson
@@ -109,7 +99,6 @@ stsb:
   task_type: Regression
 wnli:
   data_format: PremiseAndOneHypothesis
-  data_type: 0
   enable_san: true
   metric_meta:
   - ACC

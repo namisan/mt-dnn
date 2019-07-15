@@ -1,6 +1,6 @@
 import yaml
 from data_utils.vocab import Vocabulary
-from data_utils.task_def import TaskType
+from data_utils.task_def import TaskType, DataFormat
 from data_utils.metrics import Metric
 
 class TaskDefs:
@@ -15,7 +15,13 @@ class TaskDefs:
         dropout_p_map = {}
         for task, task_def in self._task_def_dic.items():
             n_class_map[task] = task_def["n_class"]
-            data_type_map[task] = task_def["data_type"]
+            data_format = DataFormat[task_def["data_format"]]
+            if data_format == DataFormat.PremiseOnly:
+                data_type_map[task] = 1
+            elif data_format in (DataFormat.PremiseAndMultiHypothesis, DataFormat.PremiseAndOneHypothesis):
+                data_type_map[task] = 0
+            else:
+                raise ValueError(data_format)
             task_type_map[task] = TaskType[task_def["task_type"]]
             metric_meta_map[task] = tuple(Metric[metric_name] for metric_name in task_def["metric_meta"])
             enable_san_map[task] = task_def["enable_san"]

@@ -39,14 +39,12 @@ for task in TASK_TYPE.keys():
     dropout_p = dropout_p_map.get(task, None)
 
     n_class = DATA_META[task]
-    data_type = DATA_TYPE[task]
     metric_meta = tuple(Metric(metric_no).name for metric_no in METRIC_META[task])
     enable_san = bool(SAN_META[task])
 
     task_def = {"task_type": task_type.name,
                 "data_format": data_format.name,
                 "n_class": n_class,
-                "data_type": data_type,
                 "metric_meta": metric_meta,
                 "enable_san": enable_san
                 }
