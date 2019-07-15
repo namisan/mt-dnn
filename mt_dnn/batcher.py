@@ -10,7 +10,7 @@ import logging
 import numpy as np
 import pickle as pkl
 from shutil import copyfile
-from data_utils.label_map import TaskType
+from data_utils.task_def import TaskType
 
 UNK_ID=100
 BOS_ID=101

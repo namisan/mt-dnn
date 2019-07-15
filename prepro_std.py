@@ -6,8 +6,7 @@ import argparse
 import json
 from pytorch_pretrained_bert.tokenization import BertTokenizer
 
-from data_utils.glue_utils import *
-from data_utils.label_map import TaskType
+from data_utils.task_def import TaskType, DataFormat
 from data_utils.log_wrapper import create_logger
 from experiments.exp_def import TaskDefs
 

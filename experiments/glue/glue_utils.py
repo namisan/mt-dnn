@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft. All rights reserved.
 from random import shuffle
 from data_utils.metrics import Metric, METRIC_FUNC
+from data_utils.task_def import DataFormat
 
 
 def load_scitail(file):
@@ -279,11 +280,6 @@ def load_qnnli(file, header=True, is_train=True):
             rows.append(sample)
     return rows
 
-from enum import Enum
-class DataFormat(Enum):
-    PremiseOnly = 1
-    PremiseAndOneHypothesis = 2
-    PremiseAndMultiHypothesis = 3
 
 def dump_rows(rows, out_path):
     """

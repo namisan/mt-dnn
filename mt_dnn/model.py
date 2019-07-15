@@ -16,7 +16,7 @@ from module.bert_optim import Adamax
 from module.my_optim import EMA
 from .matcher import SANBertNetwork
 
-from data_utils.label_map import TaskType
+from data_utils.task_def import TaskType
 
 logger = logging.getLogger(__name__)
 

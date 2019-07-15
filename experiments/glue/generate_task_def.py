@@ -1,5 +1,5 @@
-from experiments.glue.glue_label_map import TaskType, DATA_TYPE, GLOBAL_MAP, TASK_TYPE, DATA_META, METRIC_META
-from data_utils.glue_utils import DataFormat
+from experiments.glue.glue_label_map import TaskType, DATA_TYPE, GLOBAL_MAP, TASK_TYPE, DATA_META, METRIC_META, SAN_META
+from data_utils.task_def import DataFormat
 from data_utils.metrics import Metric
 
 task_def_dic = {}
@@ -35,12 +35,14 @@ for task in TASK_TYPE.keys():
     n_class = DATA_META[task]
     data_type = DATA_TYPE[task]
     metric_meta = tuple(Metric(metric_no).name for metric_no in METRIC_META[task])
+    enable_san = bool(SAN_META[task])
 
     task_def = {"task_type": task_type.name,
                 "data_format": data_format.name,
                 "n_class": n_class,
                 "data_type": data_type,
                 "metric_meta": metric_meta,
+                "enable_san": enable_san
                 }
     if labels is not None:
         task_def["labels"] = labels

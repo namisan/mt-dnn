@@ -9,11 +9,10 @@ import numpy as np
 import torch
 from pytorch_pretrained_bert.modeling import BertConfig
 from experiments.exp_def import TaskDefs
-from data_utils.glue_utils import submit, eval_model
-from data_utils.label_map import generate_decoder_opt
+from experiments.glue.glue_utils import submit, eval_model
 from data_utils.log_wrapper import create_logger
 from data_utils.utils import set_environment
-from data_utils.label_map import TaskType
+from data_utils.task_def import TaskType
 from mt_dnn.batcher import BatchGen
 from mt_dnn.model import MTDNNModel
 
@@ -138,6 +137,11 @@ def dump(path, data):
     with open(path, 'w') as f:
         json.dump(data, f)
 
+def generate_decoder_opt(enable_san, max_opt):
+    opt_v = 0
+    if enable_san and max_opt < 3:
+        opt_v = max_opt
+    return opt_v
 
 def main():
     logger.info('Launching the MT-DNN training')
@@ -168,7 +172,7 @@ def main():
         if task_type == TaskType.Ranking:
             pw_task = True
 
-        dopt = generate_decoder_opt(prefix, opt['answer_opt'])
+        dopt = generate_decoder_opt(task_defs.enable_san_map[prefix], opt['answer_opt'])
         if task_id < len(decoder_opts):
             decoder_opts[task_id] = min(decoder_opts[task_id], dopt)
         else:
@@ -383,3 +387,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+

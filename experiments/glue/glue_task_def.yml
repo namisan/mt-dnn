@@ -1,6 +1,7 @@
 cola:
   data_format: PremiseOnly
   data_type: 1
+  enable_san: false
   metric_meta:
   - ACC
   - MCC
@@ -9,6 +10,7 @@ cola:
 mnli:
   data_format: PremiseAndOneHypothesis
   data_type: 0
+  enable_san: true
   labels:
   - contradiction
   - neutral
@@ -26,6 +28,7 @@ mnli:
 mrpc:
   data_format: PremiseAndOneHypothesis
   data_type: 0
+  enable_san: true
   metric_meta:
   - ACC
   - F1
@@ -34,6 +37,7 @@ mrpc:
 qnli:
   data_format: PremiseAndOneHypothesis
   data_type: 0
+  enable_san: true
   labels:
   - not_entailment
   - entailment
@@ -44,6 +48,7 @@ qnli:
 qqp:
   data_format: PremiseAndOneHypothesis
   data_type: 0
+  enable_san: true
   metric_meta:
   - ACC
   - F1
@@ -52,6 +57,7 @@ qqp:
 rte:
   data_format: PremiseAndOneHypothesis
   data_type: 0
+  enable_san: true
   labels:
   - not_entailment
   - entailment
@@ -62,6 +68,7 @@ rte:
 scitail:
   data_format: PremiseAndOneHypothesis
   data_type: 0
+  enable_san: true
   labels:
   - neutral
   - entails
@@ -72,6 +79,7 @@ scitail:
 snli:
   data_format: PremiseAndOneHypothesis
   data_type: 0
+  enable_san: true
   labels:
   - contradiction
   - neutral
@@ -83,6 +91,7 @@ snli:
 sst:
   data_format: PremiseOnly
   data_type: 1
+  enable_san: false
   metric_meta:
   - ACC
   n_class: 2
@@ -90,6 +99,7 @@ sst:
 stsb:
   data_format: PremiseAndOneHypothesis
   data_type: 0
+  enable_san: false
   metric_meta:
   - Pearson
   - Spearman
@@ -98,6 +108,7 @@ stsb:
 wnli:
   data_format: PremiseAndOneHypothesis
   data_type: 0
+  enable_san: true
   metric_meta:
   - ACC
   n_class: 2
