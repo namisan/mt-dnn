@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft. All rights reserved.
 from random import shuffle
-from .label_map import METRIC_FUNC, METRIC_META, METRIC_NAME
+from data_utils.metrics import Metric, METRIC_FUNC
+
 
 def load_scitail(file):
     """Loading data of scitail
@@ -347,7 +348,7 @@ def submit(path, data, label_dict=None):
                 assert type(pred) is int
                 writer.write('{}\t{}\n'.format(uid, label_dict[pred]))
 
-def eval_model(model, data, dataset, use_cuda=True, with_label=True):
+def eval_model(model, data, metric_meta, use_cuda=True, with_label=True):
     data.reset()
     if use_cuda:
         model.cuda()
@@ -362,12 +363,11 @@ def eval_model(model, data, dataset, use_cuda=True, with_label=True):
         golds.extend(gold)
         scores.extend(score)
         ids.extend(batch_meta['uids'])
-    mmeta = METRIC_META[dataset]
     if with_label:
-        for mm in mmeta:
-            metric_name = METRIC_NAME[mm]
+        for mm in metric_meta:
+            metric_name = mm.name
             metric_func = METRIC_FUNC[mm]
-            if mm < 3:
+            if mm in (Metric.ACC, Metric.F1, Metric.MCC):
                 metric = metric_func(predictions, golds)
             else:
                 metric = metric_func(scores, golds)

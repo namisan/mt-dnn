@@ -1,6 +1,9 @@
 cola:
   data_format: PremiseOnly
   data_type: 1
+  metric_meta:
+  - ACC
+  - MCC
   n_class: 2
   task_type: Classification
 mnli:
@@ -10,6 +13,8 @@ mnli:
   - contradiction
   - neutral
   - entailment
+  metric_meta:
+  - ACC
   n_class: 3
   split_names:
   - train
@@ -21,6 +26,9 @@ mnli:
 mrpc:
   data_format: PremiseAndOneHypothesis
   data_type: 0
+  metric_meta:
+  - ACC
+  - F1
   n_class: 2
   task_type: Classification
 qnli:
@@ -29,11 +37,16 @@ qnli:
   labels:
   - not_entailment
   - entailment
+  metric_meta:
+  - ACC
   n_class: 2
   task_type: Classification
 qqp:
   data_format: PremiseAndOneHypothesis
   data_type: 0
+  metric_meta:
+  - ACC
+  - F1
   n_class: 2
   task_type: Classification
 rte:
@@ -42,6 +55,8 @@ rte:
   labels:
   - not_entailment
   - entailment
+  metric_meta:
+  - ACC
   n_class: 2
   task_type: Classification
 scitail:
@@ -50,6 +65,8 @@ scitail:
   labels:
   - neutral
   - entails
+  metric_meta:
+  - ACC
   n_class: 2
   task_type: Classification
 snli:
@@ -59,20 +76,29 @@ snli:
   - contradiction
   - neutral
   - entailment
+  metric_meta:
+  - ACC
   n_class: 3
   task_type: Classification
 sst:
   data_format: PremiseOnly
   data_type: 1
+  metric_meta:
+  - ACC
   n_class: 2
   task_type: Classification
 stsb:
   data_format: PremiseAndOneHypothesis
   data_type: 0
+  metric_meta:
+  - Pearson
+  - Spearman
   n_class: 1
   task_type: Regression
 wnli:
   data_format: PremiseAndOneHypothesis
   data_type: 0
+  metric_meta:
+  - ACC
   n_class: 2
   task_type: Classification

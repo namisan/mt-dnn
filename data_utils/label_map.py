@@ -1,39 +1,5 @@
 # Copyright (c) Microsoft. All rights reserved.
 
-from .metrics import compute_acc, compute_f1, compute_mcc, compute_pearson, compute_spearman
-
-METRIC_META = {
- 'mnli': [0],
- 'snli': [0],
- 'scitail': [0],
- 'qqp': [0, 1],
- 'qnli':[0],
- 'qnnli': [0],
- 'wnli': [0],
- 'rte': [0],
- 'mrpc': [0, 1],
- 'diag': [0],
- 'sst': [0],
- 'stsb': [3, 4],
- 'cola': [0, 2],
-}
-
-METRIC_NAME = {
- 0: 'ACC',
- 1: 'F1',
- 2: 'MCC',
- 3: 'Pearson',
- 4: 'Spearman',
-}
-
-METRIC_FUNC = {
- 0: compute_acc,
- 1: compute_f1,
- 2: compute_mcc,
- 3: compute_pearson,
- 4: compute_spearman,
-}
-
 SAN_META = {
     'mnli': 1,
     'snli': 1,

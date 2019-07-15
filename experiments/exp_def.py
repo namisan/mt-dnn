@@ -1,6 +1,7 @@
 import yaml
 from data_utils.vocab import Vocabulary
 from data_utils.label_map import TaskType
+from data_utils.metrics import Metric
 
 class TaskDefs:
     def __init__(self, task_def_path):
@@ -9,10 +10,12 @@ class TaskDefs:
         n_class_map = {}
         data_type_map = {}
         task_type_map = {}
+        metric_meta_map = {}
         for task, task_def in self._task_def_dic.items():
             n_class_map[task] = task_def["n_class"]
             data_type_map[task] = task_def["data_type"]
             task_type_map[task] = TaskType[task_def["task_type"]]
+            metric_meta_map[task] = tuple(Metric[metric_name] for metric_name in task_def["metric_meta"])
             if "labels" in task_def:
                 labels = task_def["labels"]
                 label_mapper = Vocabulary(True)
@@ -24,3 +27,4 @@ class TaskDefs:
         self.n_class_map = n_class_map
         self.data_type_map = data_type_map
         self.task_type_map = task_type_map
+        self.metric_meta_map = metric_meta_map
