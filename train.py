@@ -275,8 +275,6 @@ def main():
     if args.freeze_layers > 0:
         model.network.freeze_layers(args.freeze_layers)
 
-    if args.cuda:
-        model.cuda()
     for epoch in range(0, args.epochs):
         logger.warning('At epoch {}'.format(epoch))
         for train_data in train_data_list:
