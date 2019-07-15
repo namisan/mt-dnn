@@ -101,7 +101,6 @@ def train_config(parser):
     parser.add_argument('--output_dir', default='checkpoint')
     parser.add_argument('--seed', type=int, default=2018,
                         help='random seed for data shuffling, embedding init, etc.')
-    parser.add_argument('--task_config_path', type=str, default='configs/tasks_config.json')
     parser.add_argument('--grad_accumulation_step', type=int, default=1)
     return parser
 
@@ -127,10 +126,6 @@ logger = create_logger(__name__, to_disk=True, log_file=log_path)
 logger.info(args.answer_opt)
 
 task_defs = TaskDefs(args.task_def)
-tasks_config = {}
-if os.path.exists(args.task_config_path):
-    with open(args.task_config_path, 'r') as reader:
-        tasks_config = json.loads(reader.read())
 
 
 def dump(path, data):
@@ -186,9 +181,7 @@ def main():
             tasks_class[nclass] = len(tasks_class)
             if args.mtl_opt > 0: nclass_list.append(nclass)
 
-        dropout_p = args.dropout_p
-        if tasks_config and prefix in tasks_config:
-            dropout_p = tasks_config[prefix]
+        dropout_p = task_defs.dropout_p_map.get(prefix, args.dropout_p)
         dropout_list.append(dropout_p)
 
         train_path = os.path.join(data_dir, '{}_train.json'.format(dataset))

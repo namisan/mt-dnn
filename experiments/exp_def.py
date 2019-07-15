@@ -12,6 +12,7 @@ class TaskDefs:
         task_type_map = {}
         metric_meta_map = {}
         enable_san_map = {}
+        dropout_p_map = {}
         for task, task_def in self._task_def_dic.items():
             n_class_map[task] = task_def["n_class"]
             data_type_map[task] = task_def["data_type"]
@@ -24,6 +25,8 @@ class TaskDefs:
                 for label in labels:
                     label_mapper.add(label)
                 global_map[task] = label_mapper
+            if "dropout_p" in task_def:
+                dropout_p_map[task] = task_def["dropout_p"]
 
         self.global_map = global_map
         self.n_class_map = n_class_map
@@ -31,3 +34,4 @@ class TaskDefs:
         self.task_type_map = task_type_map
         self.metric_meta_map = metric_meta_map
         self.enable_san_map = enable_san_map
+        self.dropout_p_map = dropout_p_map

@@ -3,6 +3,10 @@ from data_utils.task_def import DataFormat
 from data_utils.metrics import Metric
 
 task_def_dic = {}
+dropout_p_map = {
+    "mnli": 0.3,
+    "cola": 0.05
+}
 for task in TASK_TYPE.keys():
     task_type = TASK_TYPE[task]
     if task == "qnnli":
@@ -32,6 +36,8 @@ for task in TASK_TYPE.keys():
     if task == "mnli":
         split_names = ["train", "matched_dev", "mismatched_dev", "matched_test", "mismatched_test"]
 
+    dropout_p = dropout_p_map.get(task, None)
+
     n_class = DATA_META[task]
     data_type = DATA_TYPE[task]
     metric_meta = tuple(Metric(metric_no).name for metric_no in METRIC_META[task])
@@ -48,6 +54,8 @@ for task in TASK_TYPE.keys():
         task_def["labels"] = labels
     if split_names is not None:
         task_def["split_names"] = split_names
+    if dropout_p is not None:
+        task_def["dropout_p"] = dropout_p
 
     if task not in ["diag", "qnnli"]:
         task_def_dic[task] = task_def

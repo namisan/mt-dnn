@@ -1,6 +1,7 @@
 cola:
   data_format: PremiseOnly
   data_type: 1
+  dropout_p: 0.05
   enable_san: false
   metric_meta:
   - ACC
@@ -10,6 +11,7 @@ cola:
 mnli:
   data_format: PremiseAndOneHypothesis
   data_type: 0
+  dropout_p: 0.3
   enable_san: true
   labels:
   - contradiction
