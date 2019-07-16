@@ -242,11 +242,11 @@ def main():
     if len(train_data_list)> 1 and args.ratio > 0:
         num_all_batches = int(args.epochs * (len(train_data_list[0]) * (1 + args.ratio)))
 
-    model_path = args.init_checkpoint
+    bert_model_path = args.init_checkpoint
     state_dict = None
 
-    if os.path.exists(model_path):
-        state_dict = torch.load(model_path)
+    if os.path.exists(bert_model_path):
+        state_dict = torch.load(bert_model_path)
         config = state_dict['config']
         config['attention_probs_dropout_prob'] = args.bert_dropout_p
         config['hidden_dropout_prob'] = args.bert_dropout_p
@@ -259,9 +259,13 @@ def main():
         opt.update(config)
 
     model = MTDNNModel(opt, state_dict=state_dict, num_train_step=num_all_batches)
-    ####model meta str
+    if args.resume and args.model_ckpt:
+        logger.info('loading model from {}'.format(args.model_ckpt))
+        model.load(args.model_ckpt)
+
+    #### model meta str
     headline = '############# Model Arch of MT-DNN #############'
-    ###print network
+    ### print network
     logger.info('\n{}\n{}\n'.format(headline, model.network))
 
     # dump config

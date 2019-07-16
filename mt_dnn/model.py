@@ -1,6 +1,7 @@
 # coding=utf-8
 # Copyright (c) Microsoft. All rights reserved.
 import logging
+import sys
 
 import numpy as np
 import torch
@@ -226,6 +227,19 @@ class MTDNNModel(object):
         }
         torch.save(params, filename)
         logger.info('model saved to {}'.format(filename))
+
+    def load(self, checkpoint):
+
+        model_state_dict = torch.load(checkpoint)
+        if model_state_dict['config'].rsplit('/', 1)[1] != self.config['init_checkpoint'].rsplit('/', 1)[1]:
+            logger.error('*** SANBert network is pretrained on a different Bert Model. Please use that to fine-tune for other tasks. ***')
+            sys.exit()
+
+        self.network.load_state_dict(model_state_dict['state'], strict=False)
+        self.optimizer.load_state_dict(model_state_dict['optimizer'])
+        self.config = model_state_dict['config']
+        if self.ema:
+            self.ema.model.load_state_dict(model_state_dict['ema'])
 
     def cuda(self):
         self.network.cuda()
