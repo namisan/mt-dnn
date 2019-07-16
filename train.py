@@ -15,8 +15,9 @@ from data_utils.utils import set_environment
 from mt_dnn.batcher import BatchGen
 from mt_dnn.model import MTDNNModel
 
+
 def model_config(parser):
-    parser.add_argument('--update_bert_opt',  default=0, type=int)
+    parser.add_argument('--update_bert_opt', default=0, type=int)
     parser.add_argument('--multi_gpu_on', action='store_true')
     parser.add_argument('--mem_cum_type', type=str, default='simple',
                         help='bilinear/simple/defualt')
@@ -43,6 +44,7 @@ def model_config(parser):
     parser.add_argument('--init_ratio', type=float, default=1)
     return parser
 
+
 def data_config(parser):
     parser.add_argument('--log_file', default='mt-dnn-train.log', help='path for log file.')
     parser.add_argument("--init_checkpoint", default='mt_dnn_models/bert_model_base.pt', type=str)
@@ -52,12 +54,15 @@ def data_config(parser):
     parser.add_argument('--train_datasets', default='mnli')
     parser.add_argument('--test_datasets', default='mnli_mismatched,mnli_matched')
     parser.add_argument('--pw_tasks', default='qnnli', type=str)
+
     return parser
+
 
 def train_config(parser):
     parser.add_argument('--cuda', type=bool, default=torch.cuda.is_available(),
                         help='whether to use GPU acceleration.')
     parser.add_argument('--log_per_updates', type=int, default=500)
+    parser.add_argument('--save_per_updates', type=int, default=10000)
     parser.add_argument('--epochs', type=int, default=5)
     parser.add_argument('--batch_size', type=int, default=8)
     parser.add_argument('--batch_size_eval', type=int, default=8)
@@ -75,6 +80,10 @@ def train_config(parser):
     parser.add_argument('--dropout_p', type=float, default=0.1)
     parser.add_argument('--dropout_w', type=float, default=0.000)
     parser.add_argument('--bert_dropout_p', type=float, default=0.1)
+
+    # loading
+    parser.add_argument("--model_ckpt", default='checkpoints/model_0.pt', type=str)
+    parser.add_argument("--resume", action='store_true')
 
     # EMA
     parser.add_argument('--ema_opt', type=int, default=0)
@@ -95,6 +104,7 @@ def train_config(parser):
 
     return parser
 
+
 parser = argparse.ArgumentParser()
 parser = data_config(parser)
 parser = model_config(parser)
@@ -113,7 +123,7 @@ output_dir = os.path.abspath(output_dir)
 
 set_environment(args.seed, args.cuda)
 log_path = args.log_file
-logger =  create_logger(__name__, to_disk=True, log_file=log_path)
+logger = create_logger(__name__, to_disk=True, log_file=log_path)
 logger.info(args.answer_opt)
 
 tasks_config = {}
@@ -121,9 +131,11 @@ if os.path.exists(args.task_config_path):
     with open(args.task_config_path, 'r') as reader:
         tasks_config = json.loads(reader.read())
 
+
 def dump(path, data):
-    with open(path ,'w') as f:
+    with open(path, 'w') as f:
         json.dump(data, f)
+
 
 def main():
     logger.info('Launching the MT-DNN training')
@@ -176,14 +188,14 @@ def main():
         train_path = os.path.join(data_dir, '{}_train.json'.format(dataset))
         logger.info('Loading {} as task {}'.format(train_path, task_id))
         train_data = BatchGen(BatchGen.load(train_path, True, pairwise=pw_task, maxlen=args.max_seq_len),
-                                batch_size=batch_size,
-                                dropout_w=args.dropout_w,
-                                gpu=args.cuda,
-                                task_id=task_id,
-                                maxlen=args.max_seq_len,
-                                pairwise=pw_task,
-                                data_type=data_type,
-                                task_type=task_type)
+                              batch_size=batch_size,
+                              dropout_w=args.dropout_w,
+                              gpu=args.cuda,
+                              task_id=task_id,
+                              maxlen=args.max_seq_len,
+                              pairwise=pw_task,
+                              data_type=data_type,
+                              task_type=task_type)
         train_data_list.append(train_data)
 
     opt['answer_opt'] = decoder_opts
@@ -209,44 +221,44 @@ def main():
         dev_data = None
         if os.path.exists(dev_path):
             dev_data = BatchGen(BatchGen.load(dev_path, False, pairwise=pw_task, maxlen=args.max_seq_len),
-                                  batch_size=args.batch_size_eval,
-                                  gpu=args.cuda, is_train=False,
-                                  task_id=task_id,
-                                  maxlen=args.max_seq_len,
-                                  pairwise=pw_task,
-                                  data_type=data_type,
-                                  task_type=task_type)
+                                batch_size=args.batch_size_eval,
+                                gpu=args.cuda, is_train=False,
+                                task_id=task_id,
+                                maxlen=args.max_seq_len,
+                                pairwise=pw_task,
+                                data_type=data_type,
+                                task_type=task_type)
         dev_data_list.append(dev_data)
 
         test_path = os.path.join(data_dir, '{}_test.json'.format(dataset))
         test_data = None
         if os.path.exists(test_path):
             test_data = BatchGen(BatchGen.load(test_path, False, pairwise=pw_task, maxlen=args.max_seq_len),
-                                  batch_size=args.batch_size_eval,
-                                  gpu=args.cuda, is_train=False,
-                                  task_id=task_id,
-                                  maxlen=args.max_seq_len,
-                                  pairwise=pw_task,
-                                  data_type=data_type,
-                                  task_type=task_type)
+                                 batch_size=args.batch_size_eval,
+                                 gpu=args.cuda, is_train=False,
+                                 task_id=task_id,
+                                 maxlen=args.max_seq_len,
+                                 pairwise=pw_task,
+                                 data_type=data_type,
+                                 task_type=task_type)
         test_data_list.append(test_data)
 
     logger.info('#' * 20)
     logger.info(opt)
     logger.info('#' * 20)
 
-    all_iters =[iter(item) for item in train_data_list]
+    all_iters = [iter(item) for item in train_data_list]
     all_lens = [len(bg) for bg in train_data_list]
     num_all_batches = args.epochs * sum(all_lens)
 
-    if len(train_data_list)> 1 and args.ratio > 0:
+    if len(train_data_list) > 1 and args.ratio > 0:
         num_all_batches = int(args.epochs * (len(train_data_list[0]) * (1 + args.ratio)))
 
-    model_path = args.init_checkpoint
+    bert_model_path = args.init_checkpoint
     state_dict = None
 
-    if os.path.exists(model_path):
-        state_dict = torch.load(model_path)
+    if os.path.exists(bert_model_path):
+        state_dict = torch.load(bert_model_path)
         config = state_dict['config']
         config['attention_probs_dropout_prob'] = args.bert_dropout_p
         config['hidden_dropout_prob'] = args.bert_dropout_p
@@ -259,9 +271,13 @@ def main():
         opt.update(config)
 
     model = MTDNNModel(opt, state_dict=state_dict, num_train_step=num_all_batches)
-    ####model meta str
+    if args.resume and args.model_ckpt:
+        logger.info('loading model from {}'.format(args.model_ckpt))
+        model.load(args.model_ckpt)
+
+    #### model meta str
     headline = '############# Model Arch of MT-DNN #############'
-    ###print network
+    ### print network
     logger.info('\n{}\n{}\n'.format(headline, model.network))
 
     # dump config
@@ -280,13 +296,13 @@ def main():
         for train_data in train_data_list:
             train_data.reset()
         start = datetime.now()
-        all_indices=[]
-        if len(train_data_list)> 1 and args.ratio > 0:
-            main_indices =[0] * len(train_data_list[0])
-            extra_indices=[]
+        all_indices = []
+        if len(train_data_list) > 1 and args.ratio > 0:
+            main_indices = [0] * len(train_data_list[0])
+            extra_indices = []
             for i in range(1, len(train_data_list)):
                 extra_indices += [i] * len(train_data_list[i])
-            random_picks=int(min(len(train_data_list[0]) * args.ratio, len(extra_indices)))
+            random_picks = int(min(len(train_data_list[0]) * args.ratio, len(extra_indices)))
             extra_indices = np.random.choice(extra_indices, random_picks, replace=False)
             if args.mix_opt > 0:
                 extra_indices = extra_indices.tolist()
@@ -306,20 +322,31 @@ def main():
 
         for i in range(len(all_indices)):
             task_id = all_indices[i]
-            batch_meta, batch_data= next(all_iters[task_id])
+            batch_meta, batch_data = next(all_iters[task_id])
             model.update(batch_meta, batch_data)
             if (model.updates) % args.log_per_updates == 0 or model.updates == 1:
                 logger.info('Task [{0:2}] updates[{1:6}] train loss[{2:.5f}] remaining[{3}]'.format(task_id,
-                    model.updates, model.train_loss.avg,
-                    str((datetime.now() - start) / (i + 1) * (len(all_indices) - i - 1)).split('.')[0]))
+                                                                                                    model.updates,
+                                                                                                    model.train_loss.avg,
+                                                                                                    str((
+                                                                                                                    datetime.now() - start) / (
+                                                                                                                    i + 1) * (
+                                                                                                                    len(
+                                                                                                                        all_indices) - i - 1)).split(
+                                                                                                        '.')[0]))
+
+            if (model.updates) % args.save_per_updates == 0:
+                model_file = os.path.join(output_dir, 'model_{}_{}.pt'.format(epoch, model.updates))
+                logger.info('Saving mt-dnn model to {}'.format(model_file))
+                model.save(model_file)
 
         for idx, dataset in enumerate(args.test_datasets):
             prefix = dataset.split('_')[0]
             label_dict = GLOBAL_MAP.get(prefix, None)
             dev_data = dev_data_list[idx]
             if dev_data is not None:
-                dev_metrics, dev_predictions, scores, golds, dev_ids= eval_model(model, dev_data, dataset=prefix,
-                                                                                 use_cuda=args.cuda)
+                dev_metrics, dev_predictions, scores, golds, dev_ids = eval_model(model, dev_data, dataset=prefix,
+                                                                                  use_cuda=args.cuda)
                 for key, val in dev_metrics.items():
                     logger.warning("Task {0} -- epoch {1} -- Dev {2}: {3:.3f}".format(dataset, epoch, key, val))
                 score_file = os.path.join(output_dir, '{}_dev_scores_{}.json'.format(dataset, epoch))
@@ -331,8 +358,9 @@ def main():
             # test eval
             test_data = test_data_list[idx]
             if test_data is not None:
-                test_metrics, test_predictions, scores, golds, test_ids= eval_model(model, test_data, dataset=prefix,
-                                                                                 use_cuda=args.cuda, with_label=False)
+                test_metrics, test_predictions, scores, golds, test_ids = eval_model(model, test_data, dataset=prefix,
+                                                                                     use_cuda=args.cuda,
+                                                                                     with_label=False)
                 score_file = os.path.join(output_dir, '{}_test_scores_{}.json'.format(dataset, epoch))
                 results = {'metrics': test_metrics, 'predictions': test_predictions, 'uids': test_ids, 'scores': scores}
                 dump(score_file, results)
