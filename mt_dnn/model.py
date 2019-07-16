@@ -26,14 +26,7 @@ class MTDNNModel(object):
         self.network = SANBertNetwork(opt)
 
         if state_dict:
-            new_state = set(self.network.state_dict().keys())
-            for k in list(state_dict['state'].keys()):
-                if k not in new_state:
-                    del state_dict['state'][k]
-            for k, v in list(self.network.state_dict().items()):
-                if k not in state_dict['state']:
-                    state_dict['state'][k] = v
-            self.network.load_state_dict(state_dict['state'])
+            self.network.load_state_dict(state_dict['state'], strict=False)
         self.mnetwork = nn.DataParallel(self.network) if opt['multi_gpu_on'] else self.network
         self.total_param = sum([p.nelement() for p in self.network.parameters() if p.requires_grad])
         if opt['cuda']:
