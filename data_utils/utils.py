@@ -2,7 +2,6 @@
 import random
 import torch
 import numpy
-from torch.autograd import Variable
 import subprocess
 
 class AverageMeter(object):
@@ -31,9 +30,7 @@ def set_environment(seed, set_cuda=False):
 
 def patch_var(v, cuda=True):
     if cuda:
-        v = Variable(v.cuda(async=True))
-    else:
-        v = Variable(v)
+        v = v.cuda(non_blocking=True)
     return v
 
 def get_gpu_memory_map():

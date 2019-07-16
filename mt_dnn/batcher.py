@@ -84,7 +84,7 @@ class BatchGen:
         return len(self.data)
 
     def patch(self, v):
-        v = v.cuda(async=True)
+        v = v.cuda(non_blocking=True)
         return v
 
     @staticmethod

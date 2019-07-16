@@ -325,15 +325,11 @@ def main():
             batch_meta, batch_data = next(all_iters[task_id])
             model.update(batch_meta, batch_data)
             if (model.updates) % args.log_per_updates == 0 or model.updates == 1:
+                ramaining_time = str((datetime.now() - start) / (i + 1) * (len(all_indices) - i - 1)).split('.')[0]
                 logger.info('Task [{0:2}] updates[{1:6}] train loss[{2:.5f}] remaining[{3}]'.format(task_id,
                                                                                                     model.updates,
                                                                                                     model.train_loss.avg,
-                                                                                                    str((
-                                                                                                                    datetime.now() - start) / (
-                                                                                                                    i + 1) * (
-                                                                                                                    len(
-                                                                                                                        all_indices) - i - 1)).split(
-                                                                                                        '.')[0]))
+                                                                                                    ramaining_time))
 
             if (model.updates) % args.save_per_updates == 0:
                 model_file = os.path.join(output_dir, 'model_{}_{}.pt'.format(epoch, model.updates))

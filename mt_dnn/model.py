@@ -8,7 +8,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from torch.autograd import Variable
 from torch.optim.lr_scheduler import *
 from data_utils.utils import AverageMeter
 from pytorch_pretrained_bert import BertAdam as Adam
@@ -126,9 +125,10 @@ class MTDNNModel(object):
         if batch_meta['pairwise']:
             labels = labels.contiguous().view(-1, batch_meta['pairwise_size'])[:, 0]
         if self.config['cuda']:
-            y = Variable(labels.cuda(async = True), requires_grad = False)
-            else:
-            y = Variable(labels, requires_grad=False)
+            y = labels.cuda(non_blocking=True)
+        else:
+            y = labels
+        y.requires_grad = False
         task_id = batch_meta['task_id']
         task_type = batch_meta['task_type']
         inputs = batch_data[:batch_meta['input_len']]
@@ -142,9 +142,9 @@ class MTDNNModel(object):
 
         if self.config.get('weighted_on', False):
             if self.config['cuda']:
-                weight = Variable(batch_data[batch_meta['factor']].cuda(async = True))
-                else:
-                weight = Variable(batch_data[batch_meta['factor']])
+                weight = batch_data[batch_meta['factor']].cuda(non_blocking=True)
+            else:
+                weight = batch_data[batch_meta['factor']]
             if task_type > 0:
                 loss = torch.mean(F.mse_loss(logits.squeeze(), y, reduce=False) * weight)
             else:

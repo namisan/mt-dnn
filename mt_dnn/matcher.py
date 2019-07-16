@@ -1,14 +1,11 @@
 # coding=utf-8
 # Copyright (c) Microsoft. All rights reserved.
-import os
-import torch
-import math
 import torch.nn as nn
-import torch.nn.functional as F
-from torch.autograd import Variable
+from pytorch_pretrained_bert.modeling import BertConfig, BertLayerNorm, BertModel
+
 from module.dropout_wrapper import DropoutWrapper
-from pytorch_pretrained_bert.modeling import BertConfig, BertEncoder, BertLayerNorm, BertModel
-from module.san import SANClassifier, Classifier
+from module.san import SANClassifier
+
 
 class SANBertNetwork(nn.Module):
     def __init__(self, opt, bert_config=None):
@@ -63,6 +60,7 @@ class SANBertNetwork(nn.Module):
                     module.weight.data.fill_(1.0)
             if isinstance(module, nn.Linear):
                 module.bias.data.zero_()
+
         self.apply(init_weights)
 
     def nbert_layer(self):
@@ -108,7 +106,7 @@ class SANBertNetwork(nn.Module):
             assert max_query > 0
             assert premise_mask is not None
             assert hyp_mask is not None
-            hyp_mem = sequence_output[:,:max_query,:]
+            hyp_mem = sequence_output[:, :max_query, :]
             logits = self.scoring_list[task_id](sequence_output, hyp_mem, premise_mask, hyp_mask)
         else:
             pooled_output = self.dropout_list[task_id](pooled_output)
