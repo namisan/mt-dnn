@@ -173,7 +173,8 @@ class MTDNNModel(object):
                     loss = loss + kd_loss
 
         self.train_loss.update(loss.item(), logits.size(0))
-
+        # scale loss
+        loss = loss / self.config.get('grad_accumulation_step', 1)
         loss.backward()
         self.local_updates += 1
         if self.local_updates % self.config.get('grad_accumulation_step', 1) == 0:
