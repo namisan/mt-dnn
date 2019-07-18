@@ -21,6 +21,7 @@ class MTDNNModel(object):
     def __init__(self, opt, state_dict=None, num_train_step=-1):
         self.config = opt
         self.updates = state_dict['updates'] if state_dict and 'updates' in state_dict else 0
+        self.local_updates = 0
         self.train_loss = AverageMeter()
         self.network = SANBertNetwork(opt)
 
@@ -88,6 +89,8 @@ class MTDNNModel(object):
         if opt['ema_opt'] > 0:
             self.ema = EMA(self.config['ema_gamma'], self.network)
         self.para_swapped=False
+        # zero optimizer grad
+        self.optimizer.zero_grad()
 
     def setup_ema(self):
         if self.config['ema_opt']:
@@ -161,15 +164,19 @@ class MTDNNModel(object):
                     loss = loss + kd_loss
 
         self.train_loss.update(loss.item(), logits.size(0))
-        self.optimizer.zero_grad()
 
         loss.backward()
-        if self.config['global_grad_clipping'] > 0:
-            torch.nn.utils.clip_grad_norm_(self.network.parameters(),
-                                          self.config['global_grad_clipping'])
-        self.optimizer.step()
-        self.updates += 1
-        self.update_ema()
+        self.local_updates += 1
+        if self.local_updates % self.config.get('grad_accumulation_step', 1) == 0:
+            if self.config['global_grad_clipping'] > 0:
+                torch.nn.utils.clip_grad_norm_(self.network.parameters(),
+                                              self.config['global_grad_clipping'])
+
+            self.updates += 1
+            # reset number of the grad accumulation
+            self.optimizer.step()
+            self.optimizer.zero_grad()
+            self.update_ema()
 
     def predict(self, batch_meta, batch_data):
         self.network.eval()

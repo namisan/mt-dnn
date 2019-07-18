@@ -92,7 +92,7 @@ def train_config(parser):
     parser.add_argument('--seed', type=int, default=2018,
                         help='random seed for data shuffling, embedding init, etc.')
     parser.add_argument('--task_config_path', type=str, default='configs/tasks_config.json')
-
+    parser.add_argument('--grad_accumulation_step', type=int, default=1)
     return parser
 
 parser = argparse.ArgumentParser()
@@ -237,7 +237,13 @@ def main():
 
     all_iters =[iter(item) for item in train_data_list]
     all_lens = [len(bg) for bg in train_data_list]
-    num_all_batches = args.epochs * sum(all_lens)
+
+    # div number of grad accumulation. 
+    num_all_batches = args.epochs * sum(all_lens) // args.grad_accumulation_step
+    logger.info('############# Gradient Accumulation Infor #############')
+    logger.info('number of step: {}'.format(args.epochs * sum(all_lens)))
+    logger.info('number of grad grad_accumulation step: {}'.format(args.grad_accumulation_step))
+    logger.info('adjusted number of step: {}'.format(num_all_batches))
 
     if len(train_data_list)> 1 and args.ratio > 0:
         num_all_batches = int(args.epochs * (len(train_data_list[0]) * (1 + args.ratio)))
@@ -310,7 +316,7 @@ def main():
             task_id = all_indices[i]
             batch_meta, batch_data= next(all_iters[task_id])
             model.update(batch_meta, batch_data)
-            if (model.updates) % args.log_per_updates == 0 or model.updates == 1:
+            if (model.local_updates) % (args.log_per_updates * args.grad_accumulation_step) == 0 or model.local_updates == 1:
                 logger.info('Task [{0:2}] updates[{1:6}] train loss[{2:.5f}] remaining[{3}]'.format(task_id,
                     model.updates, model.train_loss.avg,
                     str((datetime.now() - start) / (i + 1) * (len(all_indices) - i - 1)).split('.')[0]))
