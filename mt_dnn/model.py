@@ -1,6 +1,7 @@
 # coding=utf-8
 # Copyright (c) Microsoft. All rights reserved.
 import logging
+import sys
 
 import numpy as np
 import torch
@@ -16,6 +17,7 @@ from module.my_optim import EMA
 from .matcher import SANBertNetwork
 
 logger = logging.getLogger(__name__)
+
 
 class MTDNNModel(object):
     def __init__(self, opt, state_dict=None, num_train_step=-1):
@@ -36,14 +38,18 @@ class MTDNNModel(object):
             self.network.load_state_dict(state_dict['state'])
         self.mnetwork = nn.DataParallel(self.network) if opt['multi_gpu_on'] else self.network
         self.total_param = sum([p.nelement() for p in self.network.parameters() if p.requires_grad])
+        if opt['cuda']:
+            self.network.cuda()
 
         no_decay = ['bias', 'gamma', 'beta', 'LayerNorm.bias', 'LayerNorm.weight']
 
         optimizer_parameters = [
-            {'params': [p for n, p in self.network.named_parameters() if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
-            {'params': [p for n, p in self.network.named_parameters() if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
+            {'params': [p for n, p in self.network.named_parameters() if not any(nd in n for nd in no_decay)],
+             'weight_decay': 0.01},
+            {'params': [p for n, p in self.network.named_parameters() if any(nd in n for nd in no_decay)],
+             'weight_decay': 0.0}
         ]
-        
+
         # note that adamax are modified based on the BERT code
         if opt['optimizer'] == 'sgd':
             self.optimizer = optim.sgd(optimizer_parameters, opt['learning_rate'],
@@ -51,11 +57,11 @@ class MTDNNModel(object):
 
         elif opt['optimizer'] == 'adamax':
             self.optimizer = Adamax(optimizer_parameters,
-                                        opt['learning_rate'],
-                                        warmup=opt['warmup'],
-                                        t_total=num_train_step,
-                                        max_grad_norm=opt['grad_clipping'],
-                                        schedule=opt['warmup_schedule'])
+                                    opt['learning_rate'],
+                                    warmup=opt['warmup'],
+                                    t_total=num_train_step,
+                                    max_grad_norm=opt['grad_clipping'],
+                                    schedule=opt['warmup_schedule'])
             if opt.get('have_lr_scheduler', False): opt['have_lr_scheduler'] = False
         elif opt['optimizer'] == 'adadelta':
             self.optimizer = optim.Adadelta(optimizer_parameters,
@@ -63,11 +69,11 @@ class MTDNNModel(object):
                                             rho=0.95)
         elif opt['optimizer'] == 'adam':
             self.optimizer = Adam(optimizer_parameters,
-                                        lr=opt['learning_rate'],
-                                        warmup=opt['warmup'],
-                                        t_total=num_train_step,
-                                        max_grad_norm=opt['grad_clipping'],
-                                        schedule=opt['warmup_schedule'])
+                                  lr=opt['learning_rate'],
+                                  warmup=opt['warmup'],
+                                  t_total=num_train_step,
+                                  max_grad_norm=opt['grad_clipping'],
+                                  schedule=opt['warmup_schedule'])
             if opt.get('have_lr_scheduler', False): opt['have_lr_scheduler'] = False
         else:
             raise RuntimeError('Unsupported optimizer: %s' % opt['optimizer'])
@@ -88,7 +94,10 @@ class MTDNNModel(object):
         self.ema = None
         if opt['ema_opt'] > 0:
             self.ema = EMA(self.config['ema_gamma'], self.network)
-        self.para_swapped=False
+            if opt['cuda']:
+                self.ema.cuda()
+
+        self.para_swapped = False
         # zero optimizer grad
         self.optimizer.zero_grad()
 
@@ -121,7 +130,7 @@ class MTDNNModel(object):
         if batch_meta['pairwise']:
             labels = labels.contiguous().view(-1, batch_meta['pairwise_size'])[:, 0]
         if self.config['cuda']:
-            y = Variable(labels.cuda(async=True), requires_grad=False)
+            y = Variable(labels.cuda(async = True), requires_grad = False)
         else:
             y = Variable(labels, requires_grad=False)
         task_id = batch_meta['task_id']
@@ -137,7 +146,7 @@ class MTDNNModel(object):
 
         if self.config.get('weighted_on', False):
             if self.config['cuda']:
-                weight = Variable(batch_data[batch_meta['factor']].cuda(async=True))
+                weight = Variable(batch_data[batch_meta['factor']].cuda(async = True))
             else:
                 weight = Variable(batch_data[batch_meta['factor']])
             if task_type > 0:
@@ -177,6 +186,7 @@ class MTDNNModel(object):
             self.optimizer.step()
             self.optimizer.zero_grad()
             self.update_ema()
+
 
     def predict(self, batch_meta, batch_data):
         self.network.eval()
@@ -229,6 +239,21 @@ class MTDNNModel(object):
         }
         torch.save(params, filename)
         logger.info('model saved to {}'.format(filename))
+
+    def load(self, checkpoint):
+
+        model_state_dict = torch.load(checkpoint)
+        if model_state_dict['config']['init_checkpoint'].rsplit('/', 1)[1] != \
+                self.config['init_checkpoint'].rsplit('/', 1)[1]:
+            logger.error(
+                '*** SANBert network is pretrained on a different Bert Model. Please use that to fine-tune for other tasks. ***')
+            sys.exit()
+
+        self.network.load_state_dict(model_state_dict['state'], strict=False)
+        self.optimizer.load_state_dict(model_state_dict['optimizer'])
+        self.config = model_state_dict['config']
+        if self.ema:
+            self.ema.model.load_state_dict(model_state_dict['ema'])
 
     def cuda(self):
         self.network.cuda()
