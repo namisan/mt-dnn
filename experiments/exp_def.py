@@ -14,6 +14,7 @@ class TaskDefs:
         enable_san_map = {}
         dropout_p_map = {}
         for task, task_def in self._task_def_dic.items():
+            assert "_" not in task, "task name should not contain '_', current task name: %s" % task
             n_class_map[task] = task_def["n_class"]
             data_format = DataFormat[task_def["data_format"]]
             if data_format == DataFormat.PremiseOnly:

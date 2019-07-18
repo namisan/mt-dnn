@@ -1,3 +1,7 @@
+# because we don't specify exact software version in Dockerfile,
+# the train loss could be different when you rebuild the Dockerfile
+# so we hide this test. But it still useful for developer when you constantly working on exact same environment
+# (Docker, hardware)
 import os
 import shutil
 import subprocess
