@@ -9,6 +9,7 @@ matrix:
         - python: pypy
         - python: pypy3
 install:
+    - pip install -U pip
     - pip install --progress-bar off -r requirements.txt
     - pip install flake8 
     # - pip install pipenv
