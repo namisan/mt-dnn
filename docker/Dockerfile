@@ -13,7 +13,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
          unzip \
          ca-certificates \
          libjpeg-dev \
-         libpng-dev &&\
+         libpng-dev \
+         libpq-dev &&\
      rm -rf /var/lib/apt/lists/*
 
 
@@ -31,6 +32,7 @@ ENV PATH /opt/conda/envs/pytorch-py$PYTHON_VERSION/bin:$PATH
 RUN /opt/conda/bin/conda install --name pytorch-py$PYTHON_VERSION cuda90 pytorch=0.4.1 torchvision -c pytorch && \
     /opt/conda/bin/conda clean -ya
 RUN pip install --upgrade pip
+RUN pip install pytest
 RUN pip install tensorboard_logger
 RUN pip install tqdm
 RUN pip install h5py==2.7.1
@@ -45,6 +47,6 @@ RUN pip install allennlp==0.4
 RUN pip install ipdb
 RUN pip install tensorboardX
 
-WORKDIR /root
+WORKDIR /workspace
 #COPY requirements.txt /root/
 #RUN pip install -r requirements.txt

@@ -8,10 +8,11 @@ from pprint import pprint
 import numpy as np
 import torch
 from pytorch_pretrained_bert.modeling import BertConfig
-from data_utils.glue_utils import submit, eval_model
-from data_utils.label_map import DATA_META, GLOBAL_MAP, DATA_TYPE, DATA_SWAP, TASK_TYPE, generate_decoder_opt
+from experiments.exp_def import TaskDefs
+from experiments.glue.glue_utils import submit, eval_model
 from data_utils.log_wrapper import create_logger
 from data_utils.utils import set_environment
+from data_utils.task_def import TaskType
 from mt_dnn.batcher import BatchGen
 from mt_dnn.model import MTDNNModel
 
@@ -51,10 +52,9 @@ def data_config(parser):
     parser.add_argument('--data_dir', default='data/canonical_data/mt_dnn_uncased_lower')
     parser.add_argument('--data_sort_on', action='store_true')
     parser.add_argument('--name', default='farmer')
+    parser.add_argument('--task_def', type=str, default="experiments/glue/glue_task_def.yml")
     parser.add_argument('--train_datasets', default='mnli')
     parser.add_argument('--test_datasets', default='mnli_mismatched,mnli_matched')
-    parser.add_argument('--pw_tasks', default='qnnli', type=str)
-
     return parser
 
 
@@ -101,7 +101,6 @@ def train_config(parser):
     parser.add_argument('--output_dir', default='checkpoint')
     parser.add_argument('--seed', type=int, default=2018,
                         help='random seed for data shuffling, embedding init, etc.')
-    parser.add_argument('--task_config_path', type=str, default='configs/tasks_config.json')
     parser.add_argument('--grad_accumulation_step', type=int, default=1)
     return parser
 
@@ -116,7 +115,6 @@ output_dir = args.output_dir
 data_dir = args.data_dir
 args.train_datasets = args.train_datasets.split(',')
 args.test_datasets = args.test_datasets.split(',')
-args.pw_tasks = list(set([pw for pw in args.pw_tasks.split(',') if len(pw.strip()) > 0]))
 pprint(args)
 
 os.makedirs(output_dir, exist_ok=True)
@@ -127,16 +125,18 @@ log_path = args.log_file
 logger = create_logger(__name__, to_disk=True, log_file=log_path)
 logger.info(args.answer_opt)
 
-tasks_config = {}
-if os.path.exists(args.task_config_path):
-    with open(args.task_config_path, 'r') as reader:
-        tasks_config = json.loads(reader.read())
+task_defs = TaskDefs(args.task_def)
 
 
 def dump(path, data):
     with open(path, 'w') as f:
         json.dump(data, f)
 
+def generate_decoder_opt(enable_san, max_opt):
+    opt_v = 0
+    if enable_san and max_opt < 3:
+        opt_v = max_opt
+    return opt_v
 
 def main():
     logger.info('Launching the MT-DNN training')
@@ -154,20 +154,20 @@ def main():
     for dataset in args.train_datasets:
         prefix = dataset.split('_')[0]
         if prefix in tasks: continue
-        assert prefix in DATA_META
-        assert prefix in DATA_TYPE
-        data_type = DATA_TYPE[prefix]
-        nclass = DATA_META[prefix]
+        assert prefix in task_defs.n_class_map
+        assert prefix in task_defs.data_type_map
+        data_type = task_defs.data_type_map[prefix]
+        nclass = task_defs.n_class_map[prefix]
         task_id = len(tasks)
         if args.mtl_opt > 0:
             task_id = tasks_class[nclass] if nclass in tasks_class else len(tasks_class)
 
-        task_type = TASK_TYPE[prefix]
+        task_type = task_defs.task_type_map[prefix]
         pw_task = False
-        if prefix in opt['pw_tasks']:
+        if task_type == TaskType.Ranking:
             pw_task = True
 
-        dopt = generate_decoder_opt(prefix, opt['answer_opt'])
+        dopt = generate_decoder_opt(task_defs.enable_san_map[prefix], opt['answer_opt'])
         if task_id < len(decoder_opts):
             decoder_opts[task_id] = min(decoder_opts[task_id], dopt)
         else:
@@ -181,9 +181,7 @@ def main():
             tasks_class[nclass] = len(tasks_class)
             if args.mtl_opt > 0: nclass_list.append(nclass)
 
-        dropout_p = args.dropout_p
-        if tasks_config and prefix in tasks_config:
-            dropout_p = tasks_config[prefix]
+        dropout_p = task_defs.dropout_p_map.get(prefix, args.dropout_p)
         dropout_list.append(dropout_p)
 
         train_path = os.path.join(data_dir, '{}_train.json'.format(dataset))
@@ -208,15 +206,15 @@ def main():
     test_data_list = []
     for dataset in args.test_datasets:
         prefix = dataset.split('_')[0]
-        task_id = tasks_class[DATA_META[prefix]] if args.mtl_opt > 0 else tasks[prefix]
-        task_type = TASK_TYPE[prefix]
+        task_id = tasks_class[task_defs.n_class_map[prefix]] if args.mtl_opt > 0 else tasks[prefix]
+        task_type = task_defs.task_type_map[prefix]
 
         pw_task = False
-        if prefix in opt['pw_tasks']:
+        if task_type == TaskType.Ranking:
             pw_task = True
 
-        assert prefix in DATA_TYPE
-        data_type = DATA_TYPE[prefix]
+        assert prefix in task_defs.data_type_map
+        data_type = task_defs.data_type_map[prefix]
 
         dev_path = os.path.join(data_dir, '{}_dev.json'.format(dataset))
         dev_data = None
@@ -349,11 +347,12 @@ def main():
 
         for idx, dataset in enumerate(args.test_datasets):
             prefix = dataset.split('_')[0]
-            label_dict = GLOBAL_MAP.get(prefix, None)
+            label_dict = task_defs.global_map.get(prefix, None)
             dev_data = dev_data_list[idx]
             if dev_data is not None:
-                dev_metrics, dev_predictions, scores, golds, dev_ids = eval_model(model, dev_data, dataset=prefix,
-                                                                                  use_cuda=args.cuda)
+                dev_metrics, dev_predictions, scores, golds, dev_ids= eval_model(model, dev_data,
+                                                                                 metric_meta=task_defs.metric_meta_map[prefix],
+                                                                                 use_cuda=args.cuda)
                 for key, val in dev_metrics.items():
                     logger.warning("Task {0} -- epoch {1} -- Dev {2}: {3:.3f}".format(dataset, epoch, key, val))
                 score_file = os.path.join(output_dir, '{}_dev_scores_{}.json'.format(dataset, epoch))
@@ -365,9 +364,9 @@ def main():
             # test eval
             test_data = test_data_list[idx]
             if test_data is not None:
-                test_metrics, test_predictions, scores, golds, test_ids = eval_model(model, test_data, dataset=prefix,
-                                                                                     use_cuda=args.cuda,
-                                                                                     with_label=False)
+                test_metrics, test_predictions, scores, golds, test_ids= eval_model(model, test_data,
+                                                                                    metric_meta=task_defs.metric_meta_map[prefix],
+                                                                                    use_cuda=args.cuda, with_label=False)
                 score_file = os.path.join(output_dir, '{}_test_scores_{}.json'.format(dataset, epoch))
                 results = {'metrics': test_metrics, 'predictions': test_predictions, 'uids': test_ids, 'scores': scores}
                 dump(score_file, results)
@@ -381,3 +380,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
