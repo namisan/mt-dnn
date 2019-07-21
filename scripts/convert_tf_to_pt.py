@@ -86,7 +86,6 @@ def train_config(parser):
     parser.add_argument('--output_dir', default='checkpoint')
     parser.add_argument('--seed', type=int, default=2018,
                         help='random seed for data shuffling, embedding init, etc.')
-    parser.add_argument('--task_config_path', type=str, default='configs/tasks_config.json')
     return parser
 
 
