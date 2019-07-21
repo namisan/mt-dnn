@@ -21,21 +21,13 @@ cd ..
 rm -rf jiant
 #########################
 
-## DOWNLOAD SciTail 
+## DOWNLOAD SciTail
 cd $DATA_DIR
 wget http://data.allenai.org.s3.amazonaws.com/downloads/SciTailV1.1.zip
 unzip SciTailV1.1.zip
 mv SciTailV1.1 SciTail
 # remove zip files
 rm *.zip
-
-cd ${BERT_DIR}
-## DOWNLOAD BERT
-wget https://storage.googleapis.com/bert_models/2018_10_18/uncased_L-12_H-768_A-12.zip -O "uncased_bert_base.zip"
-unzip uncased_bert_base.zip
-mv uncased_L-12_H-768_A-12/vocab.txt "${BERT_DIR}/"
-rm *.zip
-rm -rf uncased_L-12_H-768_A-12
 
 ## Download bert models
 wget https://mrc.blob.core.windows.net/mt-dnn-model/bert_model_base_v2.pt -O "${BERT_DIR}/bert_model_base_uncased.pt"
