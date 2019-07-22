@@ -1,4 +1,6 @@
 # Copyright (c) Microsoft. All rights reserved.
+from enum import Enum
+
 from sklearn.metrics import matthews_corrcoef
 from sklearn.metrics import accuracy_score, f1_score
 from scipy.stats import pearsonr, spearmanr
@@ -19,3 +21,20 @@ def compute_pearson(predicts, labels):
 def compute_spearman(predicts, labels):
     scof = spearmanr(labels, predicts)[0]
     return 100.0 * scof
+
+
+class Metric(Enum):
+    ACC = 0
+    F1 = 1
+    MCC = 2
+    Pearson = 3
+    Spearman = 4
+
+
+METRIC_FUNC = {
+ Metric.ACC: compute_acc,
+ Metric.F1: compute_f1,
+ Metric.MCC: compute_mcc,
+ Metric.Pearson: compute_pearson,
+ Metric.Spearman: compute_spearman,
+}

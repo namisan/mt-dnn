@@ -15,6 +15,8 @@ from module.bert_optim import Adamax
 from module.my_optim import EMA
 from .matcher import SANBertNetwork
 
+from data_utils.task_def import TaskType
+
 logger = logging.getLogger(__name__)
 
 
@@ -22,6 +24,7 @@ class MTDNNModel(object):
     def __init__(self, opt, state_dict=None, num_train_step=-1):
         self.config = opt
         self.updates = state_dict['updates'] if state_dict and 'updates' in state_dict else 0
+        self.local_updates = 0
         self.train_loss = AverageMeter()
         self.network = SANBertNetwork(opt)
 
@@ -87,7 +90,10 @@ class MTDNNModel(object):
             self.ema = EMA(self.config['ema_gamma'], self.network)
             if opt['cuda']:
                 self.ema.cuda()
+
         self.para_swapped = False
+        # zero optimizer grad
+        self.optimizer.zero_grad()
 
     def setup_ema(self):
         if self.config['ema_opt']:
@@ -122,6 +128,7 @@ class MTDNNModel(object):
         else:
             y = labels
         y.requires_grad = False
+
         task_id = batch_meta['task_id']
         task_type = batch_meta['task_type']
         inputs = batch_data[:batch_meta['input_len']]
@@ -135,10 +142,10 @@ class MTDNNModel(object):
 
         if self.config.get('weighted_on', False):
             if self.config['cuda']:
-                weight = batch_data[batch_meta['factor']].cuda(non_blocking=True)
+                weight = Variable(batch_data[batch_meta['factor']].cuda(non_blocking=True))
             else:
-                weight = batch_data[batch_meta['factor']]
-            if task_type > 0:
+                weight = Variable(batch_data[batch_meta['factor']])
+            if task_type == TaskType.Regression:
                 loss = torch.mean(F.mse_loss(logits.squeeze(), y, reduce=False) * weight)
             else:
                 loss = torch.mean(F.cross_entropy(logits, y, reduce=False) * weight)
@@ -148,7 +155,7 @@ class MTDNNModel(object):
                     kd_loss = F.kl_div(F.log_softmax(logits.view(-1, label_size).float(), 1), soft_labels) * label_size
                     loss = loss + kd_loss
         else:
-            if task_type > 0:
+            if task_type == TaskType.Regression:
                 loss = F.mse_loss(logits.squeeze(), y)
             else:
                 loss = F.cross_entropy(logits, y)
@@ -162,15 +169,21 @@ class MTDNNModel(object):
                     loss = loss + kd_loss
 
         self.train_loss.update(loss.item(), logits.size(0))
-        self.optimizer.zero_grad()
-
+        # scale loss
+        loss = loss / self.config.get('grad_accumulation_step', 1)
         loss.backward()
-        if self.config['global_grad_clipping'] > 0:
-            torch.nn.utils.clip_grad_norm_(self.network.parameters(),
-                                           self.config['global_grad_clipping'])
-        self.optimizer.step()
-        self.updates += 1
-        self.update_ema()
+        self.local_updates += 1
+        if self.local_updates % self.config.get('grad_accumulation_step', 1) == 0:
+            if self.config['global_grad_clipping'] > 0:
+                torch.nn.utils.clip_grad_norm_(self.network.parameters(),
+                                              self.config['global_grad_clipping'])
+
+            self.updates += 1
+            # reset number of the grad accumulation
+            self.optimizer.step()
+            self.optimizer.zero_grad()
+            self.update_ema()
+
 
     def predict(self, batch_meta, batch_data):
         self.network.eval()
@@ -184,8 +197,8 @@ class MTDNNModel(object):
         score = self.mnetwork(*inputs)
         if batch_meta['pairwise']:
             score = score.contiguous().view(-1, batch_meta['pairwise_size'])
-            if task_type < 1:
-                score = F.softmax(score, dim=1)
+            assert task_type == TaskType.Ranking
+            score = F.softmax(score, dim=1)
             score = score.data.cpu()
             score = score.numpy()
             predict = np.zeros(score.shape, dtype=int)
@@ -196,7 +209,7 @@ class MTDNNModel(object):
             score = score.reshape(-1).tolist()
             return score, predict, batch_meta['true_label']
         else:
-            if task_type < 1:
+            if task_type == TaskType.Classification:
                 score = F.softmax(score, dim=1)
             score = score.data.cpu()
             score = score.numpy()
