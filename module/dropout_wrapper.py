@@ -2,7 +2,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.autograd import Variable
 
 class DropoutWrapper(nn.Module):
     """
@@ -24,7 +23,8 @@ class DropoutWrapper(nn.Module):
             return x
 
         if len(x.size()) == 3:
-            mask = Variable(1.0 / (1-self.dropout_p) * torch.bernoulli((1-self.dropout_p) * (x.data.new(x.size(0), x.size(2)).zero_() + 1)), requires_grad=False)
+            mask = 1.0 / (1-self.dropout_p) * torch.bernoulli((1-self.dropout_p) * (x.data.new(x.size(0), x.size(2)).zero_() + 1))
+            mask.requires_grad = False
             return mask.unsqueeze(1).expand_as(x) * x
         else:
             return F.dropout(x, p=self.dropout_p, training=self.training)

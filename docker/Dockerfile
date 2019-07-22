@@ -29,7 +29,7 @@ RUN curl -o ~/miniconda.sh -O  https://repo.continuum.io/miniconda/Miniconda3-la
 
 ENV PATH /opt/conda/envs/pytorch-py$PYTHON_VERSION/bin:$PATH
 
-RUN /opt/conda/bin/conda install --name pytorch-py$PYTHON_VERSION cuda90 pytorch=0.4.1 torchvision -c pytorch && \
+RUN /opt/conda/bin/conda install --name pytorch-py$PYTHON_VERSION cuda90 pytorch=1.1.0 torchvision -c pytorch && \
     /opt/conda/bin/conda clean -ya
 RUN pip install --upgrade pip
 RUN pip install pytest
@@ -43,7 +43,7 @@ RUN pip install pytorch-pretrained-bert==v0.6.0
 
 # GLUE baseline dependencies
 RUN pip install nltk
-RUN pip install allennlp==0.4
+# RUN pip install allennlp==0.4
 RUN pip install ipdb
 RUN pip install tensorboardX
 
