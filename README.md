@@ -34,7 +34,7 @@ Improving Multi-Task Deep Neural Networks via Knowledge Distillation for Natural
    ```> docker pull allenlao/pytorch-mt-dnn:v0.1```
 
 2. Run docker </br>
-   ```> docker run -it --rm --runtime nvidia  allenlao/pytorch-mt-dnn:v0.1 bash``` </br>
+   ```> docker run -it --rm --runtime nvidia  allenlao/pytorch-mt-dnn:v0.11 bash``` </br>
    Please refer to the following link if you first use docker: https://docs.docker.com/
 
 ### Train a toy MT-DNN model
