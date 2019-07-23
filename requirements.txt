@@ -8,3 +8,6 @@ regex
 scikit-learn
 pyyaml
 pytest
+tensorboardX
+tensorboard
+future
