@@ -1,5 +1,5 @@
 numpy
-torch==0.4.1
+torch==1.1.0
 tqdm
 colorlog
 boto3
@@ -9,3 +9,6 @@ scikit-learn
 pyyaml
 pytest
 sentencepiece
+tensorboardX
+tensorboard
+future
