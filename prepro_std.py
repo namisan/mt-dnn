@@ -9,6 +9,8 @@ import sentencepiece as spm
 from data_utils.task_def import TaskType, DataFormat
 from data_utils.log_wrapper import create_logger
 from experiments.exp_def import TaskDefs
+from data_utils.xlnet_utils import preprocess_text, encode_ids
+from data_utils.xlnet_utils import CLS_ID, SEP_ID
 
 DEBUG_MODE=False
 MAX_SEQ_LEN = 512
@@ -22,6 +24,10 @@ SEG_ID_PAD = 4
 ### XLNET ###
 
 logger = create_logger(__name__, to_disk=True, log_file='bert_data_proc_{}.log'.format(MAX_SEQ_LEN))
+
+def xlnet_tokenize_fn(text, sp):
+    text = preprocess_text(text)
+    return encode_ids(sp, text)
 
 def _truncate_seq_pair(tokens_a, tokens_b, max_length):
     """Truncates a sequence pair in place to the maximum length.
@@ -41,10 +47,10 @@ def _truncate_seq_pair(tokens_a, tokens_b, max_length):
             tokens_b.pop()
 
 def xlnet_feataure_extractor(text_a, text_b=None, max_seq_length=512, tokenize_fn=None):
-    tokens_a = tokenize_fn(text_a)
+    tokens_a = xlnet_tokenize_fn(text_a, tokenize_fn)
     tokens_b = None
     if text_b:
-        tokens_b = tokenize_fn(text_b)
+        tokens_b = xlnet_tokenize_fn(text_a, tokenize_fn)
 
     if tokens_b:
         _truncate_seq_pair(tokens_a, tokens_b, max_seq_length - 3)
@@ -168,11 +174,11 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly, m
                 writer.write('{}\n'.format(json.dumps(features)))
 
     if data_format == DataFormat.PremiseOnly:
-        build_data_premise_only(data, dump_path, max_seq_len, tokenizer)
+        build_data_premise_only(data, dump_path, max_seq_len, tokenizer, is_bert_model)
     elif data_format == DataFormat.PremiseAndOneHypothesis:
-        build_data_premise_and_one_hypo(data, dump_path, max_seq_len, tokenizer)
+        build_data_premise_and_one_hypo(data, dump_path, max_seq_len, tokenizer, is_bert_model)
     elif data_format == DataFormat.PremiseAndMultiHypothesis:
-        build_data_premise_and_multi_hypo(data, dump_path, max_seq_len, tokenizer)
+        build_data_premise_and_multi_hypo(data, dump_path, max_seq_len, tokenizer, is_bert_model)
     else:
         raise ValueError(data_format)
 
@@ -229,7 +235,7 @@ def load_data(file_path, data_format, task_type, label_dict=None):
 def parse_args():
     parser = argparse.ArgumentParser(description='Preprocessing GLUE/SNLI/SciTail dataset.')
     parser.add_argument('--model', type=str, default='bert-base-uncased', 
-                        help='bert-base-uncased/bert-large-uncased/bert-base-cased/bert-large-cased')
+                        help='bert-base-uncased/bert-large-uncased/xlnet-base-cased/xlnet-large-cased')
     parser.add_argument('--do_lower_case', action='store_true')
     parser.add_argument('--root_dir', type=str, default='data/canonical_data')
     parser.add_argument('--task_def', type=str, default="task_def.yml")
@@ -286,7 +292,7 @@ def main(args):
             rows = load_data(os.path.join(root, "%s_%s.tsv" % (task, split_name)), data_format, task_type, label_mapper)
             dump_path = os.path.join(mt_dnn_root, "%s_%s.json" % (task, split_name))
             logger.info(dump_path)
-            build_data(rows, dump_path, tokenizer, data_format)
+            build_data(rows, dump_path, tokenizer, data_format, is_bert_model=is_bert_model)
 
 if __name__ == '__main__':
     args = parse_args()
