@@ -8,6 +8,7 @@ regex
 scikit-learn
 pyyaml
 pytest
+sentencepiece
 tensorboardX
 tensorboard
 future
