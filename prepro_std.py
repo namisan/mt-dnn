@@ -46,7 +46,7 @@ def _truncate_seq_pair(tokens_a, tokens_b, max_length):
         else:
             tokens_b.pop()
 
-def xlnet_feataure_extractor(text_a, text_b=None, max_seq_length=512, tokenize_fn=None):
+def xlnet_feature_extractor(text_a, text_b=None, max_seq_length=512, tokenize_fn=None):
     tokens_a = xlnet_tokenize_fn(text_a, tokenize_fn)
     tokens_b = None
     if text_b:
@@ -94,7 +94,7 @@ def xlnet_feataure_extractor(text_a, text_b=None, max_seq_length=512, tokenize_f
 
     return input_ids, input_mask, segment_ids
 
-def bert_feataure_extractor(text_a, text_b=None, max_seq_length=512, tokenize_fn=None):
+def bert_feature_extractor(text_a, text_b=None, max_seq_length=512, tokenize_fn=None):
     tokens_a = tokenize_fn.tokenize(text_a)
     tokens_b = None
     if text_b:
@@ -128,10 +128,10 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly, m
                 if len(premise) >  max_seq_len - 2:
                     premise = premise[:max_seq_len - 2]
                 if is_bert_model:
-                    input_ids, _, type_ids = bert_feataure_extractor(premise, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
+                    input_ids, _, type_ids = xlnet_feature_extractor(premise, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
                     features = {'uid': ids, 'label': label, 'token_id': input_ids, 'type_id': type_ids}
                 else:
-                    input_ids, input_mask, type_ids = xlnet_feataure_extractor(premise, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
+                    input_ids, input_mask, type_ids = xlnet_feature_extractor(premise, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
                     features = {'uid': ids, 'label': label, 'token_id': input_ids, 'type_id': type_ids, 'mask': input_mask}
                 writer.write('{}\n'.format(json.dumps(features)))
 
@@ -235,7 +235,7 @@ def load_data(file_path, data_format, task_type, label_dict=None):
 def parse_args():
     parser = argparse.ArgumentParser(description='Preprocessing GLUE/SNLI/SciTail dataset.')
     parser.add_argument('--model', type=str, default='bert-base-uncased', 
-                        help='bert-base-uncased/bert-large-uncased/xlnet-base-cased/xlnet-large-cased')
+                        help='bert-base-uncased/bert-large-uncased/xlnet-large-cased')
     parser.add_argument('--do_lower_case', action='store_true')
     parser.add_argument('--root_dir', type=str, default='data/canonical_data')
     parser.add_argument('--task_def', type=str, default="task_def.yml")
