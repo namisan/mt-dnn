@@ -128,7 +128,7 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly, m
                 if len(premise) >  max_seq_len - 2:
                     premise = premise[:max_seq_len - 2]
                 if is_bert_model:
-                    input_ids, _, type_ids = xlnet_feature_extractor(premise, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
+                    input_ids, _, type_ids = bert_feature_extractor(premise, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
                     features = {'uid': ids, 'label': label, 'token_id': input_ids, 'type_id': type_ids}
                 else:
                     input_ids, input_mask, type_ids = xlnet_feature_extractor(premise, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
