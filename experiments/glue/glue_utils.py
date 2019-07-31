@@ -1,6 +1,6 @@
 # Copyright (c) Microsoft. All rights reserved.
 from random import shuffle
-from data_utils.metrics import Metric, METRIC_FUNC
+from data_utils.metrics import calc_metrics
 from data_utils.task_def import DataFormat
 
 
@@ -360,13 +360,6 @@ def eval_model(model, data, metric_meta, use_cuda=True, with_label=True):
         scores.extend(score)
         ids.extend(batch_meta['uids'])
     if with_label:
-        for mm in metric_meta:
-            metric_name = mm.name
-            metric_func = METRIC_FUNC[mm]
-            if mm in (Metric.ACC, Metric.F1, Metric.MCC):
-                metric = metric_func(predictions, golds)
-            else:
-                metric = metric_func(scores, golds)
-            metrics[metric_name] = metric
+        metrics = calc_metrics(metric_meta, golds, predictions, scores)
     return metrics, predictions, scores, golds, ids
 

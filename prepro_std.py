@@ -1,11 +1,12 @@
 # Copyright (c) Microsoft. All rights reserved.
 import yaml
 import os
-import numpy as np
 import argparse
 import json
 from pytorch_pretrained_bert.tokenization import BertTokenizer
 import sentencepiece as spm
+
+from data_utils import load_data
 from data_utils.task_def import TaskType, DataFormat
 from data_utils.log_wrapper import create_logger
 from experiments.exp_def import TaskDefs
@@ -149,7 +150,7 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly, m
                     input_ids, _, type_ids = bert_feature_extractor(premise, hypothesis, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
                     features = {'uid': ids, 'label': label, 'token_id': input_ids, 'type_id': type_ids}
                 else:
-                    input_ids, input_mask, type_ids = xlnet_feataure_extractor(premise, hypothesis, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
+                    input_ids, input_mask, type_ids = xlnet_feature_extractor(premise, hypothesis, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
                     features = {'uid': ids, 'label': label, 'token_id': input_ids, 'type_id': type_ids, 'mask': input_mask}
                 writer.write('{}\n'.format(json.dumps(features)))
 
@@ -181,55 +182,6 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly, m
         build_data_premise_and_multi_hypo(data, dump_path, max_seq_len, tokenizer, is_bert_model)
     else:
         raise ValueError(data_format)
-
-
-def load_data(file_path, data_format, task_type, label_dict=None):
-    """
-    :param file_path:
-    :param data_format:
-    :param task_type:
-    :param label_dict: map string label to numbers.
-        only valid for Classification task or ranking task.
-        For ranking task, better label should have large number
-    :return:
-    """
-    if task_type == TaskType.Ranking:
-        assert data_format == DataFormat.PremiseAndMultiHypothesis
-
-    rows = []
-    for line in open(file_path, encoding="utf-8"):
-        fields = line.strip("\n").split("\t")
-        if data_format == DataFormat.PremiseOnly:
-            assert len(fields) == 3
-            row = {"uid": fields[0], "label": fields[1], "premise": fields[2]}
-        elif data_format == DataFormat.PremiseAndOneHypothesis:
-            assert len(fields) == 4
-            row = {"uid": fields[0], "label": fields[1], "premise": fields[2], "hypothesis": fields[3]}
-        elif data_format == DataFormat.PremiseAndMultiHypothesis:
-            assert len(fields) > 5
-            row = {"uid": fields[0], "ruid": fields[1].split(","), "label": fields[2], "premise": fields[3],
-                   "hypothesis": fields[4:]}
-        else:
-            raise ValueError(data_format)
-
-        if task_type == TaskType.Classification:
-            if label_dict is not None:
-                row["label"] = label_dict[row["label"]]
-            else:
-                row["label"] = int(row["label"])
-        elif task_type == TaskType.Regression:
-            row["label"] = float(row["label"])
-        elif task_type == TaskType.Ranking:
-            labels = row["label"].split(",")
-            if label_dict is not None:
-                labels = [label_dict[label] for label in labels]
-            else:
-                labels = [float(label) for label in labels]
-            row["label"] = int(np.argmax(labels))
-            row["olabel"] = labels
-
-        rows.append(row)
-    return rows
 
 
 def parse_args():
@@ -280,14 +232,12 @@ def main(args):
         os.mkdir(mt_dnn_root)
 
     task_defs = TaskDefs(args.task_def)
-    task_def_dic = yaml.safe_load(open(args.task_def))
-
-    for task, task_def in task_def_dic.items():
+    for task in task_defs.tasks:
         logger.info("Task %s" % task)
-        data_format = DataFormat[task_def["data_format"]]
-        task_type = TaskType[task_def["task_type"]]
+        data_format = task_defs.data_format_map[task]
+        task_type = task_defs.task_type_map[task]
         label_mapper = task_defs.global_map.get(task, None)
-        split_names = task_def.get("split_names", ["train", "dev", "test"])
+        split_names = task_defs.split_names_map[task]
         for split_name in split_names:
             rows = load_data(os.path.join(root, "%s_%s.tsv" % (task, split_name)), data_format, task_type, label_mapper)
             dump_path = os.path.join(mt_dnn_root, "%s_%s.json" % (task, split_name))
