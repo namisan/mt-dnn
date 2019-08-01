@@ -4,7 +4,7 @@ import random
 from sys import path
 path.append(os.getcwd())
 from data_utils.log_wrapper import create_logger
-from data_utils.glue_utils import *
+from experiments.glue.glue_utils import *
 
 logger = create_logger(__name__, to_disk=True, log_file='glue_prepro.log')
 

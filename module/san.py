@@ -3,10 +3,8 @@ import torch
 import random
 import torch.nn as nn
 from torch.nn.utils import weight_norm
-from torch.autograd import Variable
 from torch.nn.parameter import Parameter
 import torch.nn.functional as F
-import numpy as np
 from module.dropout_wrapper import DropoutWrapper
 from module.similarity import FlatSimilarityWrapper, SelfAttnWrapper
 from module.my_optim import weight_norm as WN
@@ -19,7 +17,8 @@ def generate_mask(new_data, dropout_p=0.0, is_training=False):
     for i in range(new_data.size(0)):
         one = random.randint(0, new_data.size(1)-1)
         new_data[i][one] = 1
-    mask = Variable(1.0/(1 - dropout_p) * torch.bernoulli(new_data), requires_grad=False)
+    mask = 1.0/(1 - dropout_p) * torch.bernoulli(new_data)
+    mask.requires_grad = False
     return mask
 
 
@@ -82,7 +81,7 @@ class SANClassifier(nn.Module):
     def forward(self, x, h0, x_mask=None, h_mask=None):
         h0 = self.query_wsum(h0, h_mask)
         if type(self.rnn) is nn.LSTMCell:
-            c0 = Variable(h0.new(h0.size()).zero_())
+            c0 = h0.new(h0.size()).zero_()
         scores_list = []
         for turn in range(self.num_turn):
             att_scores = self.attn(x, h0, x_mask)
