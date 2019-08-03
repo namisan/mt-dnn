@@ -156,7 +156,7 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly, m
                 writer.write('{}\n'.format(json.dumps(features)))
 
 
-    def build_data_premise_and_one_hypo(data, dump_path, max_seq_len=MAX_SEQ_LEN, tokenizer=None, is_bert_model=True):
+    def build_data_premise_and_one_hypo(data, dump_path, max_seq_len=MAX_SEQ_LEN, tokenizer=None, encoderModelType=EncoderModelType.BERT):
         """Build data of sentence pair tasks
         """
         with open(dump_path, 'w', encoding='utf-8') as writer:
@@ -165,15 +165,18 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly, m
                 premise = sample['premise']
                 hypothesis = sample['hypothesis']
                 label = sample['label']
-                if is_bert_model:
-                    input_ids, _, type_ids = bert_feature_extractor(premise, hypothesis, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
-                    features = {'uid': ids, 'label': label, 'token_id': input_ids, 'type_id': type_ids}
-                else:
+                if encoderModelType == EncoderModelType.ROBERTA:
+                    input_ids, input_mask, type_ids = roberta_feature_extractor(premise, hypothesis, max_seq_length=max_seq_len, model=tokenizer)
+                    features = {'uid': ids, 'label': label, 'token_id': input_ids, 'type_id': type_ids, 'mask': input_mask}
+                elif encoderModelType == EncoderModelType.XLNET:
                     input_ids, input_mask, type_ids = xlnet_feataure_extractor(premise, hypothesis, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
                     features = {'uid': ids, 'label': label, 'token_id': input_ids, 'type_id': type_ids, 'mask': input_mask}
+                else:
+                    input_ids, _, type_ids = bert_feature_extractor(premise, hypothesis, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
+                    features = {'uid': ids, 'label': label, 'token_id': input_ids, 'type_id': type_ids}
                 writer.write('{}\n'.format(json.dumps(features)))
 
-    def build_data_premise_and_multi_hypo(data, dump_path, max_seq_len=MAX_SEQ_LEN, tokenizer=None, is_bert_model=True):
+    def build_data_premise_and_multi_hypo(data, dump_path, max_seq_len=MAX_SEQ_LEN, tokenizer=None, encoderModelType=EncoderModelType.BERT):
         """Build QNLI as a pair-wise ranking task
         """
         with open(dump_path, 'w', encoding='utf-8') as writer:
@@ -183,14 +186,20 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly, m
                 hypothesis_1 = sample['hypothesis'][0]
                 hypothesis_2 = sample['hypothesis'][1]
                 label = sample['label']
-                if is_bert_model:
+
+                if encoderModelType == EncoderModelType.ROBERTA:
+                    input_ids_1, _, type_ids_1 = roberta_feature_extractor(premise, hypothesis_1, max_seq_length=max_seq_len, model=tokenizer)
+                    input_ids_2, _, type_ids_2 = roberta_feature_extractor(premise, hypothesis_2, max_seq_length=max_seq_len, model=tokenizer)
+                    features = {'uid': ids, 'label': label, 'token_id': [input_ids_1, input_ids_2], 'type_id': [type_ids_1, type_ids_2], 'ruid':sample['ruid'], 'olabel':sample['olabel']}
+                elif encoderModelType == EncoderModelType.XLNET:
+                    input_ids_1, mask_1, type_ids_1 = xlnet_feataure_extractor(premise, hypothesis_1, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
+                    input_ids_2, mask_2, type_ids_2 = xlnet_feataure_extractor(premise, hypothesis_2, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
+                    features = {'uid': ids, 'label': label, 'token_id': [input_ids_1, input_ids_2], 'type_id': [type_ids_1, type_ids_2], 'mask':[mask_1, mask_2], 'ruid':sample['ruid'], 'olabel':sample['olabel']}
+                else:
                     input_ids_1, _, type_ids_1 = bert_feature_extractor(premise, hypothesis_1, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
                     input_ids_2, _, type_ids_2 = bert_feature_extractor(premise, hypothesis_2, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
                     features = {'uid': ids, 'label': label, 'token_id': [input_ids_1, input_ids_2], 'type_id': [type_ids_1, type_ids_2], 'ruid':sample['ruid'], 'olabel':sample['olabel']}
-                else:
-                    input_ids_1, mask_1, type_ids_1 = bert_feature_extractor(premise, hypothesis_1, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
-                    input_ids_2, mask_2, type_ids_2 = bert_feature_extractor(premise, hypothesis_2, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
-                    features = {'uid': ids, 'label': label, 'token_id': [input_ids_1, input_ids_2], 'type_id': [type_ids_1, type_ids_2], 'mask':[mask_1, mask_2], 'ruid':sample['ruid'], 'olabel':sample['olabel']}
+
                 writer.write('{}\n'.format(json.dumps(features)))
 
     if data_format == DataFormat.PremiseOnly:
