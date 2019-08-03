@@ -11,6 +11,7 @@ import numpy as np
 import pickle as pkl
 from shutil import copyfile
 from data_utils.task_def import TaskType
+from data_utils.task_def import EncoderModelType
 
 UNK_ID=100
 BOS_ID=101
@@ -24,7 +25,8 @@ class BatchGen:
                  task=None,
                  task_type=TaskType.Classification,
                  data_type=0,
-                 soft_label=False):
+                 soft_label=False,
+                 encoder_type=EncoderModelType.BERT):
         self.batch_size = batch_size
         self.maxlen = maxlen
         self.is_train = is_train
@@ -36,6 +38,7 @@ class BatchGen:
         self.pairwise_size = 1
         self.data_type = data_type
         self.task_type=task_type
+        self.encoder_type = encoder_type
         # soft label used for knowledge distillation
         self.soft_label_on = soft_label
         if do_batch:
@@ -117,9 +120,14 @@ class BatchGen:
             batch_dict = {}
             tok_len = max(len(x['token_id']) for x in batch)
             hypothesis_len = max(len(x['type_id']) - sum(x['type_id']) for x in batch)
-            token_ids = torch.LongTensor(batch_size, tok_len).fill_(0)
-            type_ids = torch.LongTensor(batch_size, tok_len).fill_(0)
-            masks = torch.LongTensor(batch_size, tok_len).fill_(0)
+            if self.encoder_type == EncoderModelType.ROBERTA:
+                token_ids = torch.LongTensor(batch_size, tok_len).fill_(1)
+                type_ids = torch.LongTensor(batch_size, tok_len).fill_(0)
+                masks = torch.LongTensor(batch_size, tok_len).fill_(0)
+            else:
+                token_ids = torch.LongTensor(batch_size, tok_len).fill_(0)
+                type_ids = torch.LongTensor(batch_size, tok_len).fill_(0)
+                masks = torch.LongTensor(batch_size, tok_len).fill_(0)
             if self.data_type < 1:
                 premise_masks = torch.ByteTensor(batch_size, tok_len).fill_(1)
                 hypothesis_masks = torch.ByteTensor(batch_size, hypothesis_len).fill_(1)

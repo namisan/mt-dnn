@@ -196,7 +196,8 @@ def main():
                               maxlen=args.max_seq_len,
                               pairwise=pw_task,
                               data_type=data_type,
-                              task_type=task_type)
+                              task_type=task_type,
+                              encoder_type=encoder_type)
         train_data_list.append(train_data)
 
     opt['answer_opt'] = decoder_opts
@@ -228,7 +229,8 @@ def main():
                                 maxlen=args.max_seq_len,
                                 pairwise=pw_task,
                                 data_type=data_type,
-                                task_type=task_type)
+                                task_type=task_type,
+                                encoder_type=encoder_type)
         dev_data_list.append(dev_data)
 
         test_path = os.path.join(data_dir, '{}_test.json'.format(dataset))
@@ -241,7 +243,8 @@ def main():
                                  maxlen=args.max_seq_len,
                                  pairwise=pw_task,
                                  data_type=data_type,
-                                 task_type=task_type)
+                                 task_type=task_type,
+                                 encoder_type=encoder_type)
         test_data_list.append(test_data)
 
     logger.info('#' * 20)

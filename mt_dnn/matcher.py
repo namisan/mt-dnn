@@ -84,7 +84,7 @@ class SANBertNetwork(nn.Module):
 
     def forward(self, input_ids, token_type_ids, attention_mask, premise_mask=None, hyp_mask=None, task_id=0):
         if self.encoder_type == EncoderModelType.ROBERTA:
-            sequence_output = self.bert(input_ids)
+            sequence_output = self.bert.extract_features(input_ids)
             pooled_output = self.pooler(sequence_output)
         else:
             all_encoder_layers, pooled_output = self.bert(input_ids, token_type_ids, attention_mask)
