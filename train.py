@@ -104,6 +104,13 @@ def train_config(parser):
     parser.add_argument('--seed', type=int, default=2018,
                         help='random seed for data shuffling, embedding init, etc.')
     parser.add_argument('--grad_accumulation_step', type=int, default=1)
+
+    #fp 16
+    parser.add_argument('--fp16', action='store_true',
+                        help="Whether to use 16-bit (mixed) precision (through NVIDIA apex) instead of 32-bit")
+    parser.add_argument('--fp16_opt_level', type=str, default='O1',
+                        help="For fp16: Apex AMP optimization level selected in ['O0', 'O1', 'O2', and 'O3']."
+                             "See details at https://nvidia.github.io/apex/amp.html")
     return parser
 
 
