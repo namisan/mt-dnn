@@ -75,6 +75,16 @@ class MTDNNModel(object):
         if state_dict and 'optimizer' in state_dict:
             self.optimizer.load_state_dict(state_dict['optimizer'])
 
+        if opt['fp16']:
+            try:
+                from apex import amp
+                global amp
+            except ImportError:
+                raise ImportError("Please install apex from https://www.github.com/nvidia/apex to use fp16 training.")
+            model, optimizer = amp.initialize(self.network, self.optimizer, opt_level=opt['fp16_opt_level'])
+            self.network = model
+            self.optimizer = optimizer
+
         if opt.get('have_lr_scheduler', False):
             if opt.get('scheduler_type', 'rop') == 'rop':
                 self.scheduler = ReduceLROnPlateau(self.optimizer, mode='max', factor=opt['lr_gamma'], patience=3)
@@ -85,6 +95,7 @@ class MTDNNModel(object):
                 self.scheduler = MultiStepLR(self.optimizer, milestones=milestones, gamma=opt.get('lr_gamma'))
         else:
             self.scheduler = None
+
         self.ema = None
         if opt['ema_opt'] > 0:
             self.ema = EMA(self.config['ema_gamma'], self.network)
@@ -171,12 +182,20 @@ class MTDNNModel(object):
         self.train_loss.update(loss.item(), logits.size(0))
         # scale loss
         loss = loss / self.config.get('grad_accumulation_step', 1)
-        loss.backward()
+        if self.config['fp16']:
+            with amp.scale_loss(loss, self.optimizer) as scaled_loss:
+                scaled_loss.backward()
+        else:
+            loss.backward()
         self.local_updates += 1
         if self.local_updates % self.config.get('grad_accumulation_step', 1) == 0:
             if self.config['global_grad_clipping'] > 0:
-                torch.nn.utils.clip_grad_norm_(self.network.parameters(),
-                                              self.config['global_grad_clipping'])
+                if self.config['fp16']:
+                    torch.nn.utils.clip_grad_norm_(amp.master_params(self.optimizer),
+                                                   self.config['global_grad_clipping'])
+                else:
+                    torch.nn.utils.clip_grad_norm_(self.network.parameters(),
+                                                  self.config['global_grad_clipping'])
 
             self.updates += 1
             # reset number of the grad accumulation
