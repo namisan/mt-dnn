@@ -4,12 +4,16 @@
 ############################################################## 
 
 DATA_DIR=$(pwd)/data
-echo "Create a folder $DATA_DIR"
-mkdir ${DATA_DIR}
+if [ ! -d ${DATA_DIR}  ]; then
+  echo "Create a folder $DATA_DIR"
+  mkdir ${DATA_DIR}
+fi
 
 BERT_DIR=$(pwd)/mt_dnn_models
-echo "Create a folder BERT_DIR"
-mkdir ${BERT_DIR}
+if [ ! -d ${BERT_DIR}  ]; then
+  echo "Create a folder BERT_DIR"
+  mkdir ${BERT_DIR}
+fi
 
 ## DOWNLOAD GLUE DATA
 ## Please refer glue-baseline install requirments or other issues.
@@ -48,6 +52,17 @@ mv xlnet_cased_L-24_H-1024_A-16/spiece.model "${BERT_DIR}/xlnet_large_cased_spie
 rm -rf *.zip xlnet_cased_L-24_H-1024_A-16
 ## download converted xlnet pytorch model
 wget https://mrc.blob.core.windows.net/mt-dnn-model/xlnet_model_large_cased.pt -O "${BERT_DIR}/xlnet_model_large_cased.pt"
+
+
+## download ROBERTA
+wget https://dl.fbaipublicfiles.com/fairseq/models/roberta.base.tar.gz -O "roberta.base.tar.gz"
+wget https://dl.fbaipublicfiles.com/fairseq/models/roberta.large.tar.gz -O "roberta.large.tar.gz"
+tar xvf roberta.base.tar.gz
+mv "roberta.base" "${BERT_DIR}/"
+tar xvf roberta.large.tar.gz
+mv "roberta.large" "${BERT_DIR}/"
+rm "roberta.base.tar.gz"
+rm "roberta.large.tar.gz"
 
 ## Download preprocessed SciTail/SNLI data for domain adaptation
 cd $DATA_DIR
