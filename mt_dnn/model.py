@@ -78,6 +78,7 @@ class MTDNNModel(object):
         if opt['fp16']:
             try:
                 from apex import amp
+                global amp
             except ImportError:
                 raise ImportError("Please install apex from https://www.github.com/nvidia/apex to use fp16 training.")
             model, optimizer = amp.initialize(self.network, self.optimizer, opt_level=opt['fp16_opt_level'])
@@ -182,7 +183,7 @@ class MTDNNModel(object):
         # scale loss
         loss = loss / self.config.get('grad_accumulation_step', 1)
         if self.config['fp16']:
-            with amp.scale_loss(loss, optimizer) as scaled_loss:
+            with amp.scale_loss(loss, self.optimizer) as scaled_loss:
                 scaled_loss.backward()
         else:
             loss.backward()
