@@ -43,7 +43,7 @@ def model_config(parser):
     parser.add_argument('--mix_opt', type=int, default=0)
     parser.add_argument('--max_seq_len', type=int, default=512)
     parser.add_argument('--init_ratio', type=float, default=1)
-    parser.add_argument('--encoder_type', type=EncoderModelType, default=EncoderModelType.BERT)
+    parser.add_argument('--encoder_type', type=int, default=EncoderModelType.BERT)
 
     return parser
 
@@ -253,10 +253,11 @@ def main():
 
     # div number of grad accumulation. 
     num_all_batches = args.epochs * sum(all_lens) // args.grad_accumulation_step
-    logger.info('############# Gradient Accumulation Infor #############')
+    logger.info('############# Gradient Accumulation Info #############')
     logger.info('number of step: {}'.format(args.epochs * sum(all_lens)))
     logger.info('number of grad grad_accumulation step: {}'.format(args.grad_accumulation_step))
     logger.info('adjusted number of step: {}'.format(num_all_batches))
+    logger.info('############# Gradient Accumulation Info #############')
 
     if len(train_data_list) > 1 and args.ratio > 0:
         num_all_batches = int(args.epochs * (len(train_data_list[0]) * (1 + args.ratio)))
@@ -295,9 +296,6 @@ def main():
         writer.write('\n{}\n{}\n'.format(headline, model.network))
 
     logger.info("Total number of params: {}".format(model.total_param))
-
-    if args.freeze_layers > 0:
-        model.network.freeze_layers(args.freeze_layers)
 
     for epoch in range(0, args.epochs):
         logger.warning('At epoch {}'.format(epoch))

@@ -8,8 +8,8 @@ from module.san import SANClassifier
 from data_utils.task_def import EncoderModelType
 
 class LinearPooler(nn.Module):
-    def __init__(self, config):
-        super(hidden_size, self).__init__()
+    def __init__(self, hidden_size):
+        super(LinearPooler, self).__init__()
         self.dense = nn.Linear(hidden_size, hidden_size)
         self.activation = nn.Tanh()
 
@@ -26,20 +26,21 @@ class SANBertNetwork(nn.Module):
         self.encoder_type = opt['encoder_type']
         if opt['encoder_type'] == EncoderModelType.ROBERTA:
             from fairseq.models.roberta import RobertaModel
-            self.bert = RobertaModel(args.init_checkpoint)
+            self.bert = RobertaModel.from_pretrained(opt['init_checkpoint'])
             hidden_size = self.bert.args.encoder_embed_dim
-            self.pooler = self.LinearPooler(hidden_size)
+            self.pooler = LinearPooler(hidden_size)
         else: 
             self.bert_config = BertConfig.from_dict(opt)
             self.bert = BertModel(self.bert_config)
             hidden_size = self.bert_config.hidden_size
+
         if opt.get('dump_feature', False):
             self.opt = opt
             return
         if opt['update_bert_opt'] > 0:
             for p in self.bert.parameters():
                 p.requires_grad = False
-        mem_size = self.bert_config.hidden_size
+        mem_size = hidden_size
         self.decoder_opt = opt['answer_opt']
         self.scoring_list = nn.ModuleList()
         labels = [int(ls) for ls in opt['label_size'].split(',')]
@@ -53,19 +54,18 @@ class SANBertNetwork(nn.Module):
                 out_proj = SANClassifier(mem_size, mem_size, lab, opt, prefix='answer', dropout=dropout)
                 self.scoring_list.append(out_proj)
             else:
-                out_proj = nn.Linear(self.bert_config.hidden_size, lab)
+                out_proj = nn.Linear(hidden_size, lab)
                 self.scoring_list.append(out_proj)
 
         self.opt = opt
         self._my_init()
-        self.set_embed(opt)
 
     def _my_init(self):
         def init_weights(module):
             if isinstance(module, (nn.Linear, nn.Embedding)):
                 # Slightly different from the TF version which uses truncated_normal for initialization
                 # cf https://github.com/pytorch/pytorch/pull/5617
-                module.weight.data.normal_(mean=0.0, std=self.bert_config.initializer_range * self.opt['init_ratio'])
+                module.weight.data.normal_(mean=0.0, std=0.02 * self.opt['init_ratio'])
             elif isinstance(module, BertLayerNorm):
                 # Slightly different from the BERT pytorch version, which should be a bug.
                 # Note that it only affects on training from scratch. For detailed discussions, please contact xiaodl@.
@@ -81,38 +81,6 @@ class SANBertNetwork(nn.Module):
                 module.bias.data.zero_()
 
         self.apply(init_weights)
-
-    def nbert_layer(self):
-        return len(self.bert.encoder.layer)
-
-    def freeze_layers(self, max_n):
-        assert max_n < self.nbert_layer()
-        for i in range(0, max_n):
-            self.freeze_layer(i)
-
-    def freeze_layer(self, n):
-        assert n < self.nbert_layer()
-        layer = self.bert.encoder.layer[n]
-        for p in layer.parameters():
-            p.requires_grad = False
-
-    def set_embed(self, opt):
-        bert_embeddings = self.bert.embeddings
-        emb_opt = opt['embedding_opt']
-        if emb_opt == 1:
-            for p in bert_embeddings.word_embeddings.parameters():
-                p.requires_grad = False
-        elif emb_opt == 2:
-            for p in bert_embeddings.position_embeddings.parameters():
-                p.requires_grad = False
-        elif emb_opt == 3:
-            for p in bert_embeddings.token_type_embeddings.parameters():
-                p.requires_grad = False
-        elif emb_opt == 4:
-            for p in bert_embeddings.token_type_embeddings.parameters():
-                p.requires_grad = False
-            for p in bert_embeddings.position_embeddings.parameters():
-                p.requires_grad = False
 
     def forward(self, input_ids, token_type_ids, attention_mask, premise_mask=None, hyp_mask=None, task_id=0):
         if self.encoder_type == EncoderModelType.ROBERTA:

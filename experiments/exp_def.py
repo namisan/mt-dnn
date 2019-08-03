@@ -28,7 +28,7 @@ class TaskDefs:
             task_type_map[task] = TaskType[task_def["task_type"]]
             metric_meta_map[task] = tuple(Metric[metric_name] for metric_name in task_def["metric_meta"])
             enable_san_map[task] = task_def["enable_san"]
-            uniq_encoderType.add(task_def["encoder_type"])
+            uniq_encoderType.add(EncoderModelType[task_def["encoder_type"]])
             if "labels" in task_def:
                 labels = task_def["labels"]
                 label_mapper = Vocabulary(True)
