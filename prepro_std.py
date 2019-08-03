@@ -8,10 +8,9 @@ from pytorch_pretrained_bert.tokenization import BertTokenizer
 import sentencepiece as spm
 from data_utils.task_def import TaskType, DataFormat
 from data_utils.log_wrapper import create_logger
-from experiments.exp_def import TaskDefs
+from experiments.exp_def import TaskDefs, EncoderModelType
 from data_utils.xlnet_utils import preprocess_text, encode_ids
 from data_utils.xlnet_utils import CLS_ID, SEP_ID
-from enum import Enum
 
 DEBUG_MODE=False
 MAX_SEQ_LEN = 512
@@ -24,10 +23,6 @@ SEG_ID_SEP = 3
 SEG_ID_PAD = 4
 ### XLNET ###
 
-class EncoderModelType(Enum):
-    BERT = 1
-    ROBERTA = 2
-    XLNET = 3
 
 logger = create_logger(__name__, to_disk=True, log_file='mt_dnn_data_proc_{}.log'.format(MAX_SEQ_LEN))
 

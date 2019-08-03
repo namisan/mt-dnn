@@ -5,14 +5,34 @@ from pytorch_pretrained_bert.modeling import BertConfig, BertLayerNorm, BertMode
 
 from module.dropout_wrapper import DropoutWrapper
 from module.san import SANClassifier
+from data_utils.task_def import EncoderModelType
 
+class LinearPooler(nn.Module):
+    def __init__(self, config):
+        super(hidden_size, self).__init__()
+        self.dense = nn.Linear(hidden_size, hidden_size)
+        self.activation = nn.Tanh()
+
+    def forward(self, hidden_states):
+        first_token_tensor = hidden_states[:, 0]
+        pooled_output = self.dense(first_token_tensor)
+        pooled_output = self.activation(pooled_output)
+        return pooled_output
 
 class SANBertNetwork(nn.Module):
     def __init__(self, opt, bert_config=None):
         super(SANBertNetwork, self).__init__()
         self.dropout_list = nn.ModuleList()
-        self.bert_config = BertConfig.from_dict(opt)
-        self.bert = BertModel(self.bert_config)
+        self.encoder_type = opt['encoder_type']
+        if opt['encoder_type'] == EncoderModelType.ROBERTA:
+            from fairseq.models.roberta import RobertaModel
+            self.bert = RobertaModel(args.init_checkpoint)
+            hidden_size = self.bert.args.encoder_embed_dim
+            self.pooler = self.LinearPooler(hidden_size)
+        else: 
+            self.bert_config = BertConfig.from_dict(opt)
+            self.bert = BertModel(self.bert_config)
+            hidden_size = self.bert_config.hidden_size
         if opt.get('dump_feature', False):
             self.opt = opt
             return
@@ -24,7 +44,6 @@ class SANBertNetwork(nn.Module):
         self.scoring_list = nn.ModuleList()
         labels = [int(ls) for ls in opt['label_size'].split(',')]
         task_dropout_p = opt['tasks_dropout_p']
-        self.bert_pooler = None
 
         for task, lab in enumerate(labels):
             decoder_opt = self.decoder_opt[task]
@@ -96,10 +115,13 @@ class SANBertNetwork(nn.Module):
                 p.requires_grad = False
 
     def forward(self, input_ids, token_type_ids, attention_mask, premise_mask=None, hyp_mask=None, task_id=0):
-        all_encoder_layers, pooled_output = self.bert(input_ids, token_type_ids, attention_mask)
-        sequence_output = all_encoder_layers[-1]
-        if self.bert_pooler is not None:
-            pooled_output = self.bert_pooler(sequence_output)
+        if self.encoder_type == EncoderModelType.ROBERTA:
+            sequence_output = self.bert(input_ids)
+            pooled_output = self.pooler(sequence_output)
+        else:
+            all_encoder_layers, pooled_output = self.bert(input_ids, token_type_ids, attention_mask)
+            sequence_output = all_encoder_layers[-1]
+
         decoder_opt = self.decoder_opt[task_id]
         if decoder_opt == 1:
             max_query = hyp_mask.size(1)

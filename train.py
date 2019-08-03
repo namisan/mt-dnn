@@ -12,7 +12,7 @@ from experiments.exp_def import TaskDefs
 from experiments.glue.glue_utils import submit, eval_model
 from data_utils.log_wrapper import create_logger
 from data_utils.utils import set_environment
-from data_utils.task_def import TaskType
+from data_utils.task_def import TaskType, EncoderModelType
 from mt_dnn.batcher import BatchGen
 from mt_dnn.model import MTDNNModel
 
@@ -43,6 +43,8 @@ def model_config(parser):
     parser.add_argument('--mix_opt', type=int, default=0)
     parser.add_argument('--max_seq_len', type=int, default=512)
     parser.add_argument('--init_ratio', type=float, default=1)
+    parser.add_argument('--encoder_type', type=EncoderModelType, default=EncoderModelType.BERT)
+
     return parser
 
 
@@ -126,7 +128,8 @@ logger = create_logger(__name__, to_disk=True, log_file=log_path)
 logger.info(args.answer_opt)
 
 task_defs = TaskDefs(args.task_def)
-
+encoderType = task_defs.encoderType
+args.encoder_type = encoderType
 
 def dump(path, data):
     with open(path, 'w') as f:
@@ -150,7 +153,6 @@ def main():
     nclass_list = []
     decoder_opts = []
     dropout_list = []
-
     for dataset in args.train_datasets:
         prefix = dataset.split('_')[0]
         if prefix in tasks: continue
@@ -262,18 +264,19 @@ def main():
     bert_model_path = args.init_checkpoint
     state_dict = None
 
-    if os.path.exists(bert_model_path):
-        state_dict = torch.load(bert_model_path)
-        config = state_dict['config']
-        config['attention_probs_dropout_prob'] = args.bert_dropout_p
-        config['hidden_dropout_prob'] = args.bert_dropout_p
-        opt.update(config)
-    else:
-        logger.error('#' * 20)
-        logger.error('Could not find the init model!\n The parameters will be initialized randomly!')
-        logger.error('#' * 20)
-        config = BertConfig(vocab_size_or_config_json_file=30522).to_dict()
-        opt.update(config)
+    if encoderType == EncoderModelType.BERT:
+        if os.path.exists(bert_model_path):
+            state_dict = torch.load(bert_model_path)
+            config = state_dict['config']
+            config['attention_probs_dropout_prob'] = args.bert_dropout_p
+            config['hidden_dropout_prob'] = args.bert_dropout_p
+            opt.update(config)
+        else:
+            logger.error('#' * 20)
+            logger.error('Could not find the init model!\n The parameters will be initialized randomly!')
+            logger.error('#' * 20)
+            config = BertConfig(vocab_size_or_config_json_file=30522).to_dict()
+            opt.update(config)
 
     model = MTDNNModel(opt, state_dict=state_dict, num_train_step=num_all_batches)
     if args.resume and args.model_ckpt:
