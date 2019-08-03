@@ -11,6 +11,7 @@ from data_utils.log_wrapper import create_logger
 from experiments.exp_def import TaskDefs
 from data_utils.xlnet_utils import preprocess_text, encode_ids
 from data_utils.xlnet_utils import CLS_ID, SEP_ID
+from enum import Enum
 
 DEBUG_MODE=False
 MAX_SEQ_LEN = 512
@@ -23,7 +24,12 @@ SEG_ID_SEP = 3
 SEG_ID_PAD = 4
 ### XLNET ###
 
-logger = create_logger(__name__, to_disk=True, log_file='bert_data_proc_{}.log'.format(MAX_SEQ_LEN))
+class EncoderModelType(Enum):
+    BERT = 1
+    ROBERTA = 2
+    XLNET = 3
+
+logger = create_logger(__name__, to_disk=True, log_file='mt_dnn_data_proc_{}.log'.format(MAX_SEQ_LEN))
 
 def xlnet_tokenize_fn(text, sp):
     text = preprocess_text(text)
@@ -115,8 +121,19 @@ def bert_feature_extractor(text_a, text_b=None, max_seq_length=512, tokenize_fn=
     input_mask = None
     return input_ids, input_mask, segment_ids
 
+def roberta_feature_extractor(text_a, text_b=None, max_seq_length=512, model=None):
+    tokens_b = None
+    if tokens_b:
+        input_ids = model.encode(tokens_a, tokens_b)
+        segment_ids = [0] * (input_ids)
+    else:
+        input_ids = model.encode(tokens_b)
+        segment_ids = [0] * len(input_ids)
+    input_mask = None
+    return input_ids, input_mask, segment_ids
 
-def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly, max_seq_len=MAX_SEQ_LEN, is_bert_model=True):
+
+def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly, max_seq_len=MAX_SEQ_LEN, encoderModelType=EncoderModelType.BERT):
     def build_data_premise_only(data, dump_path, max_seq_len=MAX_SEQ_LEN, tokenizer=None, is_bert_model=True):
         """Build data of single sentence tasks
         """
@@ -127,12 +144,15 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly, m
                 label = sample['label']
                 if len(premise) >  max_seq_len - 2:
                     premise = premise[:max_seq_len - 2]
-                if is_bert_model:
-                    input_ids, _, type_ids = bert_feature_extractor(premise, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
-                    features = {'uid': ids, 'label': label, 'token_id': input_ids, 'type_id': type_ids}
-                else:
+                if encoderModelType == EncoderModelType.ROBERTA:
+                    input_ids, input_mask, type_ids = roberta_feature_extractor(premise, max_seq_length=max_seq_len, model=tokenizer)
+                    features = {'uid': ids, 'label': label, 'token_id': input_ids, 'type_id': type_ids, 'mask': input_mask}
+                elif encoderModelType == EncoderModelType.XLNET:
                     input_ids, input_mask, type_ids = xlnet_feature_extractor(premise, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
                     features = {'uid': ids, 'label': label, 'token_id': input_ids, 'type_id': type_ids, 'mask': input_mask}
+                else:
+                    input_ids, _, type_ids = bert_feature_extractor(premise, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
+                    features = {'uid': ids, 'label': label, 'token_id': input_ids, 'type_id': type_ids}
                 writer.write('{}\n'.format(json.dumps(features)))
 
 
@@ -239,6 +259,8 @@ def parse_args():
     parser.add_argument('--do_lower_case', action='store_true')
     parser.add_argument('--root_dir', type=str, default='data/canonical_data')
     parser.add_argument('--task_def', type=str, default="task_def.yml")
+    parser.add_argument('--roberta_path', type=str, default=None)
+
     args = parser.parse_args()
     return args
 
@@ -253,20 +275,32 @@ def main(args):
     if 'uncased' in args.model:
         is_uncased = True
 
-    is_bert_model = True
+    mt_dnn_suffix = 'bert'
+    encoder_model = EncoderModelType.BERT
     if 'xlnet' in args.model:
-        is_bert_model = False
-    
-    if is_bert_model:
-        tokenizer = BertTokenizer.from_pretrained(args.model, do_lower_case=do_lower_case)
-    else:
+        encoder_model = EncoderModelType.XLNET
+        mt_dnn_suffix = 'xlnet'
+
+    if 'roberta' in args.model:
+        encoder_model = EncoderModelType.ROBERTA
+        mt_dnn_suffix = 'roberta'
+
+    if encoder_model == EncoderModelType.ROBERTA:
+        if args.roberta_path is None or (not os.path.exists(args.roberta_path)):
+            print('Please specify roberta model path')
+        from fairseq.models.roberta import RobertaModel
+        tokenizer = RobertaModel.from_pretrained(args.roberta_path)
+        tokenizer.eval()
+
+    elif encoder_model == EncoderModelType.XLNET:
         tokenizer = spm.SentencePieceProcessor()
         if 'large' in args.model:
             tokenizer.load('mt_dnn_models/xlnet_large_cased_spiece.model')
         else:
             tokenizer.load('mt_dnn_models/xlnet_base_cased_spiece.model')
+    else:
+        tokenizer = BertTokenizer.from_pretrained(args.model, do_lower_case=do_lower_case)
 
-    mt_dnn_suffix = 'mt_dnn_b' if is_bert_model else 'mt_dnn_x'
     if is_uncased:
         mt_dnn_suffix = '{}_uncased'.format(mt_dnn_suffix)
     else:
@@ -292,7 +326,7 @@ def main(args):
             rows = load_data(os.path.join(root, "%s_%s.tsv" % (task, split_name)), data_format, task_type, label_mapper)
             dump_path = os.path.join(mt_dnn_root, "%s_%s.json" % (task, split_name))
             logger.info(dump_path)
-            build_data(rows, dump_path, tokenizer, data_format, is_bert_model=is_bert_model)
+            build_data(rows, dump_path, tokenizer, data_format, encoderModelType=encoder_model)
 
 if __name__ == '__main__':
     args = parse_args()
