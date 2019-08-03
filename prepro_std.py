@@ -122,12 +122,11 @@ def bert_feature_extractor(text_a, text_b=None, max_seq_length=512, tokenize_fn=
     return input_ids, input_mask, segment_ids
 
 def roberta_feature_extractor(text_a, text_b=None, max_seq_length=512, model=None):
-    tokens_b = None
-    if tokens_b:
-        input_ids = model.encode(tokens_a, tokens_b)
-        segment_ids = [0] * (input_ids)
+    if text_b:
+        input_ids = model.encode(text_a, text_b).tolist()
+        segment_ids = [0] * len(input_ids)
     else:
-        input_ids = model.encode(tokens_b)
+        input_ids = model.encode(text_a).tolist()
         segment_ids = [0] * len(input_ids)
     input_mask = None
     return input_ids, input_mask, segment_ids
@@ -203,11 +202,11 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly, m
                 writer.write('{}\n'.format(json.dumps(features)))
 
     if data_format == DataFormat.PremiseOnly:
-        build_data_premise_only(data, dump_path, max_seq_len, tokenizer, is_bert_model)
+        build_data_premise_only(data, dump_path, max_seq_len, tokenizer, encoderModelType)
     elif data_format == DataFormat.PremiseAndOneHypothesis:
-        build_data_premise_and_one_hypo(data, dump_path, max_seq_len, tokenizer, is_bert_model)
+        build_data_premise_and_one_hypo(data, dump_path, max_seq_len, tokenizer, encoderModelType)
     elif data_format == DataFormat.PremiseAndMultiHypothesis:
-        build_data_premise_and_multi_hypo(data, dump_path, max_seq_len, tokenizer, is_bert_model)
+        build_data_premise_and_multi_hypo(data, dump_path, max_seq_len, tokenizer, encoderModelType)
     else:
         raise ValueError(data_format)
 
