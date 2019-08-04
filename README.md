@@ -83,14 +83,16 @@ Here, we provide two examples, STS-B and RTE. You can use similar scripts to fin
    ```>python extractor.py  --do_lower_case --finput input_examples\single-input.txt --foutput input_examples\single-output.json --bert_model bert-base-uncased --checkpoint mt_dnn_models\mt_dnn_base.pt``` </br>
 
 
-### Gradient Accumulation
-If you have small GPUs, you may need to use the gradient accumulation to make training stable. </br>
-For example, if you use the flag: ```--grad_accumulation_step 4 ``` during the training, the actual batch size will be ``` batch_size * 4 ```. </br>
+### Speed up Training
+1. Gradient Accumulation </br>
+   If you have small GPUs, you may need to use the gradient accumulation to make training stable. </br>
+   For example, if you use the flag: ```--grad_accumulation_step 4 ``` during the training, the actual batch size will be ``` batch_size * 4 ```. </br>
 
+2. FP16
+   The current version of MT-DNN also supports FP16 training, and please install apex. </br>
+   You just need to turn on the flag during the training: ```--fp16 ```  </br>
+Please refer the script: ``` scripts\run_mt_dnn_gc_fp16.sh```
 
-### FP16
-The current version of MT-DNN also support FP16 training, and please install apex. </br>
-You just need to turn on the flag: ```--fp16 ``` during the training. </br>
 
 
 ### Convert Tensorflow BERT model to the MT-DNN format
