@@ -87,6 +87,12 @@ Here, we provide two examples, STS-B and RTE. You can use similar scripts to fin
 If you have small GPUs, you may need to use the gradient accumulation to make training stable. </br>
 For example, if you use the flag: ```--grad_accumulation_step 4 ``` during the training, the actual batch size will be ``` batch_size * 4 ```. </br>
 
+
+### FP16
+The current version of MT-DNN also support FP16 training, and please install apex. </br>
+You just need to turn on the flag: ```--fp16 ``` during the training. </br>
+
+
 ### Convert Tensorflow BERT model to the MT-DNN format
 Here, we go through how to convert a Chinese Tensorflow BERT model into mt-dnn format. <br/>
 1. Download BERT model from the Google bert web: https://github.com/google-research/bert <br/>
