@@ -16,7 +16,7 @@ if [ ! -d ${BERT_DIR}  ]; then
 fi
 
 ## DOWNLOAD GLUE DATA
-## Please refer glue-baseline install requirments or other issues.
+## Please refer glue-baseline install requirements or other issues.
 git clone https://github.com/jsalt18-sentence-repl/jiant.git
 cd jiant
 python scripts/download_glue_data.py --data_dir $DATA_DIR --tasks all
@@ -63,6 +63,12 @@ tar xvf roberta.large.tar.gz
 mv "roberta.large" "${BERT_DIR}/"
 rm "roberta.base.tar.gz"
 rm "roberta.large.tar.gz"
+
+mkdir "${BERT_DIR}/roberta"
+wget -N 'https://dl.fbaipublicfiles.com/fairseq/gpt2_bpe/encoder.json' -O "${BERT_DIR}/roberta/encoder.json"
+wget -N 'https://dl.fbaipublicfiles.com/fairseq/gpt2_bpe/vocab.bpe' -O "${BERT_DIR}/roberta/vocab.bpe"
+wget -N 'https://dl.fbaipublicfiles.com/fairseq/gpt2_bpe/dict.txt' -O "${BERT_DIR}/roberta/ict.txt"
+
 
 ## Download preprocessed SciTail/SNLI data for domain adaptation
 cd $DATA_DIR
