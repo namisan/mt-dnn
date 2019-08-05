@@ -8,6 +8,8 @@ from pytorch_pretrained_bert.tokenization import BertTokenizer
 import sentencepiece as spm
 from data_utils.task_def import TaskType, DataFormat
 from data_utils.log_wrapper import create_logger
+from data_utils.vocab import Vocabulary
+from data_utils.gpt2_bpe import get_encoder
 from experiments.exp_def import TaskDefs, EncoderModelType
 from data_utils.xlnet_utils import preprocess_text, encode_ids
 from data_utils.xlnet_utils import CLS_ID, SEP_ID
@@ -25,6 +27,46 @@ SEG_ID_PAD = 4
 
 
 logger = create_logger(__name__, to_disk=True, log_file='mt_dnn_data_proc_{}.log'.format(MAX_SEQ_LEN))
+
+# ROBERTA specific tokens
+# '<s>', '<pad>', '</s>', '<unk>'
+def load_dict(path):
+    vocab = Vocabulary(neat=True)
+    vocab.add('<s>')
+    vocab.add('<pad>')
+    vocab.add('</s>')
+    vocab.add('<unk>')
+    with open(path, 'r', encoding='utf8') as reader:
+        for line in reader:
+            idx = line.rfind(' ')
+            if idx == -1:
+                raise ValueError("Incorrect dictionary format, expected '<token> <cnt>'")
+            word = line[:idx]
+            vocab.add(word)
+    return vocab
+
+
+class RoBERTaTokenizer(object):
+    def __init__(self, vocab, encoder):
+        self.vocab = vocab
+        self.encoder = encoder
+
+    def encode(self, text):
+        ids = self.encoder.encode(text)
+        ids = list(map(str, ids))
+        ids = [0] + [self.vocab[w] if w in self.vocab else self.vocab['<unk>'] for w in ids] + [2]
+        return ids
+
+    def encode_pair(self, text1, text2):
+        ids1 = self.encoder.encode(text1)
+        ids1 = list(map(str, ids1))
+        ids1 = [self.vocab[w] if w in self.vocab else self.vocab['<unk>'] for w in ids1] + [2]
+
+        ids2 = self.encoder.encode(text2)
+        ids2 = list(map(str, ids2))
+        ids2 = [self.vocab[w] if w in self.vocab else self.vocab['<unk>'] for w in ids2] + [2]
+        ids = [0] + ids1 + [2] + ids2
+        return ids
 
 def xlnet_tokenize_fn(text, sp):
     text = preprocess_text(text)
@@ -118,10 +160,10 @@ def bert_feature_extractor(text_a, text_b=None, max_seq_length=512, tokenize_fn=
 
 def roberta_feature_extractor(text_a, text_b=None, max_seq_length=512, model=None):
     if text_b:
-        input_ids = model.encode(text_a, text_b).tolist()
+        input_ids = model.encode_pair(text_a, text_b)
         segment_ids = [0] * len(input_ids)
     else:
-        input_ids = model.encode(text_a).tolist()
+        input_ids = model.encode(text_a)
         segment_ids = [0] * len(input_ids)
     input_mask = None
     return input_ids, input_mask, segment_ids
@@ -258,7 +300,7 @@ def load_data(file_path, data_format, task_type, label_dict=None):
 def parse_args():
     parser = argparse.ArgumentParser(description='Preprocessing GLUE/SNLI/SciTail dataset.')
     parser.add_argument('--model', type=str, default='bert-base-uncased', 
-                        help='bert-base-uncased/bert-large-uncased/xlnet-large-cased')
+                        help='bert-base-uncased/bert-large-uncased/xlnet-large-cased/reberta-large')
     parser.add_argument('--do_lower_case', action='store_true')
     parser.add_argument('--root_dir', type=str, default='data/canonical_data')
     parser.add_argument('--task_def', type=str, default="task_def.yml")
@@ -291,9 +333,9 @@ def main(args):
     if encoder_model == EncoderModelType.ROBERTA:
         if args.roberta_path is None or (not os.path.exists(args.roberta_path)):
             print('Please specify roberta model path')
-        from fairseq.models.roberta import RobertaModel
-        tokenizer = RobertaModel.from_pretrained(args.roberta_path)
-        tokenizer.eval()
+        encoder = get_encoder('{}/encoder.json'.format(args.roberta_path), '{}/vocab.bpe'.format(args.roberta_path))
+        vocab = load_dict('{}/ict.txt'.format(args.roberta_path))
+        tokenizer = RoBERTaTokenizer(vocab, encoder)
 
     elif encoder_model == EncoderModelType.XLNET:
         tokenizer = spm.SentencePieceProcessor()

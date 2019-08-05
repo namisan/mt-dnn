@@ -155,8 +155,8 @@ def main(args):
     logger.info('Loaded {} SST dev samples'.format(len(sst_dev_data)))
     logger.info('Loaded {} SST test samples'.format(len(sst_test_data)))
 
-    cola_train_data = load_cola(cola_train_path)
-    cola_dev_data = load_cola(cola_dev_path)
+    cola_train_data = load_cola(cola_train_path, header=False)
+    cola_dev_data = load_cola(cola_dev_path, header=False)
     cola_test_data = load_cola(cola_test_path, is_train=False)
     logger.info('Loaded {} COLA train samples'.format(len(cola_train_data)))
     logger.info('Loaded {} COLA dev samples'.format(len(cola_dev_data)))
