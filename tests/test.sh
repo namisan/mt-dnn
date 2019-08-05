@@ -34,7 +34,7 @@ i=0
 for hparams in "" ; do
 
     # train
-    python3 $CODEDIR/train.py --data_dir $CODEDIR/sample_data/output --init_checkpoint $WORKDIR/mt_dnn_models/bert_model_base_uncased.pt --batch_size 20 --batch_size_eval 20 --output_dir $WORKDIR/checkpoints/mt_dnn_results/ --log_file $WORKDIR/checkpoints/mt_dnn_results/log.log --answer_opt 0 --optimizer adamax --train_datasets mnli --test_datasets mnli_matched --grad_clipping 0 --global_grad_clipping 1 --learning_rate 5e-5 --log_per_updates 1 --epochs 2 --grad_accumulation_step 2
+    python $CODEDIR/train.py --data_dir $CODEDIR/sample_data/output --init_checkpoint $WORKDIR/mt_dnn_models/bert_model_base_uncased.pt --batch_size 20 --batch_size_eval 20 --output_dir $WORKDIR/checkpoints/mt_dnn_results/ --log_file $WORKDIR/checkpoints/mt_dnn_results/log.log --answer_opt 0 --optimizer adamax --train_datasets mnli --test_datasets mnli_matched --grad_clipping 0 --global_grad_clipping 1 --learning_rate 5e-5 --log_per_updates 1 --epochs 2 --grad_accumulation_step 2
 
     # check if result files exist
     if [ ! -f $WORKDIR/checkpoints/mt_dnn_results/model_0.pt ] && [ ! -f $WORKDIR/checkpoints/mt_dnn_results/model_1.pt ]; then
@@ -43,7 +43,7 @@ for hparams in "" ; do
     fi
 
     # load model and resume training
-    python3 ./train.py --data_dir $CODEDIR/sample_data/output --init_checkpoint $WORKDIR/mt_dnn_models/bert_model_base_uncased.pt --batch_size 20 --batch_size_eval 20 --output_dir $WORKDIR/checkpoints/mt_dnn_results/ --log_file $WORKDIR/checkpoints/mt_dnn_results/log.log --answer_opt 0 --optimizer adamax --train_datasets mnli --test_datasets mnli_matched --grad_clipping 0 --global_grad_clipping 1 --learning_rate 5e-5 --log_per_updates 1 --epochs 2 --grad_accumulation_step 2 --resume --model_ckpt $WORKDIR/checkpoints/mt_dnn_results/model_1.pt
+    python ./train.py --data_dir $CODEDIR/sample_data/output --init_checkpoint $WORKDIR/mt_dnn_models/bert_model_base_uncased.pt --batch_size 20 --batch_size_eval 20 --output_dir $WORKDIR/checkpoints/mt_dnn_results/ --log_file $WORKDIR/checkpoints/mt_dnn_results/log.log --answer_opt 0 --optimizer adamax --train_datasets mnli --test_datasets mnli_matched --grad_clipping 0 --global_grad_clipping 1 --learning_rate 5e-5 --log_per_updates 1 --epochs 2 --grad_accumulation_step 2 --resume --model_ckpt $WORKDIR/checkpoints/mt_dnn_results/model_1.pt
 
 
     i=$((i+1))
