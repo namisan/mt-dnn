@@ -1,0 +1,23 @@
+group: travis_latest
+language: python
+cache: pip
+python:
+    - 3.6
+matrix:
+    allow_failures:
+        - python: nightly
+        - python: pypy
+        - python: pypy3
+install:
+    - pip install -U pip
+    - pip install --progress-bar off -r requirements.txt
+    - pip install flake8 
+
+before_script:
+    - flake8 . --count --select=E901,E999,F821,F822,F823 --exclude xlnet_utils.py  --show-source --statistics
+    - flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+script:
+    - bash "./tests/test.sh"
+notifications:
+    on_success: change
+    on_failure: change 

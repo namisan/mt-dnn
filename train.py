@@ -337,11 +337,8 @@ def main():
             batch_meta, batch_data = next(all_iters[task_id])
             model.update(batch_meta, batch_data)
             if (model.local_updates) % (args.log_per_updates * args.grad_accumulation_step) == 0 or model.local_updates == 1:
-                ramaining_time = str((datetime.now() - start) / (i + 1) * (len(all_indices) - i - 1)).split('.')[0]
-                logger.info('Task [{0:2}] updates[{1:6}] train loss[{2:.5f}] remaining[{3}]'.format(task_id,
-                                                                                                    model.updates,
-                                                                                                    model.train_loss.avg,
-                                                                                                    ramaining_time))
+                remaining_time = str(( datetime.now() - start) / (i + 1) * ( len( all_indices) - i - 1)).split('.')[0]
+                logger.info('Task [{0:2}] updates[{1:6}] train loss[{2:.5f}] remaining[{3}]'.format(task_id, model.updates, model.train_loss.avg, remaining_time))
 
             if args.save_per_updates_on and ((model.local_updates) % (args.save_per_updates * args.grad_accumulation_step) == 0):
                 model_file = os.path.join(output_dir, 'model_{}_{}.pt'.format(epoch, model.updates))
