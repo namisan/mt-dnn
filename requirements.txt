@@ -12,3 +12,4 @@ sentencepiece
 tensorboardX
 tensorboard
 future
+apex
