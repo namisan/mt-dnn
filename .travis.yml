@@ -10,7 +10,7 @@ matrix:
         - python: pypy3
 install:
     - pip install -U pip
-    - pip install --progress-bar off -r requirements.txt
+    - pip install --progress-bar off $(grep -v "apex" requirements.txt)
     - pip install flake8 
 
 before_script:
