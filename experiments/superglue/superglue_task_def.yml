@@ -1,0 +1,73 @@
+cb:
+  data_format: PremiseAndOneHypothesis
+  encoder_type: BERT
+  dropout_p: 0.1
+  enable_san: false
+  metric_meta:
+  - F1
+  - ACC
+  n_class: 3
+  task_type: Classification
+  labels:
+  - contradiction
+  - neutral
+  - entailment
+rte:
+  data_format: PremiseAndOneHypothesis
+  encoder_type: BERT
+  enable_san: true
+  labels:
+  - not_entailment
+  - entailment
+  metric_meta:
+  - ACC
+  n_class: 2
+  task_type: Classification
+copa:
+  encoder_type: BERT
+  data_format: PremiseAndOneHypothesis
+  enable_san: true
+  labels:
+  - neutral
+  - entails
+  metric_meta:
+  - ACC
+  n_class: 2
+  task_type: Classification
+snli:
+  data_format: PremiseAndOneHypothesis
+  encoder_type: BERT
+  enable_san: true
+  labels:
+  - contradiction
+  - neutral
+  - entailment
+  metric_meta:
+  - ACC
+  n_class: 3
+  task_type: Classification
+sst:
+  data_format: PremiseOnly
+  encoder_type: BERT
+  enable_san: false
+  metric_meta:
+  - ACC
+  n_class: 2
+  task_type: Classification
+stsb:
+  data_format: PremiseAndOneHypothesis
+  encoder_type: BERT
+  enable_san: false
+  metric_meta:
+  - Pearson
+  - Spearman
+  n_class: 1
+  task_type: Regression
+wnli:
+  data_format: PremiseAndOneHypothesis
+  encoder_type: BERT
+  enable_san: true
+  metric_meta:
+  - ACC
+  n_class: 2
+  task_type: Classification
