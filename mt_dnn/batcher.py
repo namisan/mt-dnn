@@ -1,14 +1,9 @@
 # coding=utf-8
 # Copyright (c) Microsoft. All rights reserved.
-import os
 import sys
 import json
 import torch
 import random
-import string
-import logging
-import numpy as np
-import pickle as pkl
 from shutil import copyfile
 from data_utils.task_def import TaskType
 from data_utils.task_def import EncoderModelType

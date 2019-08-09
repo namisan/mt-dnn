@@ -3,7 +3,6 @@
 """
 import os
 import argparse
-import numpy as np
 import torch
 import json
 from pytorch_pretrained_bert.tokenization import BertTokenizer
@@ -13,7 +12,11 @@ from mt_dnn.batcher import BatchGen
 from mt_dnn.model import MTDNNModel
 from prepro_std import _truncate_seq_pair
 
-logger = create_logger(__name__, to_disk=True, log_file='mt_dnn_feature_extractor.log')
+logger = create_logger(
+    __name__,
+    to_disk=True,
+    log_file='mt_dnn_feature_extractor.log')
+
 
 def load_data(file):
     rows = []
@@ -23,13 +26,18 @@ def load_data(file):
         for line in f:
             blocks = line.strip().split('|||')
             if len(blocks) == 2:
-                sample = {'uid': str(cnt), 'premise': blocks[0], 'hypothesis': blocks[1], 'label': 0}
+                sample = {
+                    'uid': str(cnt),
+                    'premise': blocks[0],
+                    'hypothesis': blocks[1],
+                    'label': 0}
             else:
                 is_single_sentence = True
                 sample = {'uid': str(cnt), 'premise': blocks[0], 'label': 0}
             rows.append(sample)
             cnt += 1
     return rows, is_single_sentence
+
 
 def build_data(data, max_seq_len, is_train=True, tokenizer=None):
     """Build data of sentence pair tasks
@@ -41,11 +49,18 @@ def build_data(data, max_seq_len, is_train=True, tokenizer=None):
         hypothesis = tokenizer.tokenize(sample['hypothesis'])
         label = sample['label']
         _truncate_seq_pair(premise, hypothesis, max_seq_len - 3)
-        input_ids =tokenizer.convert_tokens_to_ids(['[CLS]'] + hypothesis + ['[SEP]'] + premise + ['[SEP]'])
-        type_ids = [0] * ( len(hypothesis) + 2) + [1] * (len(premise) + 1)
-        features = {'uid': ids, 'label': label, 'token_id': input_ids, 'type_id': type_ids, 'tokens': ['[CLS]'] + hypothesis + ['[SEP]'] + premise + ['[SEP]']}
+        input_ids = tokenizer.convert_tokens_to_ids(
+            ['[CLS]'] + hypothesis + ['[SEP]'] + premise + ['[SEP]'])
+        type_ids = [0] * (len(hypothesis) + 2) + [1] * (len(premise) + 1)
+        features = {
+            'uid': ids,
+            'label': label,
+            'token_id': input_ids,
+            'type_id': type_ids,
+            'tokens': ['[CLS]'] + hypothesis + ['[SEP]'] + premise + ['[SEP]']}
         rows.append(features)
     return rows
+
 
 def build_data_single(data, max_seq_len, tokenizer=None):
     """Build data of single sentence tasks
@@ -55,16 +70,23 @@ def build_data_single(data, max_seq_len, tokenizer=None):
         ids = sample['uid']
         premise = tokenizer.tokenize(sample['premise'])
         label = sample['label']
-        if len(premise) >  max_seq_len - 3:
-            premise = premise[:max_seq_len - 3] 
-        input_ids =tokenizer.convert_tokens_to_ids(['[CLS]'] + premise + ['[SEP]'])
-        type_ids = [0] * ( len(premise) + 2)
-        features = {'uid': ids, 'label': label, 'token_id': input_ids, 'type_id': type_ids, 'tokens': ['[CLS]'] + premise + ['[SEP]']}
+        if len(premise) > max_seq_len - 3:
+            premise = premise[:max_seq_len - 3]
+        input_ids = tokenizer.convert_tokens_to_ids(
+            ['[CLS]'] + premise + ['[SEP]'])
+        type_ids = [0] * (len(premise) + 2)
+        features = {
+            'uid': ids,
+            'label': label,
+            'token_id': input_ids,
+            'type_id': type_ids,
+            'tokens': ['[CLS]'] + premise + ['[SEP]']}
         rows.append(features)
     return rows
 
+
 def model_config(parser):
-    parser.add_argument('--update_bert_opt',  default=0, type=int)
+    parser.add_argument('--update_bert_opt', default=0, type=int)
     parser.add_argument('--multi_gpu_on', action='store_true')
     parser.add_argument('--mem_cum_type', type=str, default='simple',
                         help='bilinear/simple/defualt')
@@ -89,6 +111,7 @@ def model_config(parser):
     parser.add_argument('--mix_opt', type=int, default=0)
     parser.add_argument('--init_ratio', type=float, default=1)
     return parser
+
 
 def train_config(parser):
     parser.add_argument('--cuda', type=bool, default=torch.cuda.is_available(),
@@ -117,29 +140,40 @@ def train_config(parser):
     parser.add_argument('--bert_l2norm', type=float, default=0.0)
     parser.add_argument('--scheduler_type', type=str, default='ms', help='ms/rop/exp')
     parser.add_argument('--output_dir', default='checkpoint')
-    parser.add_argument('--seed', type=int, default=2018,
+    parser.add_argument('--seed', type=int, default=2018, 
                         help='random seed for data shuffling, embedding init, etc.')
     return parser
+
 
 def set_config(parser):
     parser.add_argument("--finput", default=None, type=str, required=True)
     parser.add_argument("--foutput", default=None, type=str, required=True)
-    parser.add_argument("--bert_model", default=None, type=str, required=True, help='Bert model: bert-base-uncased')
-    parser.add_argument("--checkpoint", default=None, type=str, required=True, help='model parameters')
-    parser.add_argument("--do_lower_case", action='store_true', help="Set this flag if you are using an uncased model.")
+    parser.add_argument("--bert_model", default=None, type=str, required=True,
+        help='Bert model: bert-base-uncased')
+    parser.add_argument( "--checkpoint", default=None, type=str, required=True,
+        help='model parameters')
+    parser.add_argument( "--do_lower_case", action='store_true',
+        help="Set this flag if you are using an uncased model.")
     parser.add_argument("--layers", default="10,11", type=str)
     parser.add_argument("--max_seq_length", default=512, type=int, help='')
     parser.add_argument("--batch_size", default=4, type=int)
 
+
 def process_data(args):
-    tokenizer = BertTokenizer.from_pretrained(args.bert_model, do_lower_case=args.do_lower_case)
+    tokenizer = BertTokenizer.from_pretrained(
+        args.bert_model, do_lower_case=args.do_lower_case)
     path = args.finput
     data, is_single_sentence = load_data(path)
     if is_single_sentence:
-        tokened_data = build_data_single(data, max_seq_len=args.max_seq_length, tokenizer = tokenizer)
+        tokened_data = build_data_single(
+            data, max_seq_len=args.max_seq_length, tokenizer=tokenizer)
     else:
-        tokened_data = build_data(data, max_seq_len=args.max_seq_length, tokenizer = tokenizer)
+        tokened_data = build_data(
+            data,
+            max_seq_len=args.max_seq_length,
+            tokenizer=tokenizer)
     return tokened_data, is_single_sentence
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -148,11 +182,16 @@ def main():
     train_config(parser)
     args = parser.parse_args()
     layer_indexes = [int(x) for x in args.layers.split(",")]
-
+    set_environment(args.seed)
     # process data
     data, is_single_sentence = process_data(args)
     data_type = 1 if is_single_sentence else 0
-    batcher = BatchGen(data, batch_size=args.batch_size, gpu=args.cuda, is_train=False, data_type=data_type)
+    batcher = BatchGen(
+        data,
+        batch_size=args.batch_size,
+        gpu=args.cuda,
+        is_train=False,
+        data_type=data_type)
     batcher.reset()
     opt = vars(args)
     # load model
@@ -163,18 +202,23 @@ def main():
         opt.update(config)
     else:
         logger.error('#' * 20)
-        logger.error('Could not find the init model!\n The parameters will be initialized randomly!')
+        logger.error(
+            'Could not find the init model!\n The parameters will be initialized randomly!')
         logger.error('#' * 20)
         return
     num_all_batches = len(batcher)
-    model = MTDNNModel(opt, state_dict=state_dict, num_train_step=num_all_batches)
+    model = MTDNNModel(
+        opt,
+        state_dict=state_dict,
+        num_train_step=num_all_batches)
     if args.cuda:
         model.cuda()
-    
+
     features_dict = {}
     for batch_meta, batch_data in batcher:
         all_encoder_layers, _ = model.extract(batch_meta, batch_data)
-        embeddings = [all_encoder_layers[idx].detach().cpu().numpy() for idx in layer_indexes]
+        embeddings = [all_encoder_layers[idx].detach().cpu().numpy()
+                      for idx in layer_indexes]
         uids = batch_meta['uids']
         masks = batch_data[batch_meta['mask']].detach().cpu().numpy().tolist()
         for idx, uid in enumerate(uids):
@@ -193,6 +237,7 @@ def main():
             feature['tokens'] = tokens
             feature['uid'] = uid
             writer.write('{}\n'.format(json.dumps(feature)))
+
 
 if __name__ == "__main__":
     main()

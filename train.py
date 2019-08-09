@@ -138,15 +138,18 @@ task_defs = TaskDefs(args.task_def)
 encoder_type = task_defs.encoderType
 args.encoder_type = encoder_type
 
+
 def dump(path, data):
     with open(path, 'w') as f:
         json.dump(data, f)
+
 
 def generate_decoder_opt(enable_san, max_opt):
     opt_v = 0
     if enable_san and max_opt < 3:
         opt_v = max_opt
     return opt_v
+
 
 def main():
     logger.info('Launching the MT-DNN training')
@@ -357,11 +360,12 @@ def main():
             label_dict = task_defs.global_map.get(prefix, None)
             dev_data = dev_data_list[idx]
             if dev_data is not None:
-                dev_metrics, dev_predictions, scores, golds, dev_ids= eval_model(model, dev_data,
+                dev_metrics, dev_predictions, scores, golds, dev_ids= eval_model(model,
+                                                                                 dev_data,
                                                                                  metric_meta=task_defs.metric_meta_map[prefix],
                                                                                  use_cuda=args.cuda)
                 for key, val in dev_metrics.items():
-                    logger.warning("Task {0} -- epoch {1} -- Dev {2}: {3:.3f}".format(dataset, epoch, key, val))
+                    logger.warning('Task {0} -- epoch {1} -- Dev {2}: {3:.3f}'.format(dataset, epoch, key, val))
                 score_file = os.path.join(output_dir, '{}_dev_scores_{}.json'.format(dataset, epoch))
                 results = {'metrics': dev_metrics, 'predictions': dev_predictions, 'uids': dev_ids, 'scores': scores}
                 dump(score_file, results)
