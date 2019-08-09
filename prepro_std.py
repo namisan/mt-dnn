@@ -205,7 +205,7 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly, m
                     input_ids, input_mask, type_ids = roberta_feature_extractor(premise, hypothesis, max_seq_length=max_seq_len, model=tokenizer)
                     features = {'uid': ids, 'label': label, 'token_id': input_ids, 'type_id': type_ids, 'mask': input_mask}
                 elif encoderModelType == EncoderModelType.XLNET:
-                    input_ids, input_mask, type_ids = xlnet_feataure_extractor(premise, hypothesis, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
+                    input_ids, input_mask, type_ids = xlnet_feature_extractor(premise, hypothesis, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
                     features = {'uid': ids, 'label': label, 'token_id': input_ids, 'type_id': type_ids, 'mask': input_mask}
                 else:
                     input_ids, _, type_ids = bert_feature_extractor(premise, hypothesis, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
@@ -228,8 +228,8 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly, m
                     input_ids_2, _, type_ids_2 = roberta_feature_extractor(premise, hypothesis_2, max_seq_length=max_seq_len, model=tokenizer)
                     features = {'uid': ids, 'label': label, 'token_id': [input_ids_1, input_ids_2], 'type_id': [type_ids_1, type_ids_2], 'ruid':sample['ruid'], 'olabel':sample['olabel']}
                 elif encoderModelType == EncoderModelType.XLNET:
-                    input_ids_1, mask_1, type_ids_1 = xlnet_feataure_extractor(premise, hypothesis_1, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
-                    input_ids_2, mask_2, type_ids_2 = xlnet_feataure_extractor(premise, hypothesis_2, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
+                    input_ids_1, mask_1, type_ids_1 = xlnet_feature_extractor(premise, hypothesis_1, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
+                    input_ids_2, mask_2, type_ids_2 = xlnet_feature_extractor(premise, hypothesis_2, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
                     features = {'uid': ids, 'label': label, 'token_id': [input_ids_1, input_ids_2], 'type_id': [type_ids_1, type_ids_2], 'mask':[mask_1, mask_2], 'ruid':sample['ruid'], 'olabel':sample['olabel']}
                 else:
                     input_ids_1, _, type_ids_1 = bert_feature_extractor(premise, hypothesis_1, max_seq_length=max_seq_len, tokenize_fn=tokenizer)

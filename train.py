@@ -135,8 +135,8 @@ logger = create_logger(__name__, to_disk=True, log_file=log_path)
 logger.info(args.answer_opt)
 
 task_defs = TaskDefs(args.task_def)
-encoderType = task_defs.encoderType
-args.encoder_type = encoderType
+encoder_type = task_defs.encoderType
+args.encoder_type = encoder_type
 
 def dump(path, data):
     with open(path, 'w') as f:
