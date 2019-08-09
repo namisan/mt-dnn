@@ -12,3 +12,5 @@ sentencepiece
 tensorboardX
 tensorboard
 future
+apex
+fairseq

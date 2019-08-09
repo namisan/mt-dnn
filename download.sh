@@ -3,35 +3,11 @@
 # This script is used to download resources for MT-DNN experiments
 ############################################################## 
 
-DATA_DIR=$(pwd)/data
-if [ ! -d ${DATA_DIR}  ]; then
-  echo "Create a folder $DATA_DIR"
-  mkdir ${DATA_DIR}
-fi
-
 BERT_DIR=$(pwd)/mt_dnn_models
 if [ ! -d ${BERT_DIR}  ]; then
   echo "Create a folder BERT_DIR"
   mkdir ${BERT_DIR}
 fi
-
-## DOWNLOAD GLUE DATA
-## Please refer glue-baseline install requirements or other issues.
-git clone https://github.com/jsalt18-sentence-repl/jiant.git
-cd jiant
-python scripts/download_glue_data.py --data_dir $DATA_DIR --tasks all
-
-cd ..
-rm -rf jiant
-#########################
-
-## DOWNLOAD SciTail
-cd $DATA_DIR
-wget http://data.allenai.org.s3.amazonaws.com/downloads/SciTailV1.1.zip
-unzip SciTailV1.1.zip
-mv SciTailV1.1 SciTail
-# remove zip files
-rm *.zip
 
 ## Download bert models
 wget https://mrc.blob.core.windows.net/mt-dnn-model/bert_model_base_v2.pt -O "${BERT_DIR}/bert_model_base_uncased.pt"
@@ -69,6 +45,33 @@ wget -N 'https://dl.fbaipublicfiles.com/fairseq/gpt2_bpe/encoder.json' -O "${BER
 wget -N 'https://dl.fbaipublicfiles.com/fairseq/gpt2_bpe/vocab.bpe' -O "${BERT_DIR}/roberta/vocab.bpe"
 wget -N 'https://dl.fbaipublicfiles.com/fairseq/gpt2_bpe/dict.txt' -O "${BERT_DIR}/roberta/ict.txt"
 
+if [ "$1" == "model_only" ]; then
+  exit 1
+fi
+
+DATA_DIR=$(pwd)/data
+if [ ! -d ${DATA_DIR}  ]; then
+  echo "Create a folder $DATA_DIR"
+  mkdir ${DATA_DIR}
+fi
+
+## DOWNLOAD GLUE DATA
+## Please refer glue-baseline install requirments or other issues.
+git clone https://github.com/jsalt18-sentence-repl/jiant.git
+cd jiant
+python scripts/download_glue_data.py --data_dir $DATA_DIR --tasks all
+
+cd ..
+rm -rf jiant
+#########################
+
+## DOWNLOAD SciTail
+cd $DATA_DIR
+wget http://data.allenai.org.s3.amazonaws.com/downloads/SciTailV1.1.zip
+unzip SciTailV1.1.zip
+mv SciTailV1.1 SciTail
+# remove zip files
+rm *.zip
 
 ## Download preprocessed SciTail/SNLI data for domain adaptation
 cd $DATA_DIR
@@ -81,3 +84,4 @@ unzip data.zip
 mv data/* ${DOMAIN_ADP}
 rm -rf data.zip
 rm -rf data
+
