@@ -12,7 +12,7 @@ from experiments.exp_def import TaskDefs
 from experiments.glue.glue_utils import submit, eval_model
 from data_utils.log_wrapper import create_logger
 from data_utils.utils import set_environment
-from data_utils.task_def import TaskType
+from data_utils.task_def import TaskType, EncoderModelType
 from mt_dnn.batcher import BatchGen
 from mt_dnn.model import MTDNNModel
 
@@ -43,12 +43,14 @@ def model_config(parser):
     parser.add_argument('--mix_opt', type=int, default=0)
     parser.add_argument('--max_seq_len', type=int, default=512)
     parser.add_argument('--init_ratio', type=float, default=1)
+    parser.add_argument('--encoder_type', type=int, default=EncoderModelType.BERT)
+
     return parser
 
 
 def data_config(parser):
     parser.add_argument('--log_file', default='mt-dnn-train.log', help='path for log file.')
-    parser.add_argument("--init_checkpoint", default='mt_dnn_models/bert_model_base_uncased.pt', type=str)
+    parser.add_argument("--init_checkpoint", default='mt_dnn_models/bert_model_base.pt', type=str)
     parser.add_argument('--data_dir', default='data/canonical_data/mt_dnn_uncased_lower')
     parser.add_argument('--data_sort_on', action='store_true')
     parser.add_argument('--name', default='farmer')
@@ -102,13 +104,13 @@ def train_config(parser):
     parser.add_argument('--seed', type=int, default=2018,
                         help='random seed for data shuffling, embedding init, etc.')
     parser.add_argument('--grad_accumulation_step', type=int, default=1)
+
     #fp 16
     parser.add_argument('--fp16', action='store_true',
                         help="Whether to use 16-bit (mixed) precision (through NVIDIA apex) instead of 32-bit")
     parser.add_argument('--fp16_opt_level', type=str, default='O1',
                         help="For fp16: Apex AMP optimization level selected in ['O0', 'O1', 'O2', and 'O3']."
                              "See details at https://nvidia.github.io/apex/amp.html")
-
     return parser
 
 
@@ -133,17 +135,21 @@ logger = create_logger(__name__, to_disk=True, log_file=log_path)
 logger.info(args.answer_opt)
 
 task_defs = TaskDefs(args.task_def)
+encoder_type = task_defs.encoderType
+args.encoder_type = encoder_type
 
 
 def dump(path, data):
     with open(path, 'w') as f:
         json.dump(data, f)
 
+
 def generate_decoder_opt(enable_san, max_opt):
     opt_v = 0
     if enable_san and max_opt < 3:
         opt_v = max_opt
     return opt_v
+
 
 def main():
     logger.info('Launching the MT-DNN training')
@@ -157,7 +163,6 @@ def main():
     nclass_list = []
     decoder_opts = []
     dropout_list = []
-
     for dataset in args.train_datasets:
         prefix = dataset.split('_')[0]
         if prefix in tasks: continue
@@ -201,7 +206,8 @@ def main():
                               maxlen=args.max_seq_len,
                               pairwise=pw_task,
                               data_type=data_type,
-                              task_type=task_type)
+                              task_type=task_type,
+                              encoder_type=encoder_type)
         train_data_list.append(train_data)
 
     opt['answer_opt'] = decoder_opts
@@ -233,7 +239,8 @@ def main():
                                 maxlen=args.max_seq_len,
                                 pairwise=pw_task,
                                 data_type=data_type,
-                                task_type=task_type)
+                                task_type=task_type,
+                                encoder_type=encoder_type)
         dev_data_list.append(dev_data)
 
         test_path = os.path.join(data_dir, '{}_test.json'.format(dataset))
@@ -246,7 +253,8 @@ def main():
                                  maxlen=args.max_seq_len,
                                  pairwise=pw_task,
                                  data_type=data_type,
-                                 task_type=task_type)
+                                 task_type=task_type,
+                                 encoder_type=encoder_type)
         test_data_list.append(test_data)
 
     logger.info('#' * 20)
@@ -258,10 +266,11 @@ def main():
 
     # div number of grad accumulation. 
     num_all_batches = args.epochs * sum(all_lens) // args.grad_accumulation_step
-    logger.info('############# Gradient Accumulation Infor #############')
+    logger.info('############# Gradient Accumulation Info #############')
     logger.info('number of step: {}'.format(args.epochs * sum(all_lens)))
     logger.info('number of grad grad_accumulation step: {}'.format(args.grad_accumulation_step))
     logger.info('adjusted number of step: {}'.format(num_all_batches))
+    logger.info('############# Gradient Accumulation Info #############')
 
     if len(train_data_list) > 1 and args.ratio > 0:
         num_all_batches = int(args.epochs * (len(train_data_list[0]) * (1 + args.ratio)))
@@ -269,18 +278,19 @@ def main():
     bert_model_path = args.init_checkpoint
     state_dict = None
 
-    if os.path.exists(bert_model_path):
-        state_dict = torch.load(bert_model_path)
-        config = state_dict['config']
-        config['attention_probs_dropout_prob'] = args.bert_dropout_p
-        config['hidden_dropout_prob'] = args.bert_dropout_p
-        opt.update(config)
-    else:
-        logger.error('#' * 20)
-        logger.error('Could not find the init model!\n The parameters will be initialized randomly!')
-        logger.error('#' * 20)
-        config = BertConfig(vocab_size_or_config_json_file=30522).to_dict()
-        opt.update(config)
+    if encoder_type == EncoderModelType.BERT:
+        if os.path.exists(bert_model_path):
+            state_dict = torch.load(bert_model_path)
+            config = state_dict['config']
+            config['attention_probs_dropout_prob'] = args.bert_dropout_p
+            config['hidden_dropout_prob'] = args.bert_dropout_p
+            opt.update(config)
+        else:
+            logger.error('#' * 20)
+            logger.error('Could not find the init model!\n The parameters will be initialized randomly!')
+            logger.error('#' * 20)
+            config = BertConfig(vocab_size_or_config_json_file=30522).to_dict()
+            opt.update(config)
 
     model = MTDNNModel(opt, state_dict=state_dict, num_train_step=num_all_batches)
     if args.resume and args.model_ckpt:
@@ -299,9 +309,6 @@ def main():
         writer.write('\n{}\n{}\n'.format(headline, model.network))
 
     logger.info("Total number of params: {}".format(model.total_param))
-
-    if args.freeze_layers > 0:
-        model.network.freeze_layers(args.freeze_layers)
 
     for epoch in range(0, args.epochs):
         logger.warning('At epoch {}'.format(epoch))
@@ -337,8 +344,11 @@ def main():
             batch_meta, batch_data = next(all_iters[task_id])
             model.update(batch_meta, batch_data)
             if (model.local_updates) % (args.log_per_updates * args.grad_accumulation_step) == 0 or model.local_updates == 1:
-                remaining_time = str(( datetime.now() - start) / (i + 1) * ( len( all_indices) - i - 1)).split('.')[0]
-                logger.info('Task [{0:2}] updates[{1:6}] train loss[{2:.5f}] remaining[{3}]'.format(task_id, model.updates, model.train_loss.avg, remaining_time))
+                ramaining_time = str((datetime.now() - start) / (i + 1) * (len(all_indices) - i - 1)).split('.')[0]
+                logger.info('Task [{0:2}] updates[{1:6}] train loss[{2:.5f}] remaining[{3}]'.format(task_id,
+                                                                                                    model.updates,
+                                                                                                    model.train_loss.avg,
+                                                                                                    ramaining_time))
 
             if args.save_per_updates_on and ((model.local_updates) % (args.save_per_updates * args.grad_accumulation_step) == 0):
                 model_file = os.path.join(output_dir, 'model_{}_{}.pt'.format(epoch, model.updates))
@@ -350,11 +360,12 @@ def main():
             label_dict = task_defs.global_map.get(prefix, None)
             dev_data = dev_data_list[idx]
             if dev_data is not None:
-                dev_metrics, dev_predictions, scores, golds, dev_ids= eval_model(model, dev_data,
+                dev_metrics, dev_predictions, scores, golds, dev_ids= eval_model(model,
+                                                                                 dev_data,
                                                                                  metric_meta=task_defs.metric_meta_map[prefix],
                                                                                  use_cuda=args.cuda)
                 for key, val in dev_metrics.items():
-                    logger.warning("Task {0} -- epoch {1} -- Dev {2}: {3:.3f}".format(dataset, epoch, key, val))
+                    logger.warning('Task {0} -- epoch {1} -- Dev {2}: {3:.3f}'.format(dataset, epoch, key, val))
                 score_file = os.path.join(output_dir, '{}_dev_scores_{}.json'.format(dataset, epoch))
                 results = {'metrics': dev_metrics, 'predictions': dev_predictions, 'uids': dev_ids, 'scores': scores}
                 dump(score_file, results)

@@ -13,3 +13,4 @@ tensorboardX
 tensorboard
 future
 apex
+fairseq
