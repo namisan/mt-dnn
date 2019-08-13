@@ -39,7 +39,7 @@ for hparams in "" ; do
     # check if result files exist
     if [ ! -f $WORKDIR/checkpoints/mt_dnn_results/model_0.pt ] && [ ! -f $WORKDIR/checkpoints/mt_dnn_results/model_1.pt ]; then
         echo "Checkpoint files not found!"
-        exit
+        exit 1
     fi
 
     # load model and resume training
