@@ -16,6 +16,7 @@ def dump(path, data):
 parser = argparse.ArgumentParser()
 parser.add_argument("--task_def", type=str, default="experiments/glue/glue_task_def.yml")
 parser.add_argument("--task", type=str)
+parser.add_argument("--task_id", type=int, help="the id of this task when training")
 
 parser.add_argument("--prep_input", type=str)
 parser.add_argument("--with_label", action="store_true")
@@ -46,7 +47,7 @@ if task_type == TaskType.Ranking:
 test_data = BatchGen(BatchGen.load(args.prep_input, False, pairwise=pw_task, maxlen=args.max_seq_len),
                      batch_size=args.batch_size_eval,
                      gpu=args.cuda, is_train=False,
-                     task_id=0,
+                     task_id=args.task_id,
                      maxlen=args.max_seq_len,
                      pairwise=pw_task,
                      data_type=data_type,
