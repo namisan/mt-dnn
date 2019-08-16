@@ -25,7 +25,7 @@ Hybrid Neural Network Model for Commonsense Reasoning <br/>
 
 
 Liyuan Liu, Haoming Jiang, Pengcheng He, Weizhu Chen, Xiaodong Liu, Jianfeng Gao and Jiawei Han <br/>
-On the Variance of the Adaptive Learning Rate and Beyond
+On the Variance of the Adaptive Learning Rate and Beyond <br/>
 [arXiv version](https://arxiv.org/abs/1908.03265) <br/>
 
 ## Quickstart
@@ -148,10 +148,7 @@ We also used some code from: https://github.com/kevinduh/san_mrc <br/>
 ```
 @inproceedings{liu2019mt-dnn,
     title = "Multi-Task Deep Neural Networks for Natural Language Understanding",
-    author = "Liu, Xiaodong  and
-      He, Pengcheng and
-      Chen, Weizhu and
-      Gao, Jianfeng",
+    author = "Liu, Xiaodong and He, Pengcheng and Chen, Weizhu and Gao, Jianfeng",
     booktitle = "Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics",
     month = jul,
     year = "2019",
