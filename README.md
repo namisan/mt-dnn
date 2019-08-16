@@ -11,13 +11,22 @@ This PyTorch package implements the Multi-Task Deep Neural Networks (MT-DNN) for
 
 Xiaodong Liu\*, Pengcheng He\*, Weizhu Chen and Jianfeng Gao<br/>
 Multi-Task Deep Neural Networks for Natural Language Understanding<br/>
-[arXiv version](https://arxiv.org/abs/1901.11504) <br/>
+[ACL 2019](https://aclweb.org/anthology/papers/P/P19/P19-1441/) <br/>
 \*: Equal contribution <br/>
 
 Xiaodong Liu, Pengcheng He, Weizhu Chen and Jianfeng Gao<br/>
 Improving Multi-Task Deep Neural Networks via Knowledge Distillation for Natural Language Understanding <br/>
 [arXiv version](https://arxiv.org/abs/1904.09482) <br/>
 
+
+Pengcheng He, Xiaodong Liu, Weizhu Chen and Jianfeng Gao<br/>
+Hybrid Neural Network Model for Commonsense Reasoning <br/>
+[arXiv version](https://arxiv.org/abs/1907.11983) <br/>
+
+
+Liyuan Liu, Haoming Jiang, Pengcheng He, Weizhu Chen, Xiaodong Liu, Jianfeng Gao and Jiawei Han <br/>
+On the Variance of the Adaptive Learning Rate and Beyond
+[arXiv version](https://arxiv.org/abs/1908.03265) <br/>
 
 ## Quickstart
 
@@ -105,6 +114,9 @@ Here, we go through how to convert a Chinese Tensorflow BERT model into mt-dnn f
 ### TODO
 - [x] MT-DNN with Knowledge Distillation code and model. <br/>
 - [ ] Publish pretrained Tensorflow checkpoints.
+- [ ] Publish RAdam.
+- [ ] Publish HNN code and model.
+
 
 ## FAQ
 
@@ -133,14 +145,20 @@ We also used some code from: https://github.com/kevinduh/san_mrc <br/>
 
 ### How do I cite MT-DNN?
 
-For now, please cite [arXiv version](https://arxiv.org/abs/1901.11504):
-
 ```
-@article{liu2019mt-dnn,
-  title={Multi-Task Deep Neural Networks for Natural Language Understanding},
-  author={Liu, Xiaodong and He, Pengcheng and Chen, Weizhu and Gao, Jianfeng},
-  journal={arXiv preprint arXiv:1901.11504},
-  year={2019}
+@inproceedings{liu2019mt-dnn,
+    title = "Multi-Task Deep Neural Networks for Natural Language Understanding",
+    author = "Liu, Xiaodong  and
+      He, Pengcheng and
+      Chen, Weizhu and
+      Gao, Jianfeng",
+    booktitle = "Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics",
+    month = jul,
+    year = "2019",
+    address = "Florence, Italy",
+    publisher = "Association for Computational Linguistics",
+    url = "https://www.aclweb.org/anthology/P19-1441",
+    pages = "4487--4496"
 }
 
 
@@ -148,6 +166,22 @@ For now, please cite [arXiv version](https://arxiv.org/abs/1901.11504):
   title={Improving Multi-Task Deep Neural Networks via Knowledge Distillation for Natural Language Understanding},
   author={Liu, Xiaodong and He, Pengcheng and Chen, Weizhu and Gao, Jianfeng},
   journal={arXiv preprint arXiv:1904.09482},
+  year={2019}
+}
+
+
+@article{he2019hnn,
+  title={A Hybrid Neural Network Model for Commonsense Reasoning},
+  author={He, Pengcheng and Liu, Xiaodong and Chen, Weizhu and Gao, Jianfeng},
+  journal={arXiv preprint arXiv:1907.11983},
+  year={2019}
+}
+
+
+@article{liu2019radam,
+  title={On the Variance of the Adaptive Learning Rate and Beyond},
+  author={Liu, Liyuan and Jiang, Haoming and He, Pengcheng and Chen, Weizhu and Liu, Xiaodong and Gao, Jianfeng and Han, Jiawei},
+  journal={arXiv preprint arXiv:1908.03265},
   year={2019}
 }
 ```
