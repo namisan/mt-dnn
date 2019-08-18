@@ -291,6 +291,19 @@ def main():
             logger.error('#' * 20)
             config = BertConfig(vocab_size_or_config_json_file=30522).to_dict()
             opt.update(config)
+    elif encoder_type == EncoderModelType.ROBERTA:
+        bert_model_path = '{}/model.pt'.format(bert_model_path)
+        if os.path.exists(bert_model_path):
+            new_state_dict = {}
+            state_dict = torch.load(bert_model_path)
+            for key, val in state_dict['model'].items():
+                if key.startswith('decoder.sentence_encoder'):
+                    key = 'bert.model.{}'.format(key)
+                    new_state_dict[key] = val
+                elif key.startswith('classification_heads'):
+                    key = 'bert.model.{}'.format(key)
+                    new_state_dict[key] = val
+            state_dict = {'state': new_state_dict}
 
     model = MTDNNModel(opt, state_dict=state_dict, num_train_step=num_all_batches)
     if args.resume and args.model_ckpt:
