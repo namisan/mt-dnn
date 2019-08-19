@@ -1,3 +1,6 @@
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Travis-CI](https://travis-ci.org/namisan/mt-dnn.svg?branch=master)](https://github.com/namisan/mt-dnn)
+
 **New Release ** <br/>
 We are working on the v0.2 version which is easier to adapt it to new tasks. <br/>
 You are welcomed to test our new version. <br/>
