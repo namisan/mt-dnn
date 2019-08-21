@@ -28,12 +28,12 @@ class Adamax(Optimizer):
         b1: Adams b1. Default: 0.9
         b2: Adams b2. Default: 0.999
         e: Adams epsilon. Default: 1e-6
-        weight_decay_rate: Weight decay. Default: 0.01
+        weight_decay: Weight decay. Default: 0.01
         max_grad_norm: Maximum norm for the gradients (-1 means no clipping). Default: 1.0
     by xiaodl 
     """
     def __init__(self, params, lr, warmup=-1, t_total=-1, schedule='warmup_linear',
-                 betas=(0.9, 0.999), eps=1e-6, weight_decay_rate=0.01,
+                 betas=(0.9, 0.999), eps=1e-6, weight_decay=0.01,
                  max_grad_norm=1.0):
         if not lr >= 0.0:
             raise ValueError("Invalid learning rate: {} - should be >= 0.0".format(lr))
@@ -46,7 +46,7 @@ class Adamax(Optimizer):
         if not 0.0 <= betas[1] < 1.0:
             raise ValueError("Invalid beta parameter at index 1: {}".format(betas[1]))
         defaults = dict(lr=lr, schedule=schedule, warmup=warmup, t_total=t_total,
-                        betas=betas, eps=eps, weight_decay_rate=weight_decay_rate,
+                        betas=betas, eps=eps, weight_decay=weight_decay,
                         max_grad_norm=max_grad_norm)
         super(Adamax, self).__init__(params, defaults)
 
@@ -125,8 +125,8 @@ class Adamax(Optimizer):
                 torch.max(norm_buf, 0, keepdim=False, out=(exp_inf, exp_inf.new().long()))
                 update = exp_avg / (exp_inf + eps)
 
-                if group['weight_decay_rate'] > 0.0:
-                    update += group['weight_decay_rate'] * p.data
+                if group['weight_decay'] > 0.0:
+                    update += group['weight_decay'] * p.data
 
                 if group['t_total'] != -1:
                     schedule_fct = schedule_func(group['schedule'])
