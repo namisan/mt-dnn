@@ -11,7 +11,7 @@ import torch.optim as optim
 from torch.optim.lr_scheduler import *
 from data_utils.utils import AverageMeter
 from pytorch_pretrained_bert import BertAdam as Adam
-from module.bert_optim import Adamax
+from module.bert_optim import Adamax, RAdam
 from module.my_optim import EMA
 from .matcher import SANBertNetwork
 
@@ -55,8 +55,21 @@ class MTDNNModel(object):
                                     warmup=opt['warmup'],
                                     t_total=num_train_step,
                                     max_grad_norm=opt['grad_clipping'],
-                                    schedule=opt['warmup_schedule'])
+                                    schedule=opt['warmup_schedule'],
+                                    weight_decay=opt['weight_decay'])
             if opt.get('have_lr_scheduler', False): opt['have_lr_scheduler'] = False
+        elif opt['optimizer'] == 'radam':
+            self.optimizer = RAdam(optimizer_parameters,
+                                    opt['learning_rate'],
+                                    warmup=opt['warmup'],
+                                    t_total=num_train_step,
+                                    max_grad_norm=opt['grad_clipping'],
+                                    schedule=opt['warmup_schedule'],
+                                    eps=opt['adam_eps'],
+                                    weight_decay=opt['weight_decay'])
+            if opt.get('have_lr_scheduler', False): opt['have_lr_scheduler'] = False
+            # The current radam does not support FP16.
+            opt['fp16'] = False
         elif opt['optimizer'] == 'adadelta':
             self.optimizer = optim.Adadelta(optimizer_parameters,
                                             opt['learning_rate'],
@@ -67,7 +80,8 @@ class MTDNNModel(object):
                                   warmup=opt['warmup'],
                                   t_total=num_train_step,
                                   max_grad_norm=opt['grad_clipping'],
-                                  schedule=opt['warmup_schedule'])
+                                  schedule=opt['warmup_schedule'],
+                                  weight_decay=opt['weight_decay'])
             if opt.get('have_lr_scheduler', False): opt['have_lr_scheduler'] = False
         else:
             raise RuntimeError('Unsupported optimizer: %s' % opt['optimizer'])
