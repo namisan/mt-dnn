@@ -329,7 +329,7 @@ def main():
 
     # tensorboard
     if args.tensorboard:
-        args.tensorboard_logdir = os.path.join(args.output_dir, 'tensorboard_logdir')
+        args.tensorboard_logdir = os.path.join(args.output_dir, args.tensorboard_logdir)
         tensorboard = SummaryWriter(log_dir=args.tensorboard_logdir)
 
     for epoch in range(0, args.epochs):
