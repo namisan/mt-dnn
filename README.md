@@ -116,8 +116,8 @@ Here, we go through how to convert a Chinese Tensorflow BERT model into mt-dnn f
 
 ### TODO
 - [x] MT-DNN with Knowledge Distillation code and model. <br/>
+- [x] Merged RAdam.
 - [ ] Publish pretrained Tensorflow checkpoints.
-- [ ] Publish RAdam.
 - [ ] Publish HNN code and model.
 
 
