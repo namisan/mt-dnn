@@ -8,6 +8,8 @@ from pprint import pprint
 import numpy as np
 import torch
 from pytorch_pretrained_bert.modeling import BertConfig
+from tensorboardX import SummaryWriter
+#from torch.utils.tensorboard import SummaryWriter
 from experiments.exp_def import TaskDefs
 from experiments.glue.glue_utils import submit, eval_model
 from data_utils.log_wrapper import create_logger
@@ -50,6 +52,8 @@ def model_config(parser):
 
 def data_config(parser):
     parser.add_argument('--log_file', default='mt-dnn-train.log', help='path for log file.')
+    parser.add_argument('--tensorboard', action='store_true')
+    parser.add_argument('--tensorboard_logdir', default='tensorboard_logdir')
     parser.add_argument("--init_checkpoint", default='mt_dnn_models/bert_model_base.pt', type=str)
     parser.add_argument('--data_dir', default='data/canonical_data/mt_dnn_uncased_lower')
     parser.add_argument('--data_sort_on', action='store_true')
@@ -323,6 +327,11 @@ def main():
 
     logger.info("Total number of params: {}".format(model.total_param))
 
+    # tensorboard
+    if args.tensorboard:
+        args.tensorboard_logdir = os.path.join(args.output_dir, args.tensorboard_logdir)
+        tensorboard = SummaryWriter(log_dir=args.tensorboard_logdir)
+
     for epoch in range(0, args.epochs):
         logger.warning('At epoch {}'.format(epoch))
         for train_data in train_data_list:
@@ -362,6 +371,9 @@ def main():
                                                                                                     model.updates,
                                                                                                     model.train_loss.avg,
                                                                                                     ramaining_time))
+                if args.tensorboard:
+                    tensorboard.add_scalar('train/loss', model.train_loss.avg, global_step=model.updates)
+
 
             if args.save_per_updates_on and ((model.local_updates) % (args.save_per_updates * args.grad_accumulation_step) == 0):
                 model_file = os.path.join(output_dir, 'model_{}_{}.pt'.format(epoch, model.updates))
@@ -378,6 +390,8 @@ def main():
                                                                                  metric_meta=task_defs.metric_meta_map[prefix],
                                                                                  use_cuda=args.cuda)
                 for key, val in dev_metrics.items():
+                    if args.tensorboard:
+                        tensorboard.add_scalar('dev/{}/{}'.format(dataset, key), val, global_step=epoch)
                     logger.warning('Task {0} -- epoch {1} -- Dev {2}: {3:.3f}'.format(dataset, epoch, key, val))
                 score_file = os.path.join(output_dir, '{}_dev_scores_{}.json'.format(dataset, epoch))
                 results = {'metrics': dev_metrics, 'predictions': dev_predictions, 'uids': dev_ids, 'scores': scores}
@@ -400,7 +414,8 @@ def main():
 
         model_file = os.path.join(output_dir, 'model_{}.pt'.format(epoch))
         model.save(model_file)
-
+    if args.tensorboard:
+        tensorboard.close()
 
 if __name__ == '__main__':
     main()
