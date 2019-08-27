@@ -82,6 +82,7 @@ def train_config(parser):
     parser.add_argument('--momentum', type=float, default=0)
     parser.add_argument('--warmup', type=float, default=0.1)
     parser.add_argument('--warmup_schedule', type=str, default='warmup_linear')
+    parser.add_argument('--adam_eps', type=float, default=1e-6)
 
     parser.add_argument('--vb_dropout', action='store_false')
     parser.add_argument('--dropout_p', type=float, default=0.1)
