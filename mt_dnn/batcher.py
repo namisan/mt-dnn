@@ -106,7 +106,7 @@ class BatchGen:
         return newbatch
 
     def __if_pair__(self, data_type):
-        return self.data_type in [DataFormat.PremiseAndOneHypothesis, DataFormat.PremiseAndMultiHypothesis]
+        return data_type in [DataFormat.PremiseAndOneHypothesis, DataFormat.PremiseAndMultiHypothesis]
 
     def __iter__(self):
         while self.offset < len(self):
