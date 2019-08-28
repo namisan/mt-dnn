@@ -19,12 +19,7 @@ class TaskDefs:
             assert "_" not in task, "task name should not contain '_', current task name: %s" % task
             n_class_map[task] = task_def["n_class"]
             data_format = DataFormat[task_def["data_format"]]
-            if data_format == DataFormat.PremiseOnly:
-                data_type_map[task] = 1
-            elif data_format in (DataFormat.PremiseAndMultiHypothesis, DataFormat.PremiseAndOneHypothesis):
-                data_type_map[task] = 0
-            else:
-                raise ValueError(data_format)
+            data_type_map[task] = data_format
             task_type_map[task] = TaskType[task_def["task_type"]]
             metric_meta_map[task] = tuple(Metric[metric_name] for metric_name in task_def["metric_meta"])
             enable_san_map[task] = task_def["enable_san"]

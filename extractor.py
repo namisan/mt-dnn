@@ -11,6 +11,7 @@ from data_utils.utils import set_environment
 from mt_dnn.batcher import BatchGen
 from mt_dnn.model import MTDNNModel
 from prepro_std import _truncate_seq_pair
+from data_utils.task_def import DataFormat
 
 logger = create_logger(
     __name__,
@@ -185,7 +186,7 @@ def main():
     set_environment(args.seed)
     # process data
     data, is_single_sentence = process_data(args)
-    data_type = 1 if is_single_sentence else 0
+    data_type = DataFormat.PremiseOnly if is_single_sentence else DataFormat.PremiseAndOneHypothesis
     batcher = BatchGen(
         data,
         batch_size=args.batch_size,
