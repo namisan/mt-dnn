@@ -5,7 +5,7 @@ import json
 import torch
 import random
 from shutil import copyfile
-from data_utils.task_def import TaskType
+from data_utils.task_def import TaskType, DataFormat
 from data_utils.task_def import EncoderModelType
 
 UNK_ID=100
@@ -19,7 +19,7 @@ class BatchGen:
                  pairwise=False,
                  task=None,
                  task_type=TaskType.Classification,
-                 data_type=0,
+                 data_type=DataFormat.PremiseOnly,
                  soft_label=False,
                  encoder_type=EncoderModelType.BERT):
         self.batch_size = batch_size
@@ -105,6 +105,8 @@ class BatchGen:
                 newbatch.append({'uid': uid, 'token_id': token_id, 'type_id': type_id, 'label':sample['label'], 'true_label': olab})
         return newbatch
 
+    def __if_pair__(self, data_type):
+        return self.data_type in [DataFormat.PremiseAndOneHypothesis, DataFormat.PremiseAndMultiHypothesis]
 
     def __iter__(self):
         while self.offset < len(self):
@@ -123,7 +125,7 @@ class BatchGen:
                 token_ids = torch.LongTensor(batch_size, tok_len).fill_(0)
                 type_ids = torch.LongTensor(batch_size, tok_len).fill_(0)
                 masks = torch.LongTensor(batch_size, tok_len).fill_(0)
-            if self.data_type < 1:
+            if self.__if_pair__(self.data_type):
                 premise_masks = torch.ByteTensor(batch_size, tok_len).fill_(1)
                 hypothesis_masks = torch.ByteTensor(batch_size, hypothesis_len).fill_(1)
 
@@ -135,12 +137,12 @@ class BatchGen:
                 token_ids[i, :select_len] = torch.LongTensor(tok[:select_len])
                 type_ids[i, :select_len] = torch.LongTensor(sample['type_id'][:select_len])
                 masks[i, :select_len] = torch.LongTensor([1] * select_len)
-                if self.data_type < 1:
+                if self.__if_pair__(self.data_type):
                     hlen = len(sample['type_id']) - sum(sample['type_id'])
                     hypothesis_masks[i, :hlen] = torch.LongTensor([0] * hlen)
                     for j in range(hlen, select_len):
                         premise_masks[i, j] = 0
-            if self.data_type < 1:
+            if self.__if_pair__(self.data_type):
                 batch_info = {
                     'token_id': 0,
                     'segment_id': 1,
