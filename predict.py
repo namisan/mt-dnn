@@ -63,8 +63,8 @@ else:
 config = state_dict['config']
 config["cuda"] = args.cuda
 model = MTDNNModel(config, state_dict=state_dict)
-
-test_metrics, test_predictions, scores, golds, test_ids = eval_model(model, test_data,
+with torch.no_grad():
+    test_metrics, test_predictions, scores, golds, test_ids = eval_model(model, test_data,
                                                                      metric_meta=metric_meta,
                                                                      use_cuda=args.cuda, with_label=args.with_label)
 

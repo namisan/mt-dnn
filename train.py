@@ -386,10 +386,11 @@ def main():
             label_dict = task_defs.global_map.get(prefix, None)
             dev_data = dev_data_list[idx]
             if dev_data is not None:
-                dev_metrics, dev_predictions, scores, golds, dev_ids= eval_model(model,
-                                                                                 dev_data,
-                                                                                 metric_meta=task_defs.metric_meta_map[prefix],
-                                                                                 use_cuda=args.cuda)
+                with torch.no_grad():
+                    dev_metrics, dev_predictions, scores, golds, dev_ids= eval_model(model,
+                                                                                    dev_data,
+                                                                                    metric_meta=task_defs.metric_meta_map[prefix],
+                                                                                    use_cuda=args.cuda)
                 for key, val in dev_metrics.items():
                     if args.tensorboard:
                         tensorboard.add_scalar('dev/{}/{}'.format(dataset, key), val, global_step=epoch)
@@ -403,9 +404,10 @@ def main():
             # test eval
             test_data = test_data_list[idx]
             if test_data is not None:
-                test_metrics, test_predictions, scores, golds, test_ids= eval_model(model, test_data,
-                                                                                    metric_meta=task_defs.metric_meta_map[prefix],
-                                                                                    use_cuda=args.cuda, with_label=False)
+                with torch.no_grad():
+                    test_metrics, test_predictions, scores, golds, test_ids= eval_model(model, test_data,
+                                                                                        metric_meta=task_defs.metric_meta_map[prefix],
+                                                                                        use_cuda=args.cuda, with_label=False)
                 score_file = os.path.join(output_dir, '{}_test_scores_{}.json'.format(dataset, epoch))
                 results = {'metrics': test_metrics, 'predictions': test_predictions, 'uids': test_ids, 'scores': scores}
                 dump(score_file, results)
