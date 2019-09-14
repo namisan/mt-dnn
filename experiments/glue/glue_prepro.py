@@ -2,6 +2,9 @@ import os
 import argparse
 import random
 from sys import path
+
+from experiments.common_utils import dump_rows
+
 path.append(os.getcwd())
 from data_utils.log_wrapper import create_logger
 from experiments.glue.glue_utils import *
