@@ -60,6 +60,8 @@ class RoBERTaTokenizer(object):
     def encode(self, text):
         ids = self.encoder.encode(text)
         ids = list(map(str, ids))
+        if len(ids) > MAX_SEQ_LEN - 2:
+            ids = ids[: MAX_SEQ_LEN - 2]
         ids = [0] + [self.vocab[w] if w in self.vocab else self.vocab['<unk>']
                      for w in ids] + [2]
         return ids
@@ -74,6 +76,7 @@ class RoBERTaTokenizer(object):
         ids2 = list(map(str, ids2))
         ids2 = [self.vocab[w] if w in self.vocab else self.vocab['<unk>']
                 for w in ids2] + [2]
+        _truncate_seq_pair(ids1, ids2, MAX_SEQ_LEN -2)
         ids = [0] + ids1 + [2] + ids2
         return ids
 
