@@ -180,9 +180,6 @@ def main():
             task_id = tasks_class[nclass] if nclass in tasks_class else len(tasks_class)
 
         task_type = task_defs.task_type_map[prefix]
-        pw_task = False
-        if task_type == TaskType.Ranking:
-            pw_task = True
 
         dopt = generate_decoder_opt(task_defs.enable_san_map[prefix], opt['answer_opt'])
         if task_id < len(decoder_opts):
@@ -203,13 +200,12 @@ def main():
 
         train_path = os.path.join(data_dir, '{}_train.json'.format(dataset))
         logger.info('Loading {} as task {}'.format(train_path, task_id))
-        train_data = BatchGen(BatchGen.load(train_path, True, pairwise=pw_task, maxlen=args.max_seq_len),
+        train_data = BatchGen(BatchGen.load(train_path, True, task_type=task_type, maxlen=args.max_seq_len),
                               batch_size=batch_size,
                               dropout_w=args.dropout_w,
                               gpu=args.cuda,
                               task_id=task_id,
                               maxlen=args.max_seq_len,
-                              pairwise=pw_task,
                               data_type=data_type,
                               task_type=task_type,
                               encoder_type=encoder_type)
@@ -237,12 +233,11 @@ def main():
         dev_path = os.path.join(data_dir, '{}_dev.json'.format(dataset))
         dev_data = None
         if os.path.exists(dev_path):
-            dev_data = BatchGen(BatchGen.load(dev_path, False, pairwise=pw_task, maxlen=args.max_seq_len),
+            dev_data = BatchGen(BatchGen.load(dev_path, False, task_type=task_type, maxlen=args.max_seq_len),
                                 batch_size=args.batch_size_eval,
                                 gpu=args.cuda, is_train=False,
                                 task_id=task_id,
                                 maxlen=args.max_seq_len,
-                                pairwise=pw_task,
                                 data_type=data_type,
                                 task_type=task_type,
                                 encoder_type=encoder_type)
@@ -251,12 +246,11 @@ def main():
         test_path = os.path.join(data_dir, '{}_test.json'.format(dataset))
         test_data = None
         if os.path.exists(test_path):
-            test_data = BatchGen(BatchGen.load(test_path, False, pairwise=pw_task, maxlen=args.max_seq_len),
+            test_data = BatchGen(BatchGen.load(test_path, False, task_type=task_type, maxlen=args.max_seq_len),
                                  batch_size=args.batch_size_eval,
                                  gpu=args.cuda, is_train=False,
                                  task_id=task_id,
                                  maxlen=args.max_seq_len,
-                                 pairwise=pw_task,
                                  data_type=data_type,
                                  task_type=task_type,
                                  encoder_type=encoder_type)

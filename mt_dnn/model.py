@@ -146,7 +146,7 @@ class MTDNNModel(object):
         if self.config.get('mkd_opt', 0) > 0 and ('soft_label' in batch_meta):
             soft_labels = batch_meta['soft_label']
 
-        if batch_meta['pairwise']:
+        if batch_meta['task_type'] == TaskType.Ranking:
             labels = labels.contiguous().view(-1, batch_meta['pairwise_size'])[:, 0]
         if self.config['cuda']:
             y = labels.cuda(non_blocking=True)
@@ -162,7 +162,7 @@ class MTDNNModel(object):
             inputs.append(None)
         inputs.append(task_id)
         logits = self.mnetwork(*inputs)
-        if batch_meta['pairwise']:
+        if batch_meta['task_type'] == TaskType.Ranking:
             logits = logits.view(-1, batch_meta['pairwise_size'])
 
         if self.config.get('weighted_on', False):
@@ -225,7 +225,7 @@ class MTDNNModel(object):
             inputs.append(None)
         inputs.append(task_id)
         score = self.mnetwork(*inputs)
-        if batch_meta['pairwise']:
+        if batch_meta['task_type'] == TaskType.Ranking:
             score = score.contiguous().view(-1, batch_meta['pairwise_size'])
             assert task_type == TaskType.Ranking
             score = F.softmax(score, dim=1)

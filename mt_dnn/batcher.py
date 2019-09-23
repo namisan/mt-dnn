@@ -16,7 +16,6 @@ class BatchGen:
                  maxlen=128, dropout_w=0.005,
                  do_batch=True, weighted_on=False,
                  task_id=0,
-                 pairwise=False,
                  task=None,
                  task_type=TaskType.Classification,
                  data_type=DataFormat.PremiseOnly,
@@ -29,7 +28,6 @@ class BatchGen:
         self.weighted_on = weighted_on
         self.data = data
         self.task_id = task_id
-        self.pairwise = pairwise
         self.pairwise_size = 1
         self.data_type = data_type
         self.task_type=task_type
@@ -50,7 +48,8 @@ class BatchGen:
         return [data[i:i + batch_size] for i in range(0, len(data), batch_size)]
 
     @staticmethod
-    def load(path, is_train=True, maxlen=128, factor=1.0, pairwise=False):
+    def load(path, is_train=True, maxlen=128, factor=1.0, task_type=None):
+        assert task_type is not None
         with open(path, 'r', encoding='utf-8') as reader:
             data = []
             cnt = 0
@@ -59,9 +58,9 @@ class BatchGen:
                 sample['factor'] = factor
                 cnt += 1
                 if is_train:
-                    if pairwise and (len(sample['token_id'][0]) > maxlen or len(sample['token_id'][1]) > maxlen):
+                    if (task_type == TaskType.Ranking) and (len(sample['token_id'][0]) > maxlen or len(sample['token_id'][1]) > maxlen):
                         continue
-                    if (not pairwise) and (len(sample['token_id']) > maxlen):
+                    if (task_type != TaskType.Ranking) and (len(sample['token_id']) > maxlen):
                         continue
                 data.append(sample)
             print('Loaded {} samples out of {}'.format(len(data), cnt))
@@ -111,10 +110,10 @@ class BatchGen:
     def __iter__(self):
         while self.offset < len(self):
             batch = self.data[self.offset]
-            if self.pairwise:
+            if self.task_type == TaskType.Ranking:
                 batch = self.rebacth(batch)
+
             batch_size = len(batch)
-            batch_dict = {}
             tok_len = max(len(x['token_id']) for x in batch)
             hypothesis_len = max(len(x['type_id']) - sum(x['type_id']) for x in batch)
             if self.encoder_type == EncoderModelType.ROBERTA:
@@ -128,7 +127,6 @@ class BatchGen:
             if self.__if_pair__(self.data_type):
                 premise_masks = torch.ByteTensor(batch_size, tok_len).fill_(1)
                 hypothesis_masks = torch.ByteTensor(batch_size, hypothesis_len).fill_(1)
-
             for i, sample in enumerate(batch):
                 select_len = min(len(sample['token_id']), tok_len)
                 tok = sample['token_id']
@@ -142,6 +140,7 @@ class BatchGen:
                     hypothesis_masks[i, :hlen] = torch.LongTensor([0] * hlen)
                     for j in range(hlen, select_len):
                         premise_masks[i, j] = 0
+
             if self.__if_pair__(self.data_type):
                 batch_info = {
                     'token_id': 0,
@@ -185,13 +184,13 @@ class BatchGen:
             batch_info['uids'] = [sample['uid'] for sample in batch]
             batch_info['task_id'] = self.task_id
             batch_info['input_len'] = valid_input_len
-            batch_info['pairwise'] = self.pairwise
+            batch_info['task_type'] = self.task_type
             batch_info['pairwise_size'] = self.pairwise_size
             batch_info['task_type'] = self.task_type
             if not self.is_train:
                 labels = [sample['label'] for sample in batch]
                 batch_info['label'] = labels
-                if self.pairwise:
+                if self.task_type == TaskType.Ranking:
                     batch_info['true_label'] = [sample['true_label'] for sample in batch]
             self.offset += 1
             yield batch_info, batch_data
