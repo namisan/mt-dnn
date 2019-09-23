@@ -162,7 +162,7 @@ class MTDNNModel(object):
             inputs.append(None)
         inputs.append(task_id)
         logits = self.mnetwork(*inputs)
-        if batch_meta['task_type'] == TaskType.Ranking:
+        if task_type == TaskType.Ranking:
             logits = logits.view(-1, batch_meta['pairwise_size'])
 
         if self.config.get('weighted_on', False):
@@ -225,7 +225,7 @@ class MTDNNModel(object):
             inputs.append(None)
         inputs.append(task_id)
         score = self.mnetwork(*inputs)
-        if batch_meta['task_type'] == TaskType.Ranking:
+        if task_type == TaskType.Ranking:
             score = score.contiguous().view(-1, batch_meta['pairwise_size'])
             assert task_type == TaskType.Ranking
             score = F.softmax(score, dim=1)
