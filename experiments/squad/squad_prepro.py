@@ -8,6 +8,11 @@ from experiments.common_utils import dump_rows
 
 logger = create_logger(__name__, to_disk=True, log_file='squad_prepro.log')
 
+def normalize_qa_field(s: str, replacement_list):
+    for replacement in replacement_list:
+        s = s.replace(replacement, " " * len(replacement))  # ensure answer_start and answer_end still valid
+    return s
+
 END = 'EOSEOS'
 def load_data(path, is_train=True, v2_on=False):
     rows = []
@@ -24,29 +29,25 @@ def load_data(path, is_train=True, v2_on=False):
                 # used for v2.0
                 is_impossible = qa.get('is_impossible', False)
                 label = 1 if is_impossible else 0
-                if is_train:
-                    if (v2_on and label < 1 and len(answers) < 1) or ((not v2_on) and len(answers) < 1): continue
-                    if len(answers) > 0:
-                        answer = answers[0]['text']
-                        answer_start = answers[0]['answer_start']
-                        answer_end = answer_start + len(answer)
-                        answer = answer.replace("\t", "").replace("::", " ")
-                    else:
-                        answer = END
-                        answer_start = len(context) - len(END)
-                        answer_end = len(context)
+                if (v2_on and label < 1 and len(answers) < 1) or ((not v2_on) and len(answers) < 1):
+                    # detect inconsistent data
+                    # * for v2, the row is possible but has no answer
+                    # * for v1, all questions should have answer
+                    continue
+                if len(answers) > 0:
+                    answer = answers[0]['text']
+                    answer_start = answers[0]['answer_start']
+                    answer_end = answer_start + len(answer)
                 else:
-                    # TODO: why original code need answers instead of answer, any difference
-                    # sample = {'uid': uid, 'context': context, 'question': question, 'answer': answers, 'answer_start': -1, 'answer_end':-1}
-                    if len(answers) > 0:
-                        answer = answers[0]['text']
-                    else:
-                        answer = END
-                    answer_start = -1
-                    answer_end = -1
-
+                    # for questions without answers, give a fake answer
+                    answer = END
+                    answer_start = len(context) - len(END)
+                    answer_end = len(context)
+                answer = normalize_qa_field(answer, ["\n", "\t", ":::"])
+                context = normalize_qa_field(context, ["\n", "\t"])
+                question = normalize_qa_field(question, ["\n", "\t"])
                 sample = {'uid': uid, 'premise': context, 'hypothesis': question,
-                          'label': "%s::%s::%s::%s" % (answer, answer_start, answer_end, label)}
+                          'label': "%s:::%s:::%s:::%s" % (answer_start, answer_end, label, answer)}
                 rows.append(sample)
     return rows
 
@@ -86,8 +87,8 @@ def main(args):
     dump_rows(squad_dev_data, squad_dev_fout)
     logger.info('done with squad')
 
-    squad_v2_train_fout = os.path.join(canonical_data_root, 'squad_v2_train.tsv')
-    squad_v2_dev_fout = os.path.join(canonical_data_root, 'squad_v2_dev.tsv')
+    squad_v2_train_fout = os.path.join(canonical_data_root, 'squad-v2_train.tsv')
+    squad_v2_dev_fout = os.path.join(canonical_data_root, 'squad-v2_dev.tsv')
     dump_rows(squad_v2_train_data, squad_v2_train_fout)
     dump_rows(squad_v2_dev_data, squad_v2_dev_fout)
     logger.info('done with squad_v2')
