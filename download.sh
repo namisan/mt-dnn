@@ -85,3 +85,12 @@ mv data/* ${DOMAIN_ADP}
 rm -rf data.zip
 rm -rf data
 
+## Download SQuAD & SQuAD v2.0 data
+cd $DATA_DIR
+mkdir "squad"
+wget https://rajpurkar.github.io/SQuAD-explorer/dataset/train-v1.1.json -O $DATA_DIR/squad/train.json
+wget https://rajpurkar.github.io/SQuAD-explorer/dataset/dev-v1.1.json -O $DATA_DIR/squad/dev.json
+
+mkdir "squad_v2"
+wget https://rajpurkar.github.io/SQuAD-explorer/dataset/train-v2.0.json -O $DATA_DIR/squad_v2/train.json
+wget https://rajpurkar.github.io/SQuAD-explorer/dataset/dev-v2.0.json -O $DATA_DIR/squad_v2/dev.json

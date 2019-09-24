@@ -61,9 +61,6 @@ assert args.task in task_defs.metric_meta_map
 data_type = task_defs.data_type_map[args.task]
 task_type = task_defs.task_type_map[args.task]
 metric_meta = task_defs.metric_meta_map[args.task]
-pw_task = False
-if task_type == TaskType.Ranking:
-    pw_task = True
 
 # load model
 checkpoint_path = args.checkpoint
@@ -78,12 +75,11 @@ model = MTDNNModel(config, state_dict=state_dict)
 model.load(checkpoint_path)
 encoder_type = config.get('encoder_type', EncoderModelType.BERT)
 # load data
-test_data = BatchGen(BatchGen.load(args.prep_input, False, pairwise=pw_task, maxlen=args.max_seq_len),
+test_data = BatchGen(BatchGen.load(args.prep_input, False, task_type=task_type, maxlen=args.max_seq_len),
                      batch_size=args.batch_size_eval,
                      gpu=args.cuda, is_train=False,
                      task_id=args.task_id,
                      maxlen=args.max_seq_len,
-                     pairwise=pw_task,
                      data_type=data_type,
                      task_type=task_type,
                      encoder_type=encoder_type)

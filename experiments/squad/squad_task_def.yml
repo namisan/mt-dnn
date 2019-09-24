@@ -1,0 +1,27 @@
+squad-v2:
+  data_format: PremiseAndOneHypothesis
+  encoder_type: BERT
+  dropout_p: 0.05
+  enable_san: false
+  metric_meta:
+    - ACC
+    - MCC
+  n_class: 1
+  task_type: Span
+  split_names:
+    - train
+    - dev
+squad:
+  data_format: PremiseAndOneHypothesis
+  encoder_type: BERT
+  dropout_p: 0.05
+  enable_san: false
+  metric_meta:
+    - ACC
+    - MCC
+  n_class: 1
+  task_type: Span
+  split_names:
+    - train
+    - dev
+

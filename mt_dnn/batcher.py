@@ -16,7 +16,6 @@ class BatchGen:
                  maxlen=128, dropout_w=0.005,
                  do_batch=True, weighted_on=False,
                  task_id=0,
-                 pairwise=False,
                  task=None,
                  task_type=TaskType.Classification,
                  data_type=DataFormat.PremiseOnly,
@@ -29,7 +28,6 @@ class BatchGen:
         self.weighted_on = weighted_on
         self.data = data
         self.task_id = task_id
-        self.pairwise = pairwise
         self.pairwise_size = 1
         self.data_type = data_type
         self.task_type=task_type
@@ -50,7 +48,8 @@ class BatchGen:
         return [data[i:i + batch_size] for i in range(0, len(data), batch_size)]
 
     @staticmethod
-    def load(path, is_train=True, maxlen=128, factor=1.0, pairwise=False):
+    def load(path, is_train=True, maxlen=128, factor=1.0, task_type=None):
+        assert task_type is not None
         with open(path, 'r', encoding='utf-8') as reader:
             data = []
             cnt = 0
@@ -59,9 +58,9 @@ class BatchGen:
                 sample['factor'] = factor
                 cnt += 1
                 if is_train:
-                    if pairwise and (len(sample['token_id'][0]) > maxlen or len(sample['token_id'][1]) > maxlen):
+                    if (task_type == TaskType.Ranking) and (len(sample['token_id'][0]) > maxlen or len(sample['token_id'][1]) > maxlen):
                         continue
-                    if (not pairwise) and (len(sample['token_id']) > maxlen):
+                    if (task_type != TaskType.Ranking) and (len(sample['token_id']) > maxlen):
                         continue
                 data.append(sample)
             print('Loaded {} samples out of {}'.format(len(data), cnt))
@@ -111,87 +110,95 @@ class BatchGen:
     def __iter__(self):
         while self.offset < len(self):
             batch = self.data[self.offset]
-            if self.pairwise:
+            if self.task_type == TaskType.Ranking:
                 batch = self.rebacth(batch)
-            batch_size = len(batch)
-            batch_dict = {}
-            tok_len = max(len(x['token_id']) for x in batch)
-            hypothesis_len = max(len(x['type_id']) - sum(x['type_id']) for x in batch)
-            if self.encoder_type == EncoderModelType.ROBERTA:
-                token_ids = torch.LongTensor(batch_size, tok_len).fill_(1)
-                type_ids = torch.LongTensor(batch_size, tok_len).fill_(0)
-                masks = torch.LongTensor(batch_size, tok_len).fill_(0)
-            else:
-                token_ids = torch.LongTensor(batch_size, tok_len).fill_(0)
-                type_ids = torch.LongTensor(batch_size, tok_len).fill_(0)
-                masks = torch.LongTensor(batch_size, tok_len).fill_(0)
-            if self.__if_pair__(self.data_type):
-                premise_masks = torch.ByteTensor(batch_size, tok_len).fill_(1)
-                hypothesis_masks = torch.ByteTensor(batch_size, hypothesis_len).fill_(1)
 
-            for i, sample in enumerate(batch):
-                select_len = min(len(sample['token_id']), tok_len)
-                tok = sample['token_id']
-                if self.is_train:
-                    tok = self.__random_select__(tok)
-                token_ids[i, :select_len] = torch.LongTensor(tok[:select_len])
-                type_ids[i, :select_len] = torch.LongTensor(sample['type_id'][:select_len])
-                masks[i, :select_len] = torch.LongTensor([1] * select_len)
-                if self.__if_pair__(self.data_type):
-                    hlen = len(sample['type_id']) - sum(sample['type_id'])
-                    hypothesis_masks[i, :hlen] = torch.LongTensor([0] * hlen)
-                    for j in range(hlen, select_len):
-                        premise_masks[i, j] = 0
-            if self.__if_pair__(self.data_type):
-                batch_info = {
-                    'token_id': 0,
-                    'segment_id': 1,
-                    'mask': 2,
-                    'premise_mask': 3,
-                    'hypothesis_mask': 4
-                    }
-                batch_data = [token_ids, type_ids, masks, premise_masks, hypothesis_masks]
-                current_idx = 5
-                valid_input_len = 5
-            else:
-                batch_info = {
-                    'token_id': 0,
-                    'segment_id': 1,
-                    'mask': 2
-                    }
-                batch_data = [token_ids, type_ids, masks]
-                current_idx = 3
-                valid_input_len = 3
-
-            if self.is_train:
-                labels = [sample['label'] for sample in batch]
-                if self.task_type == TaskType.Regression:
-                    batch_data.append(torch.FloatTensor(labels))
-                else:
-                    batch_data.append(torch.LongTensor(labels))
-                batch_info['label'] = current_idx
-                current_idx += 1
-                # soft label generated by ensemble models for knowledge distillation
-                if self.soft_label_on and (batch[0].get('softlabel', None) is not None):
-                    sortlabels = [sample['softlabel'] for sample in batch]
-                    sortlabels = torch.FloatTensor(sortlabels)
-                    batch_info['soft_label'] = self.patch(sortlabels.pin_memory()) if self.gpu else sortlabels
-
+            # prepare model input
+            batch_data, batch_info = self._prepare_model_input(batch)
+            batch_info['task_id'] = self.task_id  # used for select correct decoding head
+            batch_info['input_len'] = len(batch_data)  # used to select model inputs
+            # select different loss function and other difference in training and testing
+            batch_info['task_type'] = self.task_type
+            batch_info['pairwise_size'] = self.pairwise_size  # need for ranking task
             if self.gpu:
                 for i, item in enumerate(batch_data):
                     batch_data[i] = self.patch(item.pin_memory())
 
-            # meta 
-            batch_info['uids'] = [sample['uid'] for sample in batch]
-            batch_info['task_id'] = self.task_id
-            batch_info['input_len'] = valid_input_len
-            batch_info['pairwise'] = self.pairwise
-            batch_info['pairwise_size'] = self.pairwise_size
-            batch_info['task_type'] = self.task_type
-            if not self.is_train:
-                labels = [sample['label'] for sample in batch]
+            # add label
+            labels = [sample['label'] for sample in batch]
+            if self.is_train:
+                # in training model, label is used by Pytorch, so would be tensor
+                if self.task_type == TaskType.Regression:
+                    batch_data.append(torch.FloatTensor(labels))
+                    batch_info['label'] = len(batch_data) - 1
+                elif self.task_type in (TaskType.Classification, TaskType.Ranking):
+                    batch_data.append(torch.LongTensor(labels))
+                    batch_info['label'] = len(batch_data) - 1
+                elif self.task_type == TaskType.Span:
+                    start = [sample['token_start'] for sample in batch]
+                    end = [sample['token_end'] for sample in batch]
+                    batch_data.extend([torch.LongTensor(start), torch.LongTensor(end)])
+                    batch_info['start'] = len(batch_data) - 2
+                    batch_info['end'] = len(batch_data) - 1
+
+                # soft label generated by ensemble models for knowledge distillation
+                if self.soft_label_on and (batch[0].get('softlabel', None) is not None):
+                    assert self.task_type != TaskType.Span  # Span task doesn't support soft label yet.
+                    sortlabels = [sample['softlabel'] for sample in batch]
+                    sortlabels = torch.FloatTensor(sortlabels)
+                    batch_info['soft_label'] = self.patch(sortlabels.pin_memory()) if self.gpu else sortlabels
+            else:
+                # in test model, label would be used for evaluation
                 batch_info['label'] = labels
-                if self.pairwise:
+                if self.task_type == TaskType.Ranking:
                     batch_info['true_label'] = [sample['true_label'] for sample in batch]
+
+            batch_info['uids'] = [sample['uid'] for sample in batch]  # used in scoring
             self.offset += 1
             yield batch_info, batch_data
+
+    def _prepare_model_input(self, batch):
+        batch_size = len(batch)
+        tok_len = max(len(x['token_id']) for x in batch)
+        hypothesis_len = max(len(x['type_id']) - sum(x['type_id']) for x in batch)
+        if self.encoder_type == EncoderModelType.ROBERTA:
+            token_ids = torch.LongTensor(batch_size, tok_len).fill_(1)
+            type_ids = torch.LongTensor(batch_size, tok_len).fill_(0)
+            masks = torch.LongTensor(batch_size, tok_len).fill_(0)
+        else:
+            token_ids = torch.LongTensor(batch_size, tok_len).fill_(0)
+            type_ids = torch.LongTensor(batch_size, tok_len).fill_(0)
+            masks = torch.LongTensor(batch_size, tok_len).fill_(0)
+        if self.__if_pair__(self.data_type):
+            premise_masks = torch.ByteTensor(batch_size, tok_len).fill_(1)
+            hypothesis_masks = torch.ByteTensor(batch_size, hypothesis_len).fill_(1)
+        for i, sample in enumerate(batch):
+            select_len = min(len(sample['token_id']), tok_len)
+            tok = sample['token_id']
+            if self.is_train:
+                tok = self.__random_select__(tok)
+            token_ids[i, :select_len] = torch.LongTensor(tok[:select_len])
+            type_ids[i, :select_len] = torch.LongTensor(sample['type_id'][:select_len])
+            masks[i, :select_len] = torch.LongTensor([1] * select_len)
+            if self.__if_pair__(self.data_type):
+                hlen = len(sample['type_id']) - sum(sample['type_id'])
+                hypothesis_masks[i, :hlen] = torch.LongTensor([0] * hlen)
+                for j in range(hlen, select_len):
+                    premise_masks[i, j] = 0
+        if self.__if_pair__(self.data_type):
+            batch_info = {
+                'token_id': 0,
+                'segment_id': 1,
+                'mask': 2,
+                'premise_mask': 3,
+                'hypothesis_mask': 4
+            }
+            batch_data = [token_ids, type_ids, masks, premise_masks, hypothesis_masks]
+        else:
+            batch_info = {
+                'token_id': 0,
+                'segment_id': 1,
+                'mask': 2
+            }
+            batch_data = [token_ids, type_ids, masks]
+        return batch_data, batch_info

@@ -5,6 +5,7 @@ class TaskType(IntEnum):
  Classification = 1
  Regression = 2
  Ranking = 3
+ Span = 4
 
 
 class DataFormat(IntEnum):

@@ -13,6 +13,7 @@ from data_utils.gpt2_bpe import get_encoder
 from experiments.exp_def import TaskDefs, EncoderModelType
 from data_utils.xlnet_utils import preprocess_text, encode_ids
 from data_utils.xlnet_utils import CLS_ID, SEP_ID
+from experiments.squad import squad_utils
 
 DEBUG_MODE = False
 MAX_SEQ_LEN = 512
@@ -192,7 +193,7 @@ def roberta_feature_extractor(
 
 
 def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
-               max_seq_len=MAX_SEQ_LEN, encoderModelType=EncoderModelType.BERT):
+               max_seq_len=MAX_SEQ_LEN, encoderModelType=EncoderModelType.BERT, task_type=None):
     def build_data_premise_only(
             data, dump_path, max_seq_len=MAX_SEQ_LEN, tokenizer=None, is_bert_model=True):
         """Build data of single sentence tasks
@@ -263,11 +264,34 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
                 else:
                     input_ids, _, type_ids = bert_feature_extractor(
                         premise, hypothesis, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
-                    features = {
-                        'uid': ids,
-                        'label': label,
-                        'token_id': input_ids,
-                        'type_id': type_ids}
+                    if task_type == TaskType.Span:
+                        seg_a_start = len(type_ids) - sum(type_ids)
+                        seg_a_end = len(type_ids)
+                        answer_start, answer_end, answer, is_impossible = squad_utils.parse_squad_label(label)
+                        span_start, span_end = squad_utils.calc_tokenized_span_range(premise, hypothesis, answer,
+                                                                                     answer_start, answer_end,
+                                                                                     tokenizer, encoderModelType)
+                        span_start = seg_a_start + span_start
+                        span_end = min(seg_a_end, seg_a_start + span_end)
+                        answer_tokens = tokenizer.convert_ids_to_tokens(input_ids[span_start:span_end])
+                        if span_start >= span_end:
+                            span_start = -1
+                            span_end = -1
+                        features = {
+                            'uid': ids,
+                            'label': is_impossible,
+                            'answer': answer,
+                            "answer_tokens" : answer_tokens,
+                            "token_start": span_start,
+                            "token_end": span_end,
+                            'token_id': input_ids,
+                            'type_id': type_ids}
+                    else:
+                        features = {
+                            'uid': ids,
+                            'label': label,
+                            'token_id': input_ids,
+                            'type_id': type_ids}
                 writer.write('{}\n'.format(json.dumps(features)))
 
     def build_data_premise_and_multi_hypo(
@@ -313,6 +337,10 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
 
                 writer.write('{}\n'.format(json.dumps(features)))
 
+    # We only support BERT based MRC for now
+    if task_type == TaskType.Span:
+        assert data_format == DataFormat.PremiseAndOneHypothesis
+        assert encoderModelType == EncoderModelType.BERT
     if data_format == DataFormat.PremiseOnly:
         build_data_premise_only(
             data,
@@ -378,6 +406,8 @@ def load_data(file_path, data_format, task_type, label_dict=None):
                 labels = [float(label) for label in labels]
             row["label"] = int(np.argmax(labels))
             row["olabel"] = labels
+        elif task_type == TaskType.Span:
+            pass  # don't process row label
 
         rows.append(row)
     return rows
@@ -459,7 +489,7 @@ def main(args):
         split_names = task_def.get("split_names", ["train", "dev", "test"])
         for split_name in split_names:
             rows = load_data(
-                os.path.join(root, "%s_%s.tsv" % (task,split_name)),
+                os.path.join(root, "%s_%s.tsv" % (task, split_name)),
                 data_format,
                 task_type,
                 label_mapper)
@@ -470,7 +500,8 @@ def main(args):
                 dump_path,
                 tokenizer,
                 data_format,
-                encoderModelType=encoder_model)
+                encoderModelType=encoder_model,
+                task_type=task_type)
 
 
 if __name__ == '__main__':

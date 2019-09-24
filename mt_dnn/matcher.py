@@ -5,7 +5,8 @@ from pytorch_pretrained_bert.modeling import BertConfig, BertLayerNorm, BertMode
 
 from module.dropout_wrapper import DropoutWrapper
 from module.san import SANClassifier
-from data_utils.task_def import EncoderModelType
+from data_utils.task_def import EncoderModelType, TaskType
+
 
 class LinearPooler(nn.Module):
     def __init__(self, hidden_size):
@@ -42,20 +43,25 @@ class SANBertNetwork(nn.Module):
                 p.requires_grad = False
         mem_size = hidden_size
         self.decoder_opt = opt['answer_opt']
+        self.task_types = opt["task_types"]
         self.scoring_list = nn.ModuleList()
         labels = [int(ls) for ls in opt['label_size'].split(',')]
         task_dropout_p = opt['tasks_dropout_p']
 
         for task, lab in enumerate(labels):
             decoder_opt = self.decoder_opt[task]
+            task_type = self.task_types[task]
             dropout = DropoutWrapper(task_dropout_p[task], opt['vb_dropout'])
             self.dropout_list.append(dropout)
-            if decoder_opt == 1:
-                out_proj = SANClassifier(mem_size, mem_size, lab, opt, prefix='answer', dropout=dropout)
-                self.scoring_list.append(out_proj)
+            if task_type == TaskType.Span:
+                assert decoder_opt != 1
+                out_proj = nn.Linear(self.bert_config.hidden_size, 2)
             else:
-                out_proj = nn.Linear(hidden_size, lab)
-                self.scoring_list.append(out_proj)
+                if decoder_opt == 1:
+                    out_proj = SANClassifier(mem_size, mem_size, lab, opt, prefix='answer', dropout=dropout)
+                else:
+                    out_proj = nn.Linear(hidden_size, lab)
+            self.scoring_list.append(out_proj)
 
         self.opt = opt
         self._my_init()
@@ -91,14 +97,24 @@ class SANBertNetwork(nn.Module):
             sequence_output = all_encoder_layers[-1]
 
         decoder_opt = self.decoder_opt[task_id]
-        if decoder_opt == 1:
-            max_query = hyp_mask.size(1)
-            assert max_query > 0
-            assert premise_mask is not None
-            assert hyp_mask is not None
-            hyp_mem = sequence_output[:, :max_query, :]
-            logits = self.scoring_list[task_id](sequence_output, hyp_mem, premise_mask, hyp_mask)
-        else:
+        task_type = self.task_types[task_id]
+        if task_type == TaskType.Span:
+            assert decoder_opt != 1
             pooled_output = self.dropout_list[task_id](pooled_output)
             logits = self.scoring_list[task_id](pooled_output)
-        return logits
+            start_scores, end_scores = logits.split(1, dim=-1)
+            start_scores = start_scores.squeeze(-1)
+            end_scores = end_scores.squeeze(-1)
+            return start_scores, end_scores
+        else:
+            if decoder_opt == 1:
+                max_query = hyp_mask.size(1)
+                assert max_query > 0
+                assert premise_mask is not None
+                assert hyp_mask is not None
+                hyp_mem = sequence_output[:, :max_query, :]
+                logits = self.scoring_list[task_id](sequence_output, hyp_mem, premise_mask, hyp_mask)
+            else:
+                pooled_output = self.dropout_list[task_id](pooled_output)
+                logits = self.scoring_list[task_id](pooled_output)
+            return logits
