@@ -11,7 +11,7 @@ from data_utils.utils import set_environment
 from mt_dnn.batcher import BatchGen
 from mt_dnn.model import MTDNNModel
 from prepro_std import _truncate_seq_pair
-from data_utils.task_def import DataFormat
+from data_utils.task_def import DataFormat, EncoderModelType, TaskType
 
 logger = create_logger(
     __name__,
@@ -143,6 +143,13 @@ def train_config(parser):
     parser.add_argument('--output_dir', default='checkpoint')
     parser.add_argument('--seed', type=int, default=2018, 
                         help='random seed for data shuffling, embedding init, etc.')
+    parser.add_argument('--encoder_type', type=int, default=EncoderModelType.BERT)
+    #fp 16
+    parser.add_argument('--fp16', action='store_true',
+                        help="Whether to use 16-bit (mixed) precision (through NVIDIA apex) instead of 32-bit")
+    parser.add_argument('--fp16_opt_level', type=str, default='O1',
+                        help="For fp16: Apex AMP optimization level selected in ['O0', 'O1', 'O2', and 'O3']."
+                             "See details at https://nvidia.github.io/apex/amp.html")
     return parser
 
 
