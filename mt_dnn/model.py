@@ -46,7 +46,7 @@ class MTDNNModel(object):
 
         # note that adamax are modified based on the BERT code
         if opt['optimizer'] == 'sgd':
-            self.optimizer = optim.sgd(optimizer_parameters, opt['learning_rate'],
+            self.optimizer = optim.SGD(optimizer_parameters, opt['learning_rate'],
                                        weight_decay=opt['weight_decay'])
 
         elif opt['optimizer'] == 'adamax':
