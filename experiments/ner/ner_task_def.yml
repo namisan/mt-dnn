@@ -1,0 +1,26 @@
+ner:
+  data_format: Seqence
+  encoder_type: BERT
+  dropout_p: 0.3
+  enable_san: False
+  labels:
+  - O
+  - B-MISC
+  - I-MISC
+  - B-PER
+  - I-PER
+  - B-ORG
+  - I-ORG
+  - B-LOC
+  - I-LOC
+  - X
+  - CLS
+  - SEP
+  metric_meta:
+  - NERACC
+  n_class: 12
+  split_names:
+  - train
+  - dev
+  - test
+  task_type: SeqenceLabeling
