@@ -31,7 +31,7 @@ def eval_model(model, data, metric_meta, use_cuda=True, with_label=True):
         scores.extend(score)
         ids.extend(batch_meta['uids'])
     if with_label:
-        metrics = calc_metrics(metric_meta, golds, predictions, scores, ids)
+        metrics = calc_metrics(metric_meta, golds, predictions, scores)
     return metrics, predictions, scores, golds, ids
 
 
