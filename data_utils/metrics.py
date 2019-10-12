@@ -5,6 +5,7 @@ from sklearn.metrics import matthews_corrcoef
 from sklearn.metrics import accuracy_score, f1_score
 from sklearn.metrics import roc_auc_score
 from scipy.stats import pearsonr, spearmanr
+from seqeval.metrics import classification_report
 
 def compute_acc(predicts, labels):
     return 100.0 * accuracy_score(labels, predicts)
@@ -68,13 +69,19 @@ METRIC_FUNC = {
  Metric.SeqMertirc: compute_seqacc
 }
 
-def calc_metrics(metric_meta, golds, predictions, scores):
+
+def calc_metrics(metric_meta, golds, predictions, scores, label_mapper=None):
+    """Label Mapper is used for NER/POS etc. 
+    TODO: a better refactor, by xiaodl
+    """
     metrics = {}
     for mm in metric_meta:
         metric_name = mm.name
         metric_func = METRIC_FUNC[mm]
         if mm in (Metric.ACC, Metric.F1, Metric.MCC):
             metric = metric_func(predictions, golds)
+        elif mm == Metric.SeqMertirc:
+            metric = metric_func(predictions, golds, label_mapper)
         else:
             if mm == Metric.AUC:
                 assert len(scores) == 2 * len(golds), "AUC is only valid for binary classification problem"

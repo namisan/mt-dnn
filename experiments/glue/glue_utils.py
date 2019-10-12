@@ -296,22 +296,3 @@ def submit(path, data, label_dict=None):
                 assert type(pred) is int
                 writer.write('{}\t{}\n'.format(uid, label_dict[pred]))
 
-def eval_model(model, data, metric_meta, use_cuda=True, with_label=True):
-    data.reset()
-    if use_cuda:
-        model.cuda()
-    predictions = []
-    golds = []
-    scores = []
-    ids = []
-    metrics = {}
-    for batch_meta, batch_data in data:
-        score, pred, gold = model.predict(batch_meta, batch_data)
-        predictions.extend(pred)
-        golds.extend(gold)
-        scores.extend(score)
-        ids.extend(batch_meta['uids'])
-    if with_label:
-        metrics = calc_metrics(metric_meta, golds, predictions, scores)
-    return metrics, predictions, scores, golds, ids
-
