@@ -1,7 +1,7 @@
 ner:
   data_format: Seqence
   encoder_type: BERT
-  dropout_p: 0.3
+  dropout_p: 0.1
   enable_san: False
   labels:
   - O

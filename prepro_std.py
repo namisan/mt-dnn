@@ -193,7 +193,7 @@ def roberta_feature_extractor(
 
 
 def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
-               max_seq_len=MAX_SEQ_LEN, encoderModelType=EncoderModelType.BERT, task_type=None):
+               max_seq_len=MAX_SEQ_LEN, encoderModelType=EncoderModelType.BERT, task_type=None, lab_dict=None):
     def build_data_premise_only(
             data, dump_path, max_seq_len=MAX_SEQ_LEN, tokenizer=None, is_bert_model=True):
         """Build data of single sentence tasks
@@ -337,6 +337,41 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
 
                 writer.write('{}\n'.format(json.dumps(features)))
 
+    def build_data_sequence(data, dump_path, max_seq_len=MAX_SEQ_LEN, tokenizer=None, label_mapper=None):
+        with open(dump_path, 'w', encoding='utf-8') as writer:
+            for idx, sample in enumerate(data):
+                ids = sample['uid']
+                premise = sample['premise']
+                labels = sample['label']
+                tokens = []
+                labels = []
+                for i, word in enumerate(premise):
+                    if encoderModelType == EncoderModelType.ROBERTA:
+                        subwords = tokenizer.encoder.encode(word)
+                    else:
+                        subwords = tokenizer.tokenize(word)
+                    tokens.extend(subwords)
+                    for j in range(len(subwords)):
+                        if j == 0:
+                            labels.append(sample['label'][i])
+                        else:
+                            labels.append(label_mapper['X'])
+                if len(premise) >  max_seq_len - 2:
+                    tokens = tokens[:max_seq_len - 2]
+                    labels = labels[:max_seq_len - 2]
+
+                label = [label_mapper['CLS']] + labels + [label_mapper['SEP']]
+                if encoderModelType == EncoderModelType.ROBERTA:
+                    tokens = list(map(str, tokens))
+                    input_ids = [0] + [tokenizer.vocab[w] if w in tokenizer.vocab else tokenizer.vocab['<unk>']
+                                    for w in tokens] + [2]
+                else:
+                    input_ids = tokenizer.convert_tokens_to_ids(['[CLS]'] + tokens + ['[SEP]'])
+                assert len(label) == len(input_ids)
+                type_ids = [0] * len(input_ids)
+                features = {'uid': ids, 'label': label, 'token_id': input_ids, 'type_id': type_ids}
+                writer.write('{}\n'.format(json.dumps(features)))
+
     # We only support BERT based MRC for now
     if task_type == TaskType.Span:
         assert data_format == DataFormat.PremiseAndOneHypothesis
@@ -354,6 +389,8 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
     elif data_format == DataFormat.PremiseAndMultiHypothesis:
         build_data_premise_and_multi_hypo(
             data, dump_path, max_seq_len, tokenizer, encoderModelType)
+    elif data_format == DataFormat.Seqence:
+        build_data_sequence(data, dump_path, max_seq_len, tokenizer, lab_dict)
     else:
         raise ValueError(data_format)
 
@@ -501,7 +538,8 @@ def main(args):
                 tokenizer,
                 data_format,
                 encoderModelType=encoder_model,
-                task_type=task_type)
+                task_type=task_type,
+                lab_dict=label_mapper)
 
 
 if __name__ == '__main__':
