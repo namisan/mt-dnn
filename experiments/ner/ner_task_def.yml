@@ -17,7 +17,7 @@ ner:
   - CLS
   - SEP
   metric_meta:
-  - NERACC
+  - SeqMertirc
   n_class: 12
   split_names:
   - train
