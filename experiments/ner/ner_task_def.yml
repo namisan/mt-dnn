@@ -17,7 +17,7 @@ ner:
   - CLS
   - SEP
   metric_meta:
-  - SeqMertirc
+  - SeqEval
   n_class: 12
   split_names:
   - train
@@ -80,7 +80,7 @@ pos:
   - CLS
   - SEP
   metric_meta:
-  - SeqMertirc
+  - SeqEval
   n_class: 49
   split_names:
   - train
@@ -117,7 +117,7 @@ chunk:
   - CLS
   - SEP
   metric_meta:
-  - SeqMertirc
+  - SeqEval
   n_class: 23
   split_names:
   - train
