@@ -137,9 +137,12 @@ class BatchGen:
                 elif self.task_type == TaskType.Span:
                     start = [sample['token_start'] for sample in batch]
                     end = [sample['token_end'] for sample in batch]
-                    batch_data.extend([torch.LongTensor(start), torch.LongTensor(end)])
-                    batch_info['start'] = len(batch_data) - 2
-                    batch_info['end'] = len(batch_data) - 1
+                    batch_data.append((torch.LongTensor(start), torch.LongTensor(end)))
+                    # unify to one type of label
+                    batch_info['label'] = len(batch_data) - 1
+                    #batch_data.extend([torch.LongTensor(start), torch.LongTensor(end)])
+                    #batch_info['start'] = len(batch_data) - 2
+                    #batch_info['end'] = len(batch_data) - 1
                 elif self.task_type == TaskType.SeqenceLabeling:
                     batch_size = self._get_batch_size(batch)
                     tok_len = self._get_max_len(batch, key='token_id')
