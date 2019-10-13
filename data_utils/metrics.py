@@ -55,7 +55,7 @@ class Metric(Enum):
     Pearson = 3
     Spearman = 4
     AUC = 5
-    SeqMertirc = 7
+    SeqEval = 7
 
 
 
@@ -66,7 +66,7 @@ METRIC_FUNC = {
  Metric.Pearson: compute_pearson,
  Metric.Spearman: compute_spearman,
  Metric.AUC: compute_auc,
- Metric.SeqMertirc: compute_seqacc
+ Metric.SeqEval: compute_seqacc
 }
 
 
