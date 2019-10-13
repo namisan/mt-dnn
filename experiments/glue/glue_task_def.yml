@@ -6,6 +6,8 @@ cola:
   metric_meta:
   - ACC
   - MCC
+  loss:
+  - CeCriterion
   n_class: 2
   task_type: Classification
 mnli:
@@ -19,6 +21,8 @@ mnli:
   - entailment
   metric_meta:
   - ACC
+  loss:
+  - CeCriterion
   n_class: 3
   split_names:
   - train
@@ -34,6 +38,8 @@ mrpc:
   metric_meta:
   - ACC
   - F1
+  loss:
+  - CeCriterion
   n_class: 2
   task_type: Classification
 qnli:
@@ -45,6 +51,8 @@ qnli:
   - entailment
   metric_meta:
   - ACC
+  loss:
+  - CeCriterion
   n_class: 2
   task_type: Classification
 qqp:
@@ -54,6 +62,8 @@ qqp:
   metric_meta:
   - ACC
   - F1
+  loss:
+  - CeCriterion
   n_class: 2
   task_type: Classification
 rte:
@@ -65,6 +75,8 @@ rte:
   - entailment
   metric_meta:
   - ACC
+  loss:
+  - CeCriterion
   n_class: 2
   task_type: Classification
 scitail:
@@ -76,6 +88,8 @@ scitail:
   - entails
   metric_meta:
   - ACC
+  loss:
+  - CeCriterion
   n_class: 2
   task_type: Classification
 snli:
@@ -88,6 +102,8 @@ snli:
   - entailment
   metric_meta:
   - ACC
+  loss:
+  - CeCriterion
   n_class: 3
   task_type: Classification
 sst:
@@ -96,6 +112,8 @@ sst:
   enable_san: false
   metric_meta:
   - ACC
+  loss:
+  - CeCriterion
   n_class: 2
   task_type: Classification
 stsb:
@@ -113,5 +131,7 @@ wnli:
   enable_san: true
   metric_meta:
   - ACC
+  loss:
+  - CeCriterion
   n_class: 2
   task_type: Classification
