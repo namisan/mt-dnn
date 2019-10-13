@@ -33,6 +33,20 @@ def main(args):
     logger.info('Loaded {} NER dev samples'.format(len(dev_data)))
     logger.info('Loaded {} NER test samples'.format(len(test_data)))
 
+    pos_train_data = load_conll_pos(train_path)
+    pos_dev_data = load_conll_pos(dev_path)
+    pos_test_data = load_conll_pos(test_path)
+    logger.info('Loaded {} POS train samples'.format(len(pos_train_data)))
+    logger.info('Loaded {} POS dev samples'.format(len(pos_train_data)))
+    logger.info('Loaded {} POS test samples'.format(len(pos_train_data)))
+
+    chunk_train_data = load_conll_chunk(train_path)
+    chunk_dev_data = load_conll_chunk(dev_path)
+    chunk_test_data = load_conll_chunk(test_path)
+    logger.info('Loaded {} POS train samples'.format(len(chunk_train_data)))
+    logger.info('Loaded {} POS dev samples'.format(len(chunk_dev_data)))
+    logger.info('Loaded {} POS test samples'.format(len(chunk_test_data)))
+
     bert_root = args.output_dir
     if not os.path.isdir(bert_root):
         os.mkdir(bert_root)
@@ -45,6 +59,21 @@ def main(args):
     dump_rows(test_data, test_fout)
     logger.info('done with NER')
 
+    train_fout = os.path.join(bert_root, 'pos_train.tsv')
+    dev_fout = os.path.join(bert_root, 'pos_dev.tsv')
+    test_fout = os.path.join(bert_root, 'pos_test.tsv')
+    dump_rows(pos_train_data, train_fout)
+    dump_rows(pos_dev_data, dev_fout)
+    dump_rows(pos_test_data, test_fout)
+    logger.info('done with POS')
+
+    train_fout = os.path.join(bert_root, 'chunk_train.tsv')
+    dev_fout = os.path.join(bert_root, 'chunk_dev.tsv')
+    test_fout = os.path.join(bert_root, 'chunk_test.tsv')
+    dump_rows(chunk_train_data, train_fout)
+    dump_rows(chunk_dev_data, dev_fout)
+    dump_rows(chunk_test_data, test_fout)
+    logger.info('done with chunk')
 
 if __name__ == '__main__':
     args = parse_args()
