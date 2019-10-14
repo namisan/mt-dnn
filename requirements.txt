@@ -13,4 +13,5 @@ tensorboardX
 tensorboard
 future
 apex
-fairseq
+fairseq==0.8.0
+seqeval==0.0.12

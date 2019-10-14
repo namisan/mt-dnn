@@ -4,8 +4,10 @@
 **New Release ** <br/>
 We are working on the v0.2 version which is easier to adapt it to new tasks. <br/>
 You are welcomed to test our new version. <br/>
+It supports Sequence Labeling Task, e.g., NER. <br/>
 If you want to use the old version, please use following cmd to clone the code: <br/>
 ```git clone -b v0.1 https://github.com/namisan/mt-dnn.git ```
+
 
 
 # Multi-Task Deep Neural Networks for Natural Language Understanding
@@ -85,6 +87,12 @@ Here, we provide two examples, STS-B and RTE. You can use similar scripts to fin
 2. Domain Adaptation on SNLI </br>
   ```>scripts\snli_domain_adaptation_bash.sh```
 
+### Sequence Labeling Task
+1. Preprocess data </br>
+   ```> sh experiments/ner/prepro.py```
+
+2. Training </br>
+   ```> python train.py --data_dir <data-path> --init_checkpoint <bert/ner-model> --train_dataset ner --test_dataset ner --task_def experiments\ner\ner_task_def.py```
 
 ### Extract embeddings
 1. Extracting embeddings of a pair text example </br>
@@ -117,6 +125,7 @@ Here, we go through how to convert a Chinese Tensorflow BERT model into mt-dnn f
 ### TODO
 - [x] MT-DNN with Knowledge Distillation code and model. <br/>
 - [x] Merged RAdam.
+- [x] Sequence Labeling.
 - [ ] Publish pretrained Tensorflow checkpoints.
 - [ ] Publish HNN code and model.
 

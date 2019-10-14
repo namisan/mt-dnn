@@ -41,7 +41,6 @@ class SANBertNetwork(nn.Module):
         if opt['update_bert_opt'] > 0:
             for p in self.bert.parameters():
                 p.requires_grad = False
-        mem_size = hidden_size
         self.decoder_opt = opt['answer_opt']
         self.task_types = opt["task_types"]
         self.scoring_list = nn.ModuleList()
@@ -55,10 +54,12 @@ class SANBertNetwork(nn.Module):
             self.dropout_list.append(dropout)
             if task_type == TaskType.Span:
                 assert decoder_opt != 1
-                out_proj = nn.Linear(self.bert_config.hidden_size, 2)
+                out_proj = nn.Linear(hidden_size, 2)
+            elif task_type == TaskType.SeqenceLabeling:
+                out_proj = nn.Linear(hidden_size, lab)
             else:
                 if decoder_opt == 1:
-                    out_proj = SANClassifier(mem_size, mem_size, lab, opt, prefix='answer', dropout=dropout)
+                    out_proj = SANClassifier(hidden_size, hidden_size, lab, opt, prefix='answer', dropout=dropout)
                 else:
                     out_proj = nn.Linear(hidden_size, lab)
             self.scoring_list.append(out_proj)
@@ -106,6 +107,12 @@ class SANBertNetwork(nn.Module):
             start_scores = start_scores.squeeze(-1)
             end_scores = end_scores.squeeze(-1)
             return start_scores, end_scores
+        elif task_type == TaskType.SeqenceLabeling:
+            pooled_output = all_encoder_layers[-1]
+            pooled_output = self.dropout_list[task_id](pooled_output)
+            pooled_output = pooled_output.contiguous().view(-1, pooled_output.size(2))
+            logits = self.scoring_list[task_id](pooled_output)
+            return logits
         else:
             if decoder_opt == 1:
                 max_query = hyp_mask.size(1)

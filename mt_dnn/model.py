@@ -187,6 +187,10 @@ class MTDNNModel(object):
                 loss = F.cross_entropy(start_logits, start, ignore_index=ignored_index) + \
                     F.cross_entropy(end_logits, end, ignore_index=ignored_index)
             loss = loss / 2
+        elif task_type == TaskType.SeqenceLabeling:
+            y = y.view(-1)
+            logits = self.mnetwork(*inputs)
+            loss = F.cross_entropy(logits, y, ignore_index=-1)
         else:
             logits = self.mnetwork(*inputs)
             if task_type == TaskType.Ranking:
@@ -260,6 +264,18 @@ class MTDNNModel(object):
             predict = predict.reshape(-1).tolist()
             score = score.reshape(-1).tolist()
             return score, predict, batch_meta['true_label']
+        elif task_type == TaskType.SeqenceLabeling:
+            mask = batch_data[batch_meta['mask']]
+            score = score.contiguous()
+            score = score.data.cpu()
+            score = score.numpy()
+            predict = np.argmax(score, axis=1).reshape(mask.size()).tolist()
+            valied_lenght = mask.sum(1).tolist()
+            final_predict = []
+            for idx, p in enumerate(predict):
+                final_predict.append(p[: valied_lenght[idx]])
+            score = score.reshape(-1).tolist()
+            return score, final_predict, batch_meta['label']
         else:
             if task_type == TaskType.Classification:
                 score = F.softmax(score, dim=1)
