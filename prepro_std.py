@@ -342,7 +342,6 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
             for idx, sample in enumerate(data):
                 ids = sample['uid']
                 premise = sample['premise']
-                labels = sample['label']
                 tokens = []
                 labels = []
                 for i, word in enumerate(premise):
