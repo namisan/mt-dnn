@@ -12,7 +12,7 @@ def dump_rows(rows, out_path, data_format):
         row0 = rows[0]
         #data_format = detect_format(row0)
         for row in rows:
-            assert data_format == detect_format(row), row
+            #assert data_format == detect_format(row), row
             if data_format == DataFormat.PremiseOnly:
                 for col in ["uid", "label", "premise"]:
                     if "\t" in str(row[col]):
