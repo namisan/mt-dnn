@@ -71,15 +71,3 @@ def load_conll_chunk(file, is_train=True):
         if len(sentence) > 0:
             sample = {'uid': cnt, 'premise': sentence, 'label': label}
     return rows
-
-def dump_rows(rows, out_path, data_format=DataFormat.Seqence):
-    with open(out_path, "w", encoding="utf-8") as out_f:
-        row0 = rows[0]
-        for row in rows:
-            if data_format == DataFormat.Seqence:
-                for col in ["uid", "label", "premise"]:
-                    if "\t" in str(row[col]):
-                        import pdb; pdb.set_trace()
-                out_f.write("%s\t%s\t%s\n" % (row["uid"], row["label"], row["premise"]))
-            else:
-                raise ValueError(data_format)
