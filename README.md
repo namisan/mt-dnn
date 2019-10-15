@@ -155,6 +155,11 @@ BERT pytorch is from: https://github.com/huggingface/pytorch-pretrained-BERT <br
 BERT: https://github.com/google-research/bert <br/>
 We also used some code from: https://github.com/kevinduh/san_mrc <br/>
 
+## Related Projects/Codebase
+1. Pretrained UniLM: https://github.com/microsoft/unilm <br/>
+2. Pretrained Response Generation Model: https://github.com/microsoft/DialoGPT <br/>
+3. Internal MT-DNN repo: https://github.com/microsoft/mt-dnn <br/>
+
 ### How do I cite MT-DNN?
 
 ```
