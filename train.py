@@ -288,12 +288,14 @@ def main():
             config = state_dict['config']
             config['attention_probs_dropout_prob'] = args.bert_dropout_p
             config['hidden_dropout_prob'] = args.bert_dropout_p
+            config['multi_gpu_on'] = opt["multi_gpu_on"]
             opt.update(config)
         else:
             logger.error('#' * 20)
             logger.error('Could not find the init model!\n The parameters will be initialized randomly!')
             logger.error('#' * 20)
             config = BertConfig(vocab_size_or_config_json_file=30522).to_dict()
+            config['multi_gpu_on'] = opt["multi_gpu_on"]
             opt.update(config)
     elif encoder_type == EncoderModelType.ROBERTA:
         bert_model_path = '{}/model.pt'.format(bert_model_path)
