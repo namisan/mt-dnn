@@ -89,7 +89,7 @@ Here, we provide two examples, STS-B and RTE. You can use similar scripts to fin
 
 ### Sequence Labeling Task
 1. Preprocess data </br>
-   ```> sh experiments/ner/prepro.py```
+   ```> python experiments/ner/prepro.py```
 
 2. Training </br>
    ```> python train.py --data_dir <data-path> --init_checkpoint <bert/ner-model> --train_dataset ner --test_dataset ner --task_def experiments\ner\ner_task_def.py```
