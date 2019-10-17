@@ -124,6 +124,8 @@ stsb:
   - Pearson
   - Spearman
   n_class: 1
+  loss:
+  - RegCriterion
   task_type: Regression
 wnli:
   data_format: PremiseAndOneHypothesis

@@ -42,9 +42,9 @@ class RegCriterion(Criterion):
         """weight: sample weight
         """
         if weight:
-            loss = torch.mean(F.cross_entropy(input, target, reduce=False, ignore_index=ignore_index) * weight)
+            loss = torch.mean(F.mse_loss(input.squeeze(), target, reduce=False) * weight)
         else:
-            loss = F.cross_entropy(input, target, ignore_index=ignore_index)
+            loss = F.mse_loss(input.squeeze(), target)
         loss = loss * self.alpha
         return loss
 

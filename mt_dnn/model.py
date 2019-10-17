@@ -164,13 +164,6 @@ class MTDNNModel(object):
         #        end = end.cuda(non_blocking=True)
         #    start.requires_grad = False
         #    end.requires_grad = False
-        #else:
-        #    y = labels
-        #    if task_type == TaskType.Ranking:
-        #        y = y.contiguous().view(-1, batch_meta['pairwise_size'])[:, 0]
-        #    if self.config['cuda']:
-        #        y = y.cuda(non_blocking=True)
-        #    y.requires_grad = False
         if self.config['cuda']:
             if isinstance(y, list):
                 y = [e.cuda(non_blocking=True) for e in y]
@@ -180,11 +173,6 @@ class MTDNNModel(object):
                 y = y.cuda(non_blocking=True)
                 y.requires_grad = False
 
-        #if task_type == TaskType.Ranking:
-        #    y = y.contiguous().view(-1, batch_meta['pairwise_size'])[:, 0]
-        #if self.config['cuda']:
-        #    y = y.cuda(non_blocking=True)
-        #y.requires_grad = False
         task_id = batch_meta['task_id']
         inputs = batch_data[:batch_meta['input_len']]
         if len(inputs) == 3:
@@ -213,34 +201,6 @@ class MTDNNModel(object):
         #        loss = F.cross_entropy(start_logits, start, ignore_index=ignored_index) + \
         #            F.cross_entropy(end_logits, end, ignore_index=ignored_index)
         #    loss = loss / 2
-        #elif task_type == TaskType.SeqenceLabeling:
-        #    y = y.view(-1)
-        #    logits = self.mnetwork(*inputs)
-        #    loss = F.cross_entropy(logits, y, ignore_index=-1)
-        #else:
-        #    logits = self.mnetwork(*inputs)
-        #    if task_type == TaskType.Ranking:
-        #        logits = logits.view(-1, batch_meta['pairwise_size'])
-        #    if self.config.get('weighted_on', False):
-        #        if task_type == TaskType.Regression:
-        #            loss = torch.mean(F.mse_loss(logits.squeeze(), y, reduce=False) * weight)
-        #        else:
-        #            loss = torch.mean(F.cross_entropy(logits, y, reduce=False) * weight)
-        #            if soft_labels is not None:
-        #                # compute KL
-        #                label_size = soft_labels.size(1)
-        #                kd_loss = F.kl_div(F.log_softmax(logits.view(-1, label_size).float(), 1), soft_labels, reduction='batchmean')
-        #                loss = loss + kd_loss
-        #    else:
-        #        if task_type == TaskType.Regression:
-        #            loss = F.mse_loss(logits.squeeze(), y)
-        #        else:
-        #            loss = F.cross_entropy(logits, y)
-        #            if soft_labels is not None:
-        #                # compute KL
-        #                label_size = soft_labels.size(1)
-        #                kd_loss = F.kl_div(F.log_softmax(logits.view(-1, label_size).float(), 1), soft_labels, reduction='batchmean')
-        #                loss = loss + kd_loss
 
         self.train_loss.update(loss.item(), logits.size(0))
         # scale loss
