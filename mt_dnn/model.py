@@ -164,6 +164,7 @@ class MTDNNModel(object):
         #        end = end.cuda(non_blocking=True)
         #    start.requires_grad = False
         #    end.requires_grad = False
+
         if self.config['cuda']:
             if isinstance(y, list):
                 y = [e.cuda(non_blocking=True) for e in y]
@@ -201,6 +202,7 @@ class MTDNNModel(object):
         #        loss = F.cross_entropy(start_logits, start, ignore_index=ignored_index) + \
         #            F.cross_entropy(end_logits, end, ignore_index=ignored_index)
         #    loss = loss / 2
+
 
         self.train_loss.update(loss.item(), logits.size(0))
         # scale loss
