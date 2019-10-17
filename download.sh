@@ -94,3 +94,10 @@ wget https://rajpurkar.github.io/SQuAD-explorer/dataset/dev-v1.1.json -O $DATA_D
 mkdir "squad_v2"
 wget https://rajpurkar.github.io/SQuAD-explorer/dataset/train-v2.0.json -O $DATA_DIR/squad_v2/train.json
 wget https://rajpurkar.github.io/SQuAD-explorer/dataset/dev-v2.0.json -O $DATA_DIR/squad_v2/dev.json
+
+# NER
+cd $DATA_DIR
+mkdir "ner"
+wget https://github.com/synalp/NER/blob/master/corpus/CoNLL-2003/eng.train -O "ner/train.txt"
+wget https://github.com/synalp/NER/blob/master/corpus/CoNLL-2003/eng.testa -O "ner/valid.txt"
+wget https://github.com/synalp/NER/blob/master/corpus/CoNLL-2003/eng.testb -O "ner/test.txt"
