@@ -13,6 +13,7 @@ from data_utils.utils import AverageMeter
 from pytorch_pretrained_bert import BertAdam as Adam
 from module.bert_optim import Adamax, RAdam
 from module.my_optim import EMA
+from mt_dnn.loss import LOSS_REGISTRY
 from .matcher import SANBertNetwork
 
 from data_utils.task_def import TaskType
@@ -119,6 +120,15 @@ class MTDNNModel(object):
         self.para_swapped = False
         # zero optimizer grad
         self.optimizer.zero_grad()
+        self.setup_lossmap(opt)
+
+    def setup_lossmap(self, config):
+        loss_types = config['loss_types']
+        self.task_loss_criterion = []
+        for idx, cs in enumerate(loss_types):
+            assert len(cs) > 0
+            lc = [LOSS_REGISTRY[c](name='Loss func of task {}: {}'.format(idx, c)) for c in cs]
+            self.task_loss_criterion.append(lc)
 
     def setup_ema(self):
         if self.config['ema_opt']:
@@ -140,27 +150,20 @@ class MTDNNModel(object):
 
     def update(self, batch_meta, batch_data):
         self.network.train()
-        labels = batch_data[batch_meta['label']]
+        y = batch_data[batch_meta['label']]
         soft_labels = None
-        if self.config.get('mkd_opt', 0) > 0 and ('soft_label' in batch_meta):
-            soft_labels = batch_meta['soft_label']
+        #if self.config.get('mkd_opt', 0) > 0 and ('soft_label' in batch_meta):
+        #    soft_labels = batch_meta['soft_label']
 
         task_type = batch_meta['task_type']
-        if task_type == TaskType.Span:
-            start = batch_data[batch_meta['start']]
-            end = batch_data[batch_meta['end']]
-            if self.config["cuda"]:
-                start = start.cuda(non_blocking=True)
-                end = end.cuda(non_blocking=True)
-            start.requires_grad = False
-            end.requires_grad = False
-        else:
-            y = labels
-            if task_type == TaskType.Ranking:
-                y = y.contiguous().view(-1, batch_meta['pairwise_size'])[:, 0]
-            if self.config['cuda']:
+        if self.config['cuda']:
+            if isinstance(y, list) or isinstance(y, tuple):
+                y = [e.cuda(non_blocking=True) for e in y]
+                for e in y:
+                    e.requires_grad = False
+            else:
                 y = y.cuda(non_blocking=True)
-            y.requires_grad = False
+                y.requires_grad = False
 
         task_id = batch_meta['task_id']
         inputs = batch_data[:batch_meta['input_len']]
@@ -168,55 +171,18 @@ class MTDNNModel(object):
             inputs.append(None)
             inputs.append(None)
         inputs.append(task_id)
-
+        weight = None
         if self.config.get('weighted_on', False):
             if self.config['cuda']:
                 weight = batch_data[batch_meta['factor']].cuda(non_blocking=True)
             else:
                 weight = batch_data[batch_meta['factor']]
+        logits = self.mnetwork(*inputs)
+        loss = 0
+        for lc in self.task_loss_criterion[task_id]:
+            loss = loss + lc(logits, y, weight, ignore_index=-1)
 
-        if task_type == TaskType.Span:
-            start_logits, end_logits = self.mnetwork(*inputs)
-            ignored_index = start_logits.size(1)
-            start.clamp_(0, ignored_index)
-            end.clamp_(0, ignored_index)
-            if self.config.get('weighted_on', False):
-                loss = torch.mean(F.cross_entropy(start_logits, start, reduce=False) * weight) + \
-                    torch.mean(F.cross_entropy(end_logits, end, reduce=False) * weight)
-            else:
-                loss = F.cross_entropy(start_logits, start, ignore_index=ignored_index) + \
-                    F.cross_entropy(end_logits, end, ignore_index=ignored_index)
-            loss = loss / 2
-        elif task_type == TaskType.SeqenceLabeling:
-            y = y.view(-1)
-            logits = self.mnetwork(*inputs)
-            loss = F.cross_entropy(logits, y, ignore_index=-1)
-        else:
-            logits = self.mnetwork(*inputs)
-            if task_type == TaskType.Ranking:
-                logits = logits.view(-1, batch_meta['pairwise_size'])
-            if self.config.get('weighted_on', False):
-                if task_type == TaskType.Regression:
-                    loss = torch.mean(F.mse_loss(logits.squeeze(), y, reduce=False) * weight)
-                else:
-                    loss = torch.mean(F.cross_entropy(logits, y, reduce=False) * weight)
-                    if soft_labels is not None:
-                        # compute KL
-                        label_size = soft_labels.size(1)
-                        kd_loss = F.kl_div(F.log_softmax(logits.view(-1, label_size).float(), 1), soft_labels, reduction='batchmean')
-                        loss = loss + kd_loss
-            else:
-                if task_type == TaskType.Regression:
-                    loss = F.mse_loss(logits.squeeze(), y)
-                else:
-                    loss = F.cross_entropy(logits, y)
-                    if soft_labels is not None:
-                        # compute KL
-                        label_size = soft_labels.size(1)
-                        kd_loss = F.kl_div(F.log_softmax(logits.view(-1, label_size).float(), 1), soft_labels, reduction='batchmean')
-                        loss = loss + kd_loss
-
-        self.train_loss.update(loss.item(), logits.size(0))
+        self.train_loss.update(loss.item(), batch_data[batch_meta['token_id']].size(0))
         # scale loss
         loss = loss / self.config.get('grad_accumulation_step', 1)
         if self.config['fp16']:
@@ -233,7 +199,6 @@ class MTDNNModel(object):
                 else:
                     torch.nn.utils.clip_grad_norm_(self.network.parameters(),
                                                   self.config['global_grad_clipping'])
-
             self.updates += 1
             # reset number of the grad accumulation
             self.optimizer.step()
