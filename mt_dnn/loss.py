@@ -32,6 +32,19 @@ class CeCriterion(Criterion):
         loss = loss * self.alpha
         return loss
 
+class SeqCeCriterion(CeCriterion):
+    def __init__(self, alpha=1.0, name='Seq Cross Entropy Criterion'):
+        super().__init__(alpha, name)
+
+    def forward(self, input, target, weight=None, ignore_index=-1):
+        target = target.view(-1)
+        if weight:
+            loss = torch.mean(F.cross_entropy(input, target, reduce=False, ignore_index=ignore_index) * weight)
+        else:
+            loss = F.cross_entropy(input, target, ignore_index=ignore_index)
+        loss = loss * self.alpha
+        return loss
+
 class RegCriterion(Criterion):
     def __init__(self, alpha=1.0, name='MSE Regression Criterion'):
         super().__init__()
@@ -92,10 +105,12 @@ class LossCriterion(IntEnum):
     RegCriterion = 1
     RankCeCriterion = 2
     SpanCeCriterion = 3
+    SeqCeCriterion = 4
 
 LOSS_REGISTRY = {
      LossCriterion.CeCriterion: CeCriterion,
      LossCriterion.RegCriterion: RegCriterion,
      LossCriterion.RankCeCriterion: RankCeCriterion,
-     LossCriterion.SpanCeCriterion: SpanCeCriterion
+     LossCriterion.SpanCeCriterion: SpanCeCriterion,
+     LossCriterion.SeqCeCriterion: SeqCeCriterion,
 }

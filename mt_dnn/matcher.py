@@ -101,8 +101,8 @@ class SANBertNetwork(nn.Module):
         task_type = self.task_types[task_id]
         if task_type == TaskType.Span:
             assert decoder_opt != 1
-            pooled_output = self.dropout_list[task_id](pooled_output)
-            logits = self.scoring_list[task_id](pooled_output)
+            sequence_output = self.dropout_list[task_id](sequence_output)
+            logits = self.scoring_list[task_id](sequence_output)
             start_scores, end_scores = logits.split(1, dim=-1)
             start_scores = start_scores.squeeze(-1)
             end_scores = end_scores.squeeze(-1)

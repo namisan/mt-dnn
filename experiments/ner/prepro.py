@@ -4,7 +4,7 @@ from sys import path
 path.append(os.getcwd())
 from data_utils.task_def import DataFormat
 from data_utils.log_wrapper import create_logger
-from experiments.ner.ner_utils import load_conll_chunk, load_conll_ner, load_conll_pos, dump_rows
+from experiments.ner.ner_utils import load_conll_chunk, load_conll_ner, load_conll_pos
 from experiments.common_utils import dump_rows
 logger = create_logger(__name__, to_disk=True, log_file='bert_ner_data_proc_512_cased.log')
 

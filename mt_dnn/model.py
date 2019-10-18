@@ -156,17 +156,8 @@ class MTDNNModel(object):
         #    soft_labels = batch_meta['soft_label']
 
         task_type = batch_meta['task_type']
-        #if task_type == TaskType.Span:
-        #    start = batch_data[batch_meta['start']]
-        #    end = batch_data[batch_meta['end']]
-        #    if self.config["cuda"]:
-        #        start = start.cuda(non_blocking=True)
-        #        end = end.cuda(non_blocking=True)
-        #    start.requires_grad = False
-        #    end.requires_grad = False
-
         if self.config['cuda']:
-            if isinstance(y, list):
+            if isinstance(y, list) or isinstance(y, tuple):
                 y = [e.cuda(non_blocking=True) for e in y]
                 for e in y:
                     e.requires_grad = False
@@ -190,21 +181,8 @@ class MTDNNModel(object):
         loss = 0
         for lc in self.task_loss_criterion[task_id]:
             loss = loss + lc(logits, y, weight, ignore_index=-1)
-        #if task_type == TaskType.Span:
-        #    start_logits, end_logits = self.mnetwork(*inputs)
-        #    ignored_index = start_logits.size(1)
-        #    start.clamp_(0, ignored_index)
-        #    end.clamp_(0, ignored_index)
-        #    if self.config.get('weighted_on', False):
-        #        loss = torch.mean(F.cross_entropy(start_logits, start, reduce=False) * weight) + \
-        #            torch.mean(F.cross_entropy(end_logits, end, reduce=False) * weight)
-        #    else:
-        #        loss = F.cross_entropy(start_logits, start, ignore_index=ignored_index) + \
-        #            F.cross_entropy(end_logits, end, ignore_index=ignored_index)
-        #    loss = loss / 2
 
-
-        self.train_loss.update(loss.item(), logits.size(0))
+        self.train_loss.update(loss.item(), batch_data[batch_meta['token_id']].size(0))
         # scale loss
         loss = loss / self.config.get('grad_accumulation_step', 1)
         if self.config['fp16']:
@@ -221,7 +199,6 @@ class MTDNNModel(object):
                 else:
                     torch.nn.utils.clip_grad_norm_(self.network.parameters(),
                                                   self.config['global_grad_clipping'])
-
             self.updates += 1
             # reset number of the grad accumulation
             self.optimizer.step()

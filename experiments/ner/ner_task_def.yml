@@ -19,6 +19,8 @@ ner:
   metric_meta:
   - SeqEval
   n_class: 12
+  loss:
+  - SeqCeCriterion
   split_names:
   - train
   - dev
