@@ -98,6 +98,6 @@ wget https://rajpurkar.github.io/SQuAD-explorer/dataset/dev-v2.0.json -O $DATA_D
 # NER
 cd $DATA_DIR
 mkdir "ner"
-wget https://github.com/synalp/NER/blob/master/corpus/CoNLL-2003/eng.train -O "ner/train.txt"
-wget https://github.com/synalp/NER/blob/master/corpus/CoNLL-2003/eng.testa -O "ner/valid.txt"
-wget https://github.com/synalp/NER/blob/master/corpus/CoNLL-2003/eng.testb -O "ner/test.txt"
+wget https://raw.githubusercontent.com/synalp/NER/master/corpus/CoNLL-2003/eng.train -O "ner/train.txt"
+wget https://raw.githubusercontent.com/synalp/NER/master/corpus/CoNLL-2003/eng.testa -O "ner/valid.txt"
+wget https://raw.githubusercontent.com/synalp/NER/master/corpus/CoNLL-2003/eng.testb -O "ner/test.txt"
