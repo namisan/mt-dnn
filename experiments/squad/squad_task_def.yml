@@ -8,6 +8,8 @@ squad-v2:
     - MCC
   n_class: 1
   task_type: Span
+  loss:
+  - SpanCeCriterion
   split_names:
     - train
     - dev
@@ -21,6 +23,8 @@ squad:
     - MCC
   n_class: 1
   task_type: Span
+  loss:
+  - SpanCeCriterion
   split_names:
     - train
     - dev

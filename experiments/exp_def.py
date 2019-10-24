@@ -2,6 +2,7 @@ import yaml
 from data_utils.vocab import Vocabulary
 from data_utils.task_def import TaskType, DataFormat, EncoderModelType
 from data_utils.metrics import Metric
+from mt_dnn.loss import LossCriterion
 
 class TaskDefs:
     def __init__(self, task_def_path):
@@ -14,6 +15,7 @@ class TaskDefs:
         enable_san_map = {}
         dropout_p_map = {}
         encoderType_map = {}
+        loss_map = {}
         uniq_encoderType = set()
         for task, task_def in self._task_def_dic.items():
             assert "_" not in task, "task name should not contain '_', current task name: %s" % task
@@ -32,6 +34,13 @@ class TaskDefs:
                 global_map[task] = label_mapper
             if "dropout_p" in task_def:
                 dropout_p_map[task] = task_def["dropout_p"]
+            # loss map
+            if "loss" in task_def:
+                losses = task_def["loss"]
+                loss_list = []
+                for loss in losses:
+                    loss_list.append(LossCriterion[loss])
+                loss_map[task] = loss_list
 
         assert len(uniq_encoderType) == 1, 'The shared encoder has to be the same.'
         self.global_map = global_map
@@ -42,3 +51,4 @@ class TaskDefs:
         self.enable_san_map = enable_san_map
         self.dropout_p_map = dropout_p_map
         self.encoderType = uniq_encoderType.pop()
+        self.loss_map = loss_map
