@@ -1,0 +1,132 @@
+left	pron	right	candidates	selected
+Susan made sure to thank joan for all the help	she	had recieved.	Joan,Susan	1
+Susan made sure to thank joan for all the help	she	had given.	Joan,Susan	0
+George tried to call paul on the phone, but	he	wasn't successful.	Paul,George	1
+George tried to call paul on the phone, but	he	wasn't available.	Paul,George	0
+The school bus zoomed by the delivery truck because	it	was going so fast.	the delivery truck,the school bus	1
+The school bus zoomed by the delivery truck because	it	was going so slow.	the delivery truck,the school bus	0
+Bill felt vindicated when his longtime rival frank revealed that	he	was the winner of the competition.	Frank,Bill	1
+Bill felt crushed when his longtime rival frank revealed that	he	was the winner of the competition.	Frank,Bill	0
+The son couldn't lift the man because	he	was so weak.	The man,The son	1
+The son couldn't lift his man because	he	was so heavy.	The man,The son	0
+Billy couldn't see the stage with john in front of him because	he	is so short.	John,Billy	1
+Billy couldn't see the stage with john in front of him because	he	is so tall.	John,Billy	0
+Ray threw his schoolbag down to tom after	he	reached the top of the stairs.	Tom,Ray	1
+Ray threw his schoolbag down to tom after	he	reached the botray of the stairs.	Tom,Ray	0
+Although they ran at about the same speed, sally beat sue because	she	had such a good start.	Sue,Sally	1
+Although they ran at about the same speed, sally beat sue because	she	had such a bad start.	Sue,Sally	0
+Tina's drawing was hung just above sam's and	it	did look much better with another one below it.	Sam's drawing,Tina's drawing	1
+Tina's drawing was hung just above sam's and	it	did look much better with another one above it.	Sam's drawing,Tina's drawing	0
+Lucy did a lot better than her good friend anna on the test because	she	had studied so hard.	Anna,Lucy	1
+Lucy did a lot worse than her good friend anna on the test because	she	had studied so hard.	Anna,Lucy	0
+The police arrived after the firemen because	they	were coming from so far away.	The firemen,The police	1
+The police arrived before the firemen because	they	were coming from so far away.	The firemen,The police	0
+Tom was upset with frank because the toaster	he	had bought from him didn't work.	Frank,Tom	1
+Tom was upset with frank because the toaster	he	had sold him didn't work.	Frank,Tom	0
+Kevin yelled at jim because	he	was so upset.	Jim,Kevin	1
+Kevin comforted jim because	he	was so upset.	Jim,Kevin	0
+The bag of flour had been placed above the sack of potatoes, so	it	had to be moved first.	The sack of potatoes,The bag of flour	1
+The bag of flour had been placed below the sack of potatoes, so	it	had to be moved first.	The sack of potatoes,The bag of flour	0
+Martin envies pete although	he	is very successful.	Pete,Martin	1
+Martin envies pete because	he	is very successful.	Pete,Martin	0
+The younger students were bullying the older ones, so we punished	them	.	The older students,The younger students	1
+The younger students were bullying the older ones, so we rescued	them	.	The older students,The younger students	0
+I poured water from the cup into the bottle until	it	was empty.	the bottle,the cup	1
+I poured water from the cup into the bottle until	it	was full.	the bottle,the cup	0
+Ann knows all about susan's personal problems because	she	is nosy.	Susan,Ann	1
+Ann knows all about susan's personal problems because	she	is indiscreet.	Susan,Ann	0
+Mark explained his theory to sid but	he	couldn't convince him.	Sid,Mark	1
+Mark explained his theory to sid but	he	couldn't understand him.	Sid,Mark	0
+Ann knew that susan's son had been in a car accident, so	she	told her about it.	Susan,Ann	1
+Ann knew that susan's son had been in a car accident, because	she	told her about it.	Susan,Ann	0
+Mary asked ann what time the library closes, because	she	had forgotten.	Ann,Mary	1
+Mary asked ann what time the library closes, but	she	had forgotten.	Ann,Mary	0
+Charlie paid for bob's college education.	He	is very generous.	Bob,Charlie	1
+Charlie paid for bob's college education.	He	is very grateful.	Bob,Charlie	0
+Charlie paid for bob's college education, but now bob acts as though it never happened.	He	is very hurt.	Bob,Charlie	1
+Charlie paid for bob's college education, but now bob acts as though it never happened.	He	is very ungrateful.	Bob,Charlie	0
+Adam was playing cards with bob and was way ahead. if bob hadn't had a sudden run of good luck,	he	would have won.	Bob,Adam	1
+Adam was playing cards with bob and was way ahead. if bob hadn't had a sudden run of good luck,	he	would have lost.	Bob,Adam	0
+Bob can't leave work here until adam arrives to replace him. if adam had  left home for work on time,	he	would be gone by this time.	Adam,Bob	1
+Bob can't leave work here until adam arrives to replace him. if adam had  left home for work on time,	he	would be here by this time.	Adam,Bob	0
+I saw the guy in military uniform with a huge red  beard yelling at jim. i don't know why	he	was, but he looked very unhappy.	Jim,the guy in uniform	1
+I saw the guy in military uniform with a huge red  beard yelling at jim. i don't know who	he	was, but he looked very unhappy.	Jim,the guy in uniform	0
+Man was doing research in the library when he heard a john humming and  whistling.	He	was very annoyed.	John,The man	1
+A man was doing research in the library when he heard john humming and  whistling.	He	was very annoying.	John,The man	0
+Carl collapsed on the sidewalk. soon he saw bob coming to help.	He	was very ill.	Bob,Carl	1
+Carl collapsed on the sidewalk. soon he saw bob coming to help.	He	was very concerned.	Bob,Carl	0
+Pete told mark many lies about himself, which mark included in his book.	He	should have been more  truthful.	Mark,Pete	1
+Pete told mark many lies about himself, which mark included in his book.	He	should have been more  skeptical.	Mark,Pete	0
+Susan knocked on jane's door, but there was no answer.	She	was disappointed.	Jane,Susan	1
+Susan knocked on jane's door, but there was no answer.	She	was out.	Jane,Susan	0
+Susan knocked on the door, and jane answered it.	She	invited her to come out.	Jane,Susan	1
+Susan knocked on the door, and jane answered it.	She	invited her to come in.	Jane,Susan	0
+Adam took french classes from sam, because	he	was eager to speak it fluently.	Sam,Adam	1
+Adam took french classes from sam, because	he	was known to speak it fluently.	Sam,Adam	0
+Cooper visited thomson's grave in 1765. at that date	he	had been travelling for five years.	Thomson,Cooper	1
+Cooper visited thomson's grave in 1765. at that date	he	had been dead for five years.	Thomson,Cooper	0
+Arnold was greatly influenced by jackson, though	he	lived two centuries later.	Jackson,Arnold	1
+Arnold was greatly influenced by jackson, though	he	lived two centuries earlier.	Jackson,Arnold	0
+The actress used to be named tina, but she changed it to terpsichore a  few years ago, because she figured	it	was too hard to pronounce.	Terpsichore,Tina	1
+The actress used to be named tina, but she changed it to terpsichore a  few years ago, because she figured	it	was easier to pronounce.	Terpsichore,Tina	0
+George watched tv while fred went out to buy groceries. after an hour	he	got up.	Fred,George	1
+George watched tv while fred went out to buy groceries. after an hour	he	got back.	Fred,George	0
+In july, Yakutsk declared war on kamchatka. since kamchatka's army was much  better equipped and ten times larger,	they	were defeated within weeks.	Kamchatka,Yakutsk	1
+In july, Yakutsk declared war on kamchatka. since kamchatka's army was much  better equipped and ten times larger,	they	were victorious within weeks.	Kamchatka,Yakutsk	0
+Everyone really loved the chocolate chip cookies; only a few people liked the  oatmeal cookies. next time, we should make more of	them	.	The oatmeal cookies,The chocolate chip cookies	1
+Everyone really loved the chocolate chip cookies; only a few people liked the  oatmeal cookies. next time, we should make fewer of	them	.	The oatmeal cookies,The chocolate chip cookies	0
+Fred follows steve's example in everything.	He	admires him hugely.	Steve,Fred	1
+Fred follows steve's example in everything.	He	influences him hugely.	Steve,Fred	0
+Grace was happy to trade me her jacket for my sweater. she thinks	it	looks dowdy on her.	The sweater,The jacket	1
+Grace was happy to trade me her jacket for my sweater. she thinks	it	looks great on her.	The sweater,The jacket	0
+Bill hired john to take care of	him	.	John,Bill	1
+Bill hired himself out to john to take care of	him	.	John,Bill	0
+Bill promised john to leave, so an hour later	he	left.	John,Bill	1
+Bill ordered john to leave, so an hour later	he	left.	John,Bill	0
+Sam xenophanes's biography of the spartan general goodman conveys a vivid sense of the difficulties	he	faced in his research.	Goodman,Xenophanes	1
+Sam xenophanes's biography of the spartan general goodman conveys a vivid sense of the difficulties	he	faced in his childhood.	Goodman,Xenophanes	0
+Susan knocked on jane's door but	she	did not get an answer.	Jane,Susan	1
+Susan knocked on jane's door but	she	did not answer.	Jane,Susan	0
+Sally didn't get angry with beth, who had cut her off, because	she	stopped and counted to ten.	Beth,Sally	1
+Sally didn't get angry with beth, who had cut her off, because	she	stopped and apologized.	Beth,Sally	0
+Bill took the rear seat while dan claimed the front because	his	"dibs!" was slow.	Dan,Bill	1
+Bill took the rear seat while dan claimed the front because	his	"dibs!" was quicker.	Dan,Bill	0
+Ralph said "check" to tom as he moved	his	bishop.	Tom,Ralph	1
+Ralph said "check" to tom as he took	his	bishop.	Tom,Ralph	0
+As susan in the crop duster passed over andrea,	she	could see the landing strip.	Andrea,Susan	1
+As susan in the crop duster passed over andrea,	she	could see the landing gear.	Andrea,Susan	0
+Ralph gave tom a lift to school so	he	wouldn't have to drive alone.	Tom,Ralph	1
+Ralph gave tom a lift to school so	he	wouldn't have to walk.	Tom,Ralph	0
+John passed the half-empty plate to bill because	he	was full.	Bill,John	1
+John passed the half-empty plate to bill because	he	was hungry.	Bill,John	0
+John passed the gameboy to bill because	his	turn was over.	Bill,John	1
+John passed the gameboy to bill because	his	turn was next.	Bill,John	0
+The boy lifted the man onto	his	shoulders.	The man,The boy	1
+The boy lifted the man onto	his	bunk bed.	The man,The boy	0
+Stretching	her	back, the girl smiled at the woman.	The woman,The girl	1
+Patting	her	back, the girl smiled at the woman.	The woman,The girl	0
+Toby cried because billy wouldn't accept	his	toy.	Billy,Toby	1
+Toby cried because billy wouldn't share	his	toy.	Billy,Toby	0
+Donna spoke to lily, breaking	her	silence.	Lily,Donna	1
+Donna spoke to lily, breaking	her	concentration.	Lily,Donna	0
+When timmy dropped his ice cream, tommy giggled, so father gave	him	a sympathetic look.	Tommy,Timmy	1
+When timmy dropped his ice cream, tommy giggled, so father gave	him	a stern look.	Tommy,Timmy	0
+As tommy carried ollie up the long winding steps,	his	legs ached.	Ollie,Tommy	1
+As tommy carried ollie up the long winding steps,	his	legs dangled.	Ollie,Tommy	0
+The girl held the woman against	her	chest	The woman,The girl	1
+The girl held the woman against	her	will.	The woman,The girl	0
+Bill had to stop dan from toying with the injured bird.	He	is very compassionate.	Dan,Bill	1
+Bill had to stop dan from toying with the injured bird.	He	is very cruel.	Dan,Bill	0
+Eric got free tickets to the play, but he gave them to george, even though	he	was particularly eager to see it.	George,Eric	1
+Eric got free tickets to the play, but he gave them to george, because	he	was particularly eager to see it.	George,Eric	0
+Eric got free tickets to the play, but he gave them to george, because	he	was not particularly eager to see it.	George,Eric	1
+Joan gave jane candy because	she	wasn't hungry.	Jane,Joan	1
+Joan gave jane candy because	she	was hungry.	Jane,Joan	0
+Robert asked james for a favor but	he	was refused.	James,Robert	1
+Robert asked james for a favor but	he	refused.	James,Robert	0
+Shatov ceded the presidency to kirilov because	he	was less popular.	Kirilov,Shatov	1
+Shatov ceded the presidency to kirilov because	he	was more popular.	Kirilov,Shatov	0
+Janie did not pass the ball to emma although	she	saw that she was open.	Emma,Janie	1
+Janie did not pass the ball to emma although	she	was open.	Emma,Janie	0
+Rebecca believed that carol suspected that	she	had stolen the watch.	Carol,Rebecca	1
+Rebecca believed that carol regretted that	she	had stolen the watch.	Carol,Rebecca	0

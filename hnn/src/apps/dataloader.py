@@ -1,8 +1,16 @@
 import random
 import torch
 import torch.multiprocessing as multiprocessing
-from torch._C import _set_worker_signal_handlers, _update_worker_pids, \
+from torch._C import _set_worker_signal_handlers, \
     _remove_worker_pids, _error_if_any_worker_fails
+
+from packaging import version
+
+if version.Version(torch.__version__) >= version.Version('1.0.0'):
+    from torch._C import  _set_worker_pids
+else:
+    from torch._C import _update_worker_pids as _set_worker_pids
+
 from torch.utils.data import SequentialSampler, RandomSampler, BatchSampler
 import signal
 import functools
@@ -283,7 +291,7 @@ class _SequentialDataLoaderIter(object):
                 w.daemon = True  # ensure that the worker exits on process exit
                 w.start()
 
-            _update_worker_pids(id(self), tuple(w.pid for w in self.workers))
+            _set_worker_pids(id(self), tuple(w.pid for w in self.workers))
             _set_SIGCHLD_handler()
             self.worker_pids_set = True
 

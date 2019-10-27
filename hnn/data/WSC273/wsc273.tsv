@@ -1,0 +1,286 @@
+left	pron	right	candidates	selected
+The city councilmen refused the demonstrators a permit because	they	feared violence.	The city councilmen,The demonstrators	0
+The city councilmen refused the demonstrators a permit because	they	advocated violence.	The city councilmen,The demonstrators	1
+The trophy doesn't fit into the brown suitcase because	it	is too large.	the trophy,the suitcase	0
+The trophy doesn't fit into the brown suitcase because	it	is too small.	the trophy,the suitcase	1
+Joan made sure to thank Susan for all the help	she	had recieved.	Joan,Susan	0
+Joan made sure to thank Susan for all the help	she	had given.	Joan,Susan	1
+Paul tried to call George on the phone, but	he	wasn't successful.	Paul,George	0
+Paul tried to call George on the phone, but	he	wasn't available.	Paul,George	1
+The lawyer asked the witness a question, but	he	was reluctant to repeat it.	the lawyer,the witness	0
+The lawyer asked the witness a question, but	he	was reluctant to answer it.	the lawyer,the witness	1
+The delivery truck zoomed by the school bus because	it	was going so fast.	the delivery truck,the school bus	0
+The delivery truck zoomed by the school bus because	it	was going so slow.	the delivery truck,the school bus	1
+Frank felt vindicated when his longtime rival Bill revealed that	he	was the winner of the competition.	Frank,Bill	0
+Frank felt crushed when his longtime rival Bill revealed that	he	was the winner of the competition.	Frank,Bill	1
+The man couldn't lift his son because	he	was so weak.	The man,The son	0
+The man couldn't lift his son because	he	was so heavy.	The man,The son	1
+The large ball crashed right through the table because	it	was made of steel.	The large ball,The table	0
+The large ball crashed right through the table because	it	was made of styrofoam.	The large ball,The table	1
+John couldn't see the stage with Billy in front of him because	he	is so short.	John,Billy	0
+John couldn't see the stage with Billy in front of him because	he	is so tall.	John,Billy	1
+Tom threw his schoolbag down to Ray after	he	reached the top of the stairs.	Tom,Ray	0
+Tom threw his schoolbag down to Ray after	he	reached the bottom of the stairs.	Tom,Ray	1
+Although they ran at about the same speed, Sue beat Sally because	she	had such a good start.	Sue,Sally	0
+Although they ran at about the same speed, Sue beat Sally because	she	had such a bad start.	Sue,Sally	1
+The sculpture rolled off the shelf because	it	wasn't anchored.	The sculpture,The shelf	0
+The sculpture rolled off the shelf because	it	wasn't level.	The sculpture,The shelf	1
+Sam's drawing was hung just above Tina's and	it	did look much better with another one below it.	Sam's drawing,Tina's drawing	0
+Sam's drawing was hung just above Tina's and	it	did look much better with another one above it.	Sam's drawing,Tina's drawing	1
+Anna did a lot better than her good friend Lucy on the test because	she	had studied so hard.	Anna,Lucy	0
+Anna did a lot worse than her good friend Lucy on the test because	she	had studied so hard.	Anna,Lucy	1
+The firemen arrived after the police because	they	were coming from so far away.	The firemen,The police	0
+The firemen arrived before the police because	they	were coming from so far away.	The firemen,The police	1
+Frank was upset with Tom because the toaster	he	had bought from him didn't work.	Frank,Tom	0
+Frank was upset with Tom because the toaster	he	had sold him didn't work.	Frank,Tom	1
+Jim yelled at Kevin because	he	was so upset.	Jim,Kevin	0
+Jim comforted Kevin because	he	was so upset.	Jim,Kevin	1
+The sack of potatoes had been placed above the bag of flour, so	it	had to be moved first.	The sack of potatoes,The bag of flour	0
+The sack of potatoes had been placed below the bag of flour, so	it	had to be moved first.	The sack of potatoes,The bag of flour	1
+Pete envies Martin although	he	is very successful.	Pete,Martin	0
+Pete envies Martin because	he	is very successful.	Pete,Martin	1
+The older students were bullying the younger ones, so we punished	them	.	The older students,The younger students	0
+The older students were bullying the younger ones, so we rescued	them	.	The older students,The younger students	1
+I poured water from the bottle into the cup until	it	was empty.	the bottle,the cup	0
+I poured water from the bottle into the cup until	it	was full.	the bottle,the cup	1
+Susan knows all about Ann's personal problems because	she	is nosy.	Susan,Ann	0
+Susan knows all about Ann's personal problems because	she	is indiscreet.	Susan,Ann	1
+Sid explained his theory to Mark but	he	couldn't convince him.	Sid,Mark	0
+Sid explained his theory to Mark but	he	couldn't understand him.	Sid,Mark	1
+Susan knew that Ann's son had been in a car accident, so	she	told her about it.	Susan,Ann	0
+Susan knew that Ann's son had been in a car accident, because	she	told her about it.	Susan,Ann	1
+Joe's uncle can still beat him at tennis, even though	he	is 30 years younger.	Joe,Joe's uncle	0
+Joe's uncle can still beat him at tennis, even though	he	is 30 years older.	Joe,Joe's uncle	1
+The painting in Mark's living room shows an oak tree.	It	is to the right of the bookcase.	The painting,The oak tree	0
+The painting in Mark's living room shows an oak tree.	It	is to the right of a house.	The painting,The oak tree	1
+There is a gap in the wall. You can see the garden through	it	.	The gap,The wall	0
+There is a gap in the wall. You can see the garden behind	it	.	The gap,The wall	1
+The drain is clogged with hair.	It	has to be cleaned.	The drain,The hair	0
+The drain is clogged with hair.	It	has to be removed.	The drain,The hair	1
+My meeting started at 4:00 and I needed to catch the train at 4:30,  so there wasn't much time. Luckily,	it	was short, so it worked out.	The meeting,The train	0
+My meeting started at 4:00 and I needed to catch the train at 4:30,  so there wasn't much time. Luckily,	it	was delayed, so it worked out.	The meeting,The train	1
+There is a pillar between me and the stage, and I can't see around	it	.	The pillar,The stage	0
+There is a pillar between me and the stage, and I can't see	it	.	The pillar,The stage	1
+They broadcast an announcement, but a subway came into the station and I couldn't hear	it	.	The announcement,The subway	0
+They broadcast an announcement, but a subway came into the station and I couldn't hear over	it	.	The announcement,The subway	1
+In the middle of the outdoor concert, the rain started falling, but	it	continued until 10.	The concert,The rain	0
+In the middle of the outdoor concert, the rain started falling, and	it	continued until 10.	The concert,The rain	1
+I used an old rag to clean the knife, and then I put	it	in the trash.	The rag,The knife	0
+I used an old rag to clean the knife, and then I put	it	in the drawer.	The rag,The knife	1
+Ann asked Mary what time the library closes, because	she	had forgotten.	Ann,Mary	0
+Ann asked Mary what time the library closes, but	she	had forgotten.	Ann,Mary	1
+I took the water bottle out of the backpack so that	it	would be handy.	The water bottle,The backpack	0
+I took the water bottle out of the backpack so that	it	would be lighter.	The water bottle,The backpack	1
+I couldn't put the pot on the shelf because	it	was too tall.	The pot,The shelf	0
+I couldn't put the pot on the shelf because	it	was too high.	The pot,The shelf	1
+I'm sure that my map will show this building;	it	is very good.	The map,The building	0
+I'm sure that my map will show this building;	it	is very famous.	The map,The building	1
+Bob paid for Charlie's college education.	He	is very generous.	Bob,Charlie	0
+Bob paid for Charlie's college education.	He	is very grateful.	Bob,Charlie	1
+Bob paid for Charlie's college education, but now Charlie acts as though it never happened.	He	is very hurt.	Bob,Charlie	0
+Bob paid for Charlie's college education, but now Charlie acts as though it never happened.	He	is very ungrateful.	Bob,Charlie	1
+Bob was playing cards with Adam and was way ahead. If Adam hadn't had a sudden run of good luck,	he	would have won.	Bob,Adam	0
+Bob was playing cards with Adam and was way ahead. If Adam hadn't had a sudden run of good luck,	he	would have lost.	Bob,Adam	1
+Adam can't leave work here until Bob arrives to replace him. If Bob had  left home for work on time,	he	would be gone by this time.	Adam,Bob	0
+Adam can't leave work here until Bob arrives to replace him. If Bob had  left home for work on time,	he	would be here by this time.	Adam,Bob	1
+If the con artist has succeeded in fooling Sam,	he	would have gotten a lot of money.	The con artist,Sam	0
+If the con artist has succeeded in fooling Sam,	he	would have lost a lot of money.	The con artist,Sam	1
+It was a summer afternoon, and the dog was sitting in the middle of the lawn. After a while, it got up and moved to a spot under the tree,  because	it	was hot.	The dog,The spot under the tree	0
+It was a summer afternoon, and the dog was sitting in the middle of the lawn. After a while, it got up and moved to a spot under the tree,  because	it	was cooler.	The dog,The spot under the tree	1
+The cat was lying by the mouse hole waiting for the mouse, but	it	was too impatient.	The cat,The mouse	0
+The cat was lying by the mouse hole waiting for the mouse, but	it	was too cautious.	The cat,The mouse	1
+Anne gave birth to a daughter last month.	She	is a very charming woman.	Anne,Anne's daughter	0
+Anne gave birth to a daughter last month.	She	is a very charming baby.	Anne,Anne's daughter	1
+Alice tried frantically to stop her daughter from chatting at the party, leaving us to wonder why	she	was behaving so strangely.	Alice,Alice's daughter	0
+Alice tried frantically to stop her daughter from barking at the party, leaving us to wonder why	she	was behaving so strangely.	Alice,Alice's daughter	1
+I saw Jim yelling at some guy in a military uniform with a huge red  beard. I don't know why	he	was, but he looked very unhappy.	Jim,the guy in uniform	0
+I saw Jim yelling at some guy in a military uniform with a huge red  beard. I don't know who	he	was, but he looked very unhappy.	Jim,the guy in uniform	1
+The fish ate the worm.	It	was hungry.	The fish,The worm	0
+The fish ate the worm.	It	was tasty.	The fish,The worm	1
+I was trying to open the lock with the key, but someone had filled the  keyhole with chewing gum, and I couldn't get	it	in.	The key,The chewing gum	0
+I was trying to open the lock with the key, but someone had filled the  keyhole with chewing gum, and I couldn't get	it	out.	The key,The chewing gum	1
+The dog chased the cat, which ran up a tree.	It	waited at the bottom.	The dog,The cat	0
+The dog chased the cat, which ran up a tree.	It	waited at the top.	The dog,The cat	1
+In the storm, the tree fell down and crashed through the roof of my  house. Now, I have to get	it	removed.	The tree,The roof	0
+In the storm, the tree fell down and crashed through the roof of my  house. Now, I have to get	it	repaired.	The tree,The roof	1
+The customer walked into the bank and stabbed one of the tellers.	He	was immediately taken to the police station.	The customer,The teller	0
+The customer walked into the bank and stabbed one of the tellers.	He	was immediately taken to the hospital.	The customer,The teller	1
+John was doing research in the library when he heard a man humming and  whistling.	He	was very annoyed.	John,The man	0
+John was doing research in the library when he heard a man humming and  whistling.	He	was very annoying.	John,The man	1
+John was jogging through the park when he saw a man juggling watermelons.	He	was very impressed.	John,The juggler	0
+John was jogging through the park when he saw a man juggling watermelons.	He	was very impressive.	John,The juggler	1
+Bob collapsed on the sidewalk. Soon he saw Carl coming to help.	He	was very ill.	Bob,Carl	0
+Bob collapsed on the sidewalk. Soon he saw Carl coming to help.	He	was very concerned.	Bob,Carl	1
+Sam and Amy are passionately in love, but Amy's parents are unhappy about it, because	they	are fifteen.	Sam and Amy,Amy's parents	0
+Sam and Amy are passionately in love, but Amy's parents are unhappy about it, because	they	are snobs.	Sam and Amy,Amy's parents	1
+Mark told Pete many lies about himself, which Pete included in his book.	He	should have been more  truthful.	Mark,Pete	0
+Mark told Pete many lies about himself, which Pete included in his book.	He	should have been more  skeptical.	Mark,Pete	1
+Joe has sold his house and bought a new one a few miles away. He will be moving out of	it	on Thursday.	The old house,The new house	0
+Joe has sold his house and bought a new one a few miles away. He will be moving into	it	on Thursday.	The old house,The new house	1
+Many people start to read Paul's books and can't put them down.	They	are gripped because Paul writes so well.	People,Paul's books	0
+Many people start to read Paul's books and can't put them down.	They	are popular because Paul writes so well.	People,Paul's books	1
+Mary took out her flute and played one of her favorite pieces. She has had	it	since she was a child.	The flute,The piece	0
+Mary took out her flute and played one of her favorite pieces. She has loved	it	since she was a child.	The flute,The piece	1
+Sam pulled up a chair to the piano, but	it	was broken, so he had to stand instead.	The chair,The piano	0
+Sam pulled up a chair to the piano, but	it	was broken, so he had to sing instead.	The chair,The piano	1
+Since it was raining, I carried the newspaper in my backpack to keep	it	dry.	The newspaper,The backpack	0
+Since it was raining, I carried the newspaper over my backpack to keep	it	dry.	The newspaper,The backpack	1
+Sara borrowed the book from the library because she needs it for an article she is working on. She reads	it	when she gets home from work.	The book,The article	0
+Sara borrowed the book from the library because she needs it for an article she is working on. She writes	it	when she gets home from work.	The book,The article	1
+This morning, Joey built a sand castle on the beach, and put a toy  flag in the highest tower, but this afternoon the tide  knocked	it	down.	The sand castle,The flag	0
+This morning, Joey built a sand castle on the beach, and put a toy  flag in the highest tower, but this afternoon the wind  knocked	it	down.	The sand castle,The flag	1
+Jane knocked on Susan's door, but there was no answer.	She	was disappointed.	Jane,Susan	0
+Jane knocked on Susan's door, but there was no answer.	She	was out.	Jane,Susan	1
+Jane knocked on the door, and Susan answered it.	She	invited her to come out.	Jane,Susan	0
+Jane knocked on the door, and Susan answered it.	She	invited her to come in.	Jane,Susan	1
+Sam took French classes from Adam, because	he	was eager to speak it fluently.	Sam,Adam	0
+Sam took French classes from Adam, because	he	was known to speak it fluently.	Sam,Adam	1
+The path to the lake was blocked, so we couldn't use	it	.	The path,The lake	0
+The path to the lake was blocked, so we couldn't reach	it	.	The path,The lake	1
+The sun was covered by a thick cloud all morning, but luckily, by the time the picnic started,	it	was out.	The sun,The cloud	0
+The sun was covered by a thick cloud all morning, but luckily, by the time the picnic started,	it	was gone.	The sun,The cloud	1
+We went to the lake, because a shark had been seen at the ocean beach, so	it	was a safer place to swim.	The lake,The ocean beach	0
+We went to the lake, because a shark had been seen at the ocean beach, so	it	was a dangerous place to swim.	The lake,The ocean beach	1
+Sam tried to paint a picture of shepherds with sheep, but	they	ended up looking more like golfers.	The shepherds,The sheep	0
+Sam tried to paint a picture of shepherds with sheep, but	they	ended up looking more like dogs.	The shepherds,The sheep	1
+Mary tucked her daughter Anne into bed, so that	she	could work.	Mary,Mary's daughter	0
+Mary tucked her daughter Anne into bed, so that	she	could sleep.	Mary,Mary's daughter	1
+Fred and Alice had very warm down coats, but	they	were not prepared for the cold in Alaska.	Fred and Alice,coats	0
+Fred and Alice had very warm down coats, but	they	were not enough for the cold in Alaska.	Fred and Alice,coats	1
+Thomson visited Cooper's grave in 1765. At that date	he	had been travelling for five years.	Thomson,Cooper	0
+Thomson visited Cooper's grave in 1765. At that date	he	had been dead for five years.	Thomson,Cooper	1
+Jackson was greatly influenced by Arnold, though	he	lived two centuries later.	Jackson,Arnold	0
+Jackson was greatly influenced by Arnold, though	he	lived two centuries earlier.	Jackson,Arnold	1
+I can't cut that tree down with that axe;	it	is too thick.	The tree,The axe	0
+I can't cut that tree down with that axe;	it	is too small.	The tree,The axe	1
+The foxes are getting in at night and attacking the chickens. I shall have to kill	them	.	The foxes,The chickens	0
+The foxes are getting in at night and attacking the chickens. I shall have to guard	them	.	The foxes,The chickens	1
+The foxes are getting in at night and attacking the chickens.	They	have gotten very bold.	The foxes,The chickens	0
+The foxes are getting in at night and attacking the chickens.	They	have gotten very nervous.	The foxes,The chickens	1
+Fred covered his eyes with his hands, because the wind was blowing sand around. He opened	them	when the wind stopped.	His eyes,His hands	0
+Fred covered his eyes with his hands, because the wind was blowing sand around. He lowered	them	when the wind stopped.	His eyes,His hands	1
+The actress used to be named Terpsichore, but she changed it to Tina a  few years ago, because she figured	it	was too hard to pronounce.	Terpsichore,Tina	0
+The actress used to be named Terpsichore, but she changed it to Tina a  few years ago, because she figured	it	was easier to pronounce.	Terpsichore,Tina	1
+Fred watched TV while George went out to buy groceries. After an hour	he	got up.	Fred,George	0
+Fred watched TV while George went out to buy groceries. After an hour	he	got back.	Fred,George	1
+Fred was supposed to run the dishwasher, but he put it off,  because he wanted to watch TV. But the show turned out to be boring, so he changed his mind and turned	it	on.	The dishwasher,The TV	0
+Fred was supposed to run the dishwasher, but he put it off,  because he wanted to watch TV. But the show turned out to be boring, so he changed his mind and turned	it	off.	The dishwasher,The TV	1
+Fred is the only man still alive who remembers my great-grandfather.	He	is a remarkable man.	Fred,My great-grandfather	0
+Fred is the only man still alive who remembers my great-grandfather.	He	was a remarkable man.	Fred,My great-grandfather	1
+Fred is the only man alive who still remembers my father as an infant. When Fred first saw my father,	he	was twelve years old.	Fred,My father	0
+Fred is the only man alive who still remembers my father as an infant. When Fred first saw my father,	he	was twelve months old.	Fred,My father	1
+In July, Kamchatka declared war on Yakutsk. Since Yakutsk's army was much  better equipped and ten times larger,	they	were defeated within weeks.	Kamchatka,Yakutsk	0
+In July, Kamchatka declared war on Yakutsk. Since Yakutsk's army was much  better equipped and ten times larger,	they	were victorious within weeks.	Kamchatka,Yakutsk	1
+Look! There is a minnow swimming right below that duck!	It	had better get away to safety fast!	The minnow,The duck	0
+Look! There is a shark swimming right below that duck!	It	had better get away to safety fast!	The shark,The duck	1
+Archaeologists have concluded that humans lived in Laputa 20,000 years ago.	They	hunted for evidence on the river banks.	Archaeologists,Prehistoric humans	0
+Archaeologists have concluded that humans lived in Laputa 20,000 years ago.	They	hunted for deer on the river banks.	Archaeologists,Prehistoric humans	1
+The scientists are studying three species of fish that have recently been found living in the Indian Ocean.	They	began two years ago.	The scientists,The fish	0
+The scientists are studying three species of fish that have recently been found living in the Indian Ocean.	They	appeared two years ago.	The scientists,The fish	1
+The journalists interviewed the stars of the new movie.	They	were very persistent, so the interview lasted for a long time.	The journalists,The stars	0
+The journalists interviewed the stars of the new movie.	They	were very cooperative, so the interview lasted for a long time.	The journalists,The stars	1
+The police arrested all of the gang members.	They	were trying to stop the drug trade in the neighborhood.	The police,The gang members	0
+The police arrested all of the gang members.	They	were trying to run the drug trade in the neighborhood.	The police,The gang members	1
+I put the cake away in the refrigerator.	It	has a lot of butter in it.	The cake,The refrigerator	0
+I put the cake away in the refrigerator.	It	has a lot of leftovers in it.	The cake,The refrigerator	1
+Sam broke both his ankles and he's walking with crutches. But a month or so from now	they	should be better.	The ankles,The crutches	0
+Sam broke both his ankles and he's walking with crutches. But a month or so from now	they	should be unnecessary.	The ankles,The crutches	1
+When the sponsors of the bill got to the town hall, they were surprised to find that the room was full of opponents.	They	were very much in the minority.	The sponsors,The opponents	0
+When the sponsors of the bill got to the town hall, they were surprised to find that the room was full of opponents.	They	were very much in the majority.	The sponsors,The opponents	1
+Everyone really loved the oatmeal cookies; only a few people liked the  chocolate chip cookies. Next time, we should make more of	them	.	The oatmeal cookies,The chocolate chip cookies	0
+Everyone really loved the oatmeal cookies; only a few people liked the  chocolate chip cookies. Next time, we should make fewer of	them	.	The oatmeal cookies,The chocolate chip cookies	1
+We had hoped to place copies of our newsletter on all the chairs in the auditorium, but there were simply not enough of	them	.	copies of the newsletter,chairs	0
+We had hoped to place copies of our newsletter on all the chairs in the auditorium, but there were simply too many of	them	.	copies of the newsletter,chairs	1
+I stuck a pin through a carrot. When I pulled the pin out,	it	left a hole.	The pin,The carrot	0
+I stuck a pin through a carrot. When I pulled the pin out,	it	had a hole.	The pin,The carrot	1
+I couldn't find a spoon, so I tried using a pen to stir my  coffee. But that turned out to be a bad idea, because	it	got full of coffee.	The pen,The coffee	0
+I couldn't find a spoon, so I tried using a pen to stir my  coffee. But that turned out to be a bad idea, because	it	got full of ink.	The pen,The coffee	1
+Steve follows Fred's example in everything.	He	admires him hugely.	Steve,Fred	0
+Steve follows Fred's example in everything.	He	influences him hugely.	Steve,Fred	1
+The table won't fit through the doorway because	it	is too wide.	The table,The doorway	0
+The table won't fit through the doorway because	it	is too narrow.	The table,The doorway	1
+Grace was happy to trade me her sweater for my jacket. She thinks	it	looks dowdy on her.	The sweater,The jacket	0
+Grace was happy to trade me her sweater for my jacket. She thinks	it	looks great on her.	The sweater,The jacket	1
+John hired Bill to take care of	him	.	John,Bill	0
+John hired himself out to Bill to take care of	him	.	John,Bill	1
+John promised Bill to leave, so an hour later	he	left.	John,Bill	0
+John ordered Bill to leave, so an hour later	he	left.	John,Bill	1
+Sam Goodman's biography of the Spartan general Xenophanes conveys a vivid sense of the difficulties	he	faced in his research.	Goodman,Xenophanes	0
+Sam Goodman's biography of the Spartan general Xenophanes conveys a vivid sense of the difficulties	he	faced in his childhood.	Goodman,Xenophanes	1
+Emma's mother had died long ago, and	her	education had been managed by an excellent woman as governess.	Emma,Emma's mother	0
+Emma's mother had died long ago, and	her	place had been taken by an excellent woman as governess.	Emma,Emma's mother	1
+Jane knocked on Susan's door but	she	did not get an answer.	Jane,Susan	0
+Jane knocked on Susan's door but	she	did not answer.	Jane,Susan	1
+Joe paid the detective after	he	received the final report on the case.	Joe,the detective	0
+Joe paid the detective after	he	delivered the final report on the case.	Joe,the detective	1
+Beth didn't get angry with Sally, who had cut her off, because	she	stopped and counted to ten.	Beth,Sally	0
+Beth didn't get angry with Sally, who had cut her off, because	she	stopped and apologized.	Beth,Sally	1
+Jim signaled the barman and gestured toward	his	empty glass	Jim,The barman	0
+Jim signaled the barman and gestured toward	his	bathroom key.	Jim,The barman	1
+Dan took the rear seat while Bill claimed the front because	his	"Dibs!" was slow.	Dan,Bill	0
+Dan took the rear seat while Bill claimed the front because	his	"Dibs!" was quicker.	Dan,Bill	1
+Tom said "Check" to Ralph as he moved	his	bishop.	Tom,Ralph	0
+Tom said "Check" to Ralph as he took	his	bishop.	Tom,Ralph	1
+As Andrea in the crop duster passed over Susan,	she	could see the landing strip.	Andrea,Susan	0
+As Andrea in the crop duster passed over Susan,	she	could see the landing gear.	Andrea,Susan	1
+Tom gave Ralph a lift to school so	he	wouldn't have to drive alone.	Tom,Ralph	0
+Tom gave Ralph a lift to school so	he	wouldn't have to walk.	Tom,Ralph	1
+Bill passed the half-empty plate to John because	he	was full.	Bill,John	0
+Bill passed the half-empty plate to John because	he	was hungry.	Bill,John	1
+Bill passed the gameboy to John because	his	turn was over.	Bill,John	0
+Bill passed the gameboy to John because	his	turn was next.	Bill,John	1
+The man lifted the boy onto	his	shoulders.	The man,The boy	0
+The man lifted the boy onto	his	bunk bed.	The man,The boy	1
+Stretching	her	back, the woman smiled at the girl.	The woman,The girl	0
+Patting	her	back, the woman smiled at the girl.	The woman,The girl	1
+Billy cried because Toby wouldn't accept	his	toy.	Billy,Toby	0
+Billy cried because Toby wouldn't share	his	toy.	Billy,Toby	1
+Lily spoke to Donna, breaking	her	silence.	Lily,Donna	0
+Lily spoke to Donna, breaking	her	concentration.	Lily,Donna	1
+When Tommy dropped his ice cream, Timmy giggled, so father gave	him	a sympathetic look.	Tommy,Timmy	0
+When Tommy dropped his ice cream, Timmy giggled, so father gave	him	a stern look.	Tommy,Timmy	1
+As Ollie carried Tommy up the long winding steps,	his	legs ached.	Ollie,Tommy	0
+As Ollie carried Tommy up the long winding steps,	his	legs dangled.	Ollie,Tommy	1
+The father carried the sleeping boy in	his	arms	The father,The boy	0
+The father carried the sleeping boy in	his	bassinet.	The father,The boy	1
+The woman held the girl against	her	chest	The woman,The girl	0
+The woman held the girl against	her	will.	The woman,The girl	1
+Pam's parents came home and found her having sex with her boyfriend, Paul.	They	were furious about it.	Pam's parents,Pam and Paul	0
+Pam's parents came home and found her having sex with her boyfriend, Paul.	They	were embarrassed about it.	Pam's parents,Pam and Paul	1
+Dr. Adams informed Kate that	she	had retired and presented several options for future treatment.	Dr. Adams,Kate	0
+Dr. Adams informed Kate that	she	had cancer and presented several options for future treatment.	Dr. Adams,Kate	1
+Dan had to stop Bill from toying with the injured bird.	He	is very compassionate.	Dan,Bill	0
+Dan had to stop Bill from toying with the injured bird.	He	is very cruel.	Dan,Bill	1
+George got free tickets to the play, but he gave them to Eric, even though	he	was particularly eager to see it.	George,Eric	0
+George got free tickets to the play, but he gave them to Eric, because	he	was particularly eager to see it.	George,Eric	1
+George got free tickets to the play, but he gave them to Eric, because	he	was not particularly eager to see it.	George,Eric	0
+Jane gave Joan candy because	she	wasn't hungry.	Jane,Joan	0
+Jane gave Joan candy because	she	was hungry.	Jane,Joan	1
+I tried to paint a picture of an orchard, with lemons in the lemon trees,  but	they	came out looking more like light bulbs.	lemons,lemon trees	0
+I tried to paint a picture of an orchard, with lemons in the lemon trees,  but	they	came out looking more like telephone poles.	lemons,lemon trees	1
+James asked Robert for a favor but	he	was refused.	James,Robert	0
+James asked Robert for a favor but	he	refused.	James,Robert	1
+Kirilov ceded the presidency to Shatov because	he	was less popular.	Kirilov,Shatov	0
+Kirilov ceded the presidency to Shatov because	he	was more popular.	Kirilov,Shatov	1
+Emma did not pass the ball to Janie although	she	saw that she was open.	Emma,Janie	0
+Emma did not pass the ball to Janie although	she	was open.	Emma,Janie	1
+I put the butterfly wing on the table and	it	broke.	The butterfly wing,The table	0
+I put the heavy book on the table and	it	broke.	The heavy book,The table	1
+Madonna fired her trainer because	she	couldn't stand her boyfriend.	Madonna,The trainer	0
+Madonna fired her trainer because	she	slept with her boyfriend.	Madonna,The trainer	1
+Madonna fired her trainer because she slept with	her	boyfriend.	Madonna,The trainer	0
+Madonna fired her trainer because she couldn't stand	her	boyfriend.	Madonna,The trainer	1
+Carol believed that Rebecca suspected that	she	had stolen the watch.	Carol,Rebecca	0
+Carol believed that Rebecca regretted that	she	had stolen the watch.	Carol,Rebecca	1
+This book introduced Shakespeare to Ovid; it was a major influence on	his	writing.	Shakespeare,Ovid	0
+This book introduced Shakespeare to Goethe; it was a major influence on	his	writing.	Shakespeare,Goethe	1
+This book introduced Shakespeare to Ovid; it was a fine selection of	his	writing.	Shakespeare,Ovid	1
+This book introduced Shakespeare to Goethe; it was a fine selection of	his	writing.	Shakespeare,Goethe	0
+Alice looked for her friend Jade in the crowd. Since	she	always has good luck, Alice spotted her quickly.	Alice,Jade	0
+Alice looked for her friend Jade in the crowd. Since	she	always wears a red turban, Alice spotted her quickly.	Alice,Jade	1
+During a game of tag, Ethan chased Luke because	he	was "it".	Ethan,Luke	0
+During a game of tag, Ethan ran from Luke because	he	was "it".	Ethan,Luke	1
+At the Loebner competition the judges couldn't figure out which respondents were the chatbots because	they	were so stupid.	the judges,the chatbots	0
+At the Loebner competition the judges couldn't figure out which respondents were the chatbots because	they	were so advanced.	the judges,the chatbots	1
+The user changed his password from "GrWQWu8JyC" to "willow-towered Canopy Huntertropic wrestles" as	it	was easy to forget.	GrWQWu8JyC,willow-towered Canopy Huntertropic wrestles	0
+The user changed his password from "GrWQWu8JyC" to "willow-towered Canopy Huntertropic wrestles" as	it	was easy to remember.	GrWQWu8JyC,willow-towered Canopy Huntertropic wrestles	1

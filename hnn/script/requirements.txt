@@ -1,0 +1,11 @@
+cython
+nltk==3.4.1
+numpy
+regex
+scipy
+sklearn
+tensorflow
+torch
+tqdm
+ujson
+xmltodict

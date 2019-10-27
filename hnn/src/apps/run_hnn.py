@@ -27,16 +27,11 @@ from torch.utils.data.distributed import DistributedSampler
 from bert.tokenization import BertTokenizer
 from bert.modeling import *
 from module.pooling import *
-from module.masked_language_model import *
 from utils.argument_types import *
 from utils.logger_util import *
 
-try:
-  from dataloader import SequentialDataLoader
-  from training_utils import *
-except:
-  from .dataloader import SequentialDataLoader
-  from .training_utils import *
+from dataloader import SequentialDataLoader
+from training_utils import *
 
 from hnn_dataset import *
 from hnn_model import *

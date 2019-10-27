@@ -6,16 +6,16 @@ SCRIPT=$(readlink -f "$0")
 SCRIPT_DIR=$(dirname "$SCRIPT")
 cd $SCRIPT_DIR
 
-
-data_root=$AZ_BATCHAI_JOB_MOUNT_ROOT/biglm/
-BERT_BASE_DIR=$data_root/bert/model/uncased_L-24_H-1024_A-16
-CONFIG=$BERT_BASE_DIR/bert_config.json
+data_root=../data
+BERT_BASE_DIR=../bert/uncased_L-24_H-1024_A-16
 MODEL=$BERT_BASE_DIR/pytorch_model.bin
+[ -e $MODEL ] || wget https://s3.amazonaws.com/models.huggingface.co/bert/bert-large-uncased-pytorch_model.bin -qO $MODEL
+python -m pip install -r requirements.txt
 
 CONFIG=hnn_config_large.json
 VOCAB=$BERT_BASE_DIR/vocab.txt
 Task=WSCR
-Data=$data_root/bert/WinogradSchemaChallenge/DPRD
+Data=$data_root/DPRD
 Epoch=8
 BS=16
 LR=1e-5
@@ -32,10 +32,10 @@ SEED=10037
 CLS_DP=0.15
 LSR=0
 INIT_SPEC=hnn_init_large.spec
-WNLIData=$data_root/bert/WinogradSchemaChallenge/WNLI/v4
-WikiData=$data_root/bert/WinogradSchemaChallenge/Wiki-WSCR
-WSCData=$data_root/bert/WinogradSchemaChallenge/WSC273
-GAPData=$data_root/bert/WinogradSchemaChallenge/GAP
+WNLIData=$data_root/WNLI
+WikiData=$data_root/Wiki-WSCR
+WSCData=$data_root/WSC273
+GAPData=$data_root/GAP
 GCC=1
 ALPHA=0,0,0
 BETA=0,0,0.6
