@@ -23,10 +23,7 @@ import torch
 import torch.nn as nn
 
 from bert.modeling import *
-from module.pooling import *
-from module.transformer import *
-from module.loss import *
-from module.masked_language_model import *
+from module import *
 
 import utils
 logger=utils.get_logger()
@@ -201,7 +198,7 @@ class SSMatcher(torch.nn.Module):
     ctx = context_layer[:,0,:].unsqueeze(1)
     query = ctx
     att = torch.matmul(query, context_layer.transpose(2,1))/math.sqrt(query.size(-1))
-    att_score = XSoftmax(dim=-1)(att, pronoun_mask.unsqueeze(1))
+    att_score = XSoftmax.apply(att, pronoun_mask.unsqueeze(1), -1)
     pronoun_ebd = torch.matmul(att_score, context_layer)
     return pronoun_ebd
 
@@ -214,7 +211,7 @@ class SSMatcher(torch.nn.Module):
     #  pdb.set_trace()
     query = self.query(ctx)
     att = torch.matmul(query, context_layer.transpose(2,1))/math.sqrt(query.size(-1))
-    att_score = XSoftmax(dim=-1)(att, candidate_masks.unsqueeze(1))
+    att_score = XSoftmax.apply(att, candidate_masks.unsqueeze(1), -1)
     cand_ebd = torch.matmul(att_score, context_layer)
     return cand_ebd, att_score
   
@@ -224,7 +221,7 @@ class SSMatcher(torch.nn.Module):
     ctx = context_layer[:,0,:].unsqueeze(1)
     query = torch.zeros_like(ctx)
     att = torch.matmul(query, context_layer.transpose(2,1))/math.sqrt(query.size(-1))
-    att_score = XSoftmax(dim=-1)(att, candidate_masks.unsqueeze(1))
+    att_score = XSoftmax.apply(att, candidate_masks.unsqueeze(1), -1)
     cand_ebd = torch.matmul(att_score, context_layer)
     return cand_ebd, att_score
 

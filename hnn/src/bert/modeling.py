@@ -34,12 +34,8 @@ import pdb
 from utils import get_logger
 logger=get_logger()
 
-try:
-  from .init_spec import InitSpec
-  from .tf_utils import truncated_normal_init
-except:
-  from init_spec import InitSpec
-  from tf_utils import truncated_normal_init
+from functions import *
+from .init_spec import InitSpec
 
 CONFIG_NAME = 'bert_config.json'
 WEIGHTS_NAME = 'pytorch_model.bin'
@@ -150,80 +146,6 @@ class BertConfig(object):
         """Serializes this instance to a JSON string."""
         return json.dumps(self.to_dict(), indent=2, sort_keys=True) + "\n"
 
-class XSoftmax(torch.autograd.Function):
-  def __init__(self, dim=-1):
-    self.dim=dim
-
-  def forward(self, input, mask):
-    rmask = (1-mask).byte()
-    output = input.masked_fill(rmask, float('-inf'))
-    output = torch.softmax(output, self.dim)
-    output.masked_fill_(rmask, 0)
-    self.save_for_backward(output)
-    return output
-
-  def backward(self, grad_output):
-    output, = self.saved_tensors
-    inputGrad = torch.softmax_backward_data(grad_output, output, self.dim, output)
-    return inputGrad, None, None
-
-class XDropout(torch.autograd.Function):
-  def __init__(self, dropout = 0):
-    self.dropout = dropout
-    self.scale=1/(1-dropout)
-
-  def forward(self, input):
-    if self.dropout>0:
-      mask=(1-torch.empty_like(input).bernoulli_(1-self.dropout)).byte()
-      self.save_for_backward(mask)
-      return input.masked_fill(mask, 0)*self.scale
-    else:
-      return input
-
-  def backward(self, grad_output):
-    if self.dropout > 0:
-      mask, = self.saved_tensors
-      return grad_output.masked_fill(mask, 0)*self.scale
-    else:
-      return grad_output
-
-class StableDropout(nn.Module):
-    def __init__(self, drop_prob):
-        super(StableDropout, self).__init__()
-        self.drop_prob = drop_prob
-    def forward(self, x):
-        if self.training and self.drop_prob>0:
-            return XDropout(self.drop_prob)(x)
-        return x
-
-if True:
-    from apex.normalization import FusedLayerNorm as BertLayerNorm
-else:
-    class BertLayerNorm(nn.Module):
-        def __init__(self, size, variance_epsilon=1e-12):
-            """Construct a layernorm module in the TF style (epsilon inside the square root).
-            """
-            super(BertLayerNorm, self).__init__()
-            self.weight = nn.Parameter(torch.ones(size))
-            self.bias = nn.Parameter(torch.zeros(size))
-            self.variance_epsilon = variance_epsilon
-
-        def forward(self, x):
-            u = x.mean(-1, keepdim=True)
-            s = (x - u).pow(2).mean(-1, keepdim=True)
-            x = (x - u) / torch.sqrt(s + self.variance_epsilon)
-            return self.weight * x + self.bias
-
-def MaskedLayerNorm(layerNorm, input, mask = None):
-    output = layerNorm(input)
-    if mask is None:
-      return output
-
-    if mask.dim()==4:
-        mask=mask.squeeze(1).squeeze(1)
-    mask = mask.unsqueeze(2).to(input.dtype)
-    return output*mask
-
 class BertEmbeddings(nn.Module):
     """Construct the embeddings from word, position and token_type embeddings.
     """
@@ -291,15 +213,8 @@ class BertSelfAttention(nn.Module):
         attention_scores = torch.matmul(query_layer, key_layer.transpose(-1, -2))
         # Apply the attention mask is (precomputed for all layers in BertModel forward() function)
         attention_scores = attention_scores / math.sqrt(self.attention_head_size)
-        try:
-            att_mask = attention_mask#.byte()
-            attention_probs = XSoftmax(dim=-1)(attention_scores, att_mask)
-        except Exception as ex:
-            pdb.set_trace()
-            attention_mask = attention_mask.to(dtype=hidden_states.dtype) # fp16 compatibility
-            attention_scores = attention_scores*attention_mask - (1-attention_mask)*10000
-            # Normalize the attention scores to probabilities.
-            attention_probs = nn.Softmax(dim=-1)(attention_scores)
+        att_mask = attention_mask#.byte()
+        attention_probs = XSoftmax.apply(attention_scores, att_mask, -1)
         attention_probs = self.dropout(attention_probs)
 
         # This is actually dropping out entire tokens to attend to, which might

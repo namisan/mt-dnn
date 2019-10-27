@@ -443,7 +443,7 @@ class WNLITask(_ABCTask):
 
   def get_dev_dataset(self, data_dir, maxlen, input_type=None):
     eval_set = [
-        self._mk_eval('wnli-dev', data_dir, 'eval_annotated_rank.tsv', maxlen, scan_thred=True, \
+        self._mk_eval('wnli-dev', data_dir, 'dev_annotated.tsv', maxlen, scan_thred=True, \
             rank=True, input_type=input_type)]
     return eval_set
 
