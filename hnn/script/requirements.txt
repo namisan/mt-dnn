@@ -1,5 +1,5 @@
 cython
-nltk==3.4.1
+nltk==3.4.5
 numpy
 regex
 scipy
