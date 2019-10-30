@@ -392,7 +392,7 @@ def main():
                                                                                     dev_data,
                                                                                     metric_meta=task_defs.metric_meta_map[prefix],
                                                                                     use_cuda=args.cuda,
-                                                                                    label_mapper=task_defs.global_map[prefix])
+                                                                                    label_mapper=label_dict)
                 for key, val in dev_metrics.items():
                     if args.tensorboard:
                         tensorboard.add_scalar('dev/{}/{}'.format(dataset, key), val, global_step=epoch)
@@ -415,7 +415,7 @@ def main():
                     test_metrics, test_predictions, scores, golds, test_ids= eval_model(model, test_data,
                                                                                         metric_meta=task_defs.metric_meta_map[prefix],
                                                                                         use_cuda=args.cuda, with_label=False,
-                                                                                        label_mapper=task_defs.global_map[prefix])
+                                                                                        label_mapper=label_dict)
                 score_file = os.path.join(output_dir, '{}_test_scores_{}.json'.format(dataset, epoch))
                 results = {'metrics': test_metrics, 'predictions': test_predictions, 'uids': test_ids, 'scores': scores}
                 dump(score_file, results)
