@@ -94,6 +94,12 @@ Here, we provide two examples, STS-B and RTE. You can use similar scripts to fin
 2. Training </br>
    ```> python train.py --data_dir <data-path> --init_checkpoint <bert/ner-model> --train_dataset ner --test_dataset ner --task_def experiments\ner\ner_task_def.py```
 
+### HNN
+The code to reproduce HNN is under `hnn` folder, to reproduce the results of HNN, run 
+
+```> hnn/script/hnn_train_large.sh```
+
+
 ### Extract embeddings
 1. Extracting embeddings of a pair text example </br>
    ```>python extractor.py --do_lower_case --finput input_examples\pair-input.txt --foutput input_examples\pair-output.json --bert_model bert-base-uncased --checkpoint mt_dnn_models\mt_dnn_base.pt``` </br>
@@ -127,7 +133,7 @@ Here, we go through how to convert a Chinese Tensorflow BERT model into mt-dnn f
 - [x] Merged RAdam.
 - [x] Sequence Labeling.
 - [ ] Publish pretrained Tensorflow checkpoints.
-- [ ] Publish HNN code and model.
+- [x] Publish HNN code and model.
 
 
 ## FAQ
