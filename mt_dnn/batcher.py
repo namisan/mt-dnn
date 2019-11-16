@@ -11,79 +11,44 @@ from data_utils.task_def import EncoderModelType
 UNK_ID=100
 BOS_ID=101
 
-class BatchGen:
-    def __init__(self, data, batch_size=32, gpu=True, is_train=True,
-                 maxlen=128, dropout_w=0.005,
-                 do_batch=True, weighted_on=False,
+class Collater:
+    def __init__(self, gpu=True, 
+                 is_train=True,
+                 dropout_w=0.005,
                  task_id=0,
-                 task=None,
                  task_type=TaskType.Classification,
                  data_type=DataFormat.PremiseOnly,
                  soft_label=False,
                  encoder_type=EncoderModelType.BERT):
-        self.batch_size = batch_size
-        self.maxlen = maxlen
-        self.is_train = is_train
         self.gpu = gpu
-        self.weighted_on = weighted_on
-        self.data = data
-        self.task_id = task_id
-        self.pairwise_size = 1
-        self.data_type = data_type
-        self.task_type=task_type
-        self.encoder_type = encoder_type
-        # soft label used for knowledge distillation
-        self.soft_label_on = soft_label
-        if do_batch:
-            if is_train:
-                indices = list(range(len(self.data)))
-                random.shuffle(indices)
-                data = [self.data[i] for i in indices]
-            self.data = BatchGen.make_baches(data, batch_size)
-        self.offset = 0
+        self.is_train = is_train
         self.dropout_w = dropout_w
-
-    @staticmethod
-    def make_baches(data, batch_size=32):
-        return [data[i:i + batch_size] for i in range(0, len(data), batch_size)]
-
-    @staticmethod
-    def load(path, is_train=True, maxlen=128, factor=1.0, task_type=None):
-        assert task_type is not None
-        with open(path, 'r', encoding='utf-8') as reader:
-            data = []
-            cnt = 0
-            for line in reader:
-                sample = json.loads(line)
-                sample['factor'] = factor
-                cnt += 1
-                if is_train:
-                    if (task_type == TaskType.Ranking) and (len(sample['token_id'][0]) > maxlen or len(sample['token_id'][1]) > maxlen):
-                        continue
-                    if (task_type != TaskType.Ranking) and (len(sample['token_id']) > maxlen):
-                        continue
-                data.append(sample)
-            print('Loaded {} samples out of {}'.format(len(data), cnt))
-            return data
-
-    def reset(self):
-        if self.is_train:
-            indices = list(range(len(self.data)))
-            random.shuffle(indices)
-            self.data = [self.data[i] for i in indices]
-        self.offset = 0
+        self.task_id = task_id
+        self.task_type=task_type
+        self.data_type = data_type
+        self.soft_label_on = soft_label
+        self.encoder_type = encoder_type
+        self.pairwise_size = 1
 
     def __random_select__(self, arr):
         if self.dropout_w > 0:
             return [UNK_ID if random.uniform(0, 1) < self.dropout_w else e for e in arr]
         else: return arr
 
-    def __len__(self):
-        return len(self.data)
+    def patch_data(self, batch_info, batch_data):
+        if self.gpu:
+            for i, part in enumerate(batch_data):
+                if isinstance(part, torch.Tensor):
+                    batch_data[i] = part.pin_memory().cuda(non_blocking=True)
+                elif isinstance(part, tuple):
+                    batch_data[i] = tuple(sub_part.pin_memory().cuda(non_blocking=True) for sub_part in part)
+                else:
+                    raise TypeError("unknown batch data type at %s: %s" % (i, part))
+                    
+            if "soft_label" in batch_info:
+                batch_info["soft_label"] = batch_info["soft_label"].pin_memory().cuda(non_blocking=True)
 
-    def patch(self, v):
-        v = v.cuda(non_blocking=True)
-        return v
+        return batch_info, batch_data
 
     def rebacth(self, batch):
         newbatch = []
@@ -102,67 +67,62 @@ class BatchGen:
     def __if_pair__(self, data_type):
         return data_type in [DataFormat.PremiseAndOneHypothesis, DataFormat.PremiseAndMultiHypothesis]
 
-    def __iter__(self):
-        while self.offset < len(self):
-            batch = self.data[self.offset]
+
+    def collate_fn(self, batch):
+        if self.task_type == TaskType.Ranking:
+            batch = self.rebacth(batch)
+
+        # prepare model input
+        batch_info, batch_data = self._prepare_model_input(batch)
+        batch_info['task_id'] = self.task_id  # used for select correct decoding head
+        batch_info['input_len'] = len(batch_data)  # used to select model inputs
+        # select different loss function and other difference in training and testing
+        batch_info['task_type'] = self.task_type
+        batch_info['pairwise_size'] = self.pairwise_size  # need for ranking task
+
+        # add label
+        labels = [sample['label'] for sample in batch]
+        if self.is_train:
+            # in training model, label is used by Pytorch, so would be tensor
+            if self.task_type == TaskType.Regression:
+                batch_data.append(torch.FloatTensor(labels))
+                batch_info['label'] = len(batch_data) - 1
+            elif self.task_type in (TaskType.Classification, TaskType.Ranking):
+                batch_data.append(torch.LongTensor(labels))
+                batch_info['label'] = len(batch_data) - 1
+            elif self.task_type == TaskType.Span:
+                start = [sample['token_start'] for sample in batch]
+                end = [sample['token_end'] for sample in batch]
+                batch_data.append((torch.LongTensor(start), torch.LongTensor(end)))
+                # unify to one type of label
+                batch_info['label'] = len(batch_data) - 1
+                #batch_data.extend([torch.LongTensor(start), torch.LongTensor(end)])
+                #batch_info['start'] = len(batch_data) - 2
+                #batch_info['end'] = len(batch_data) - 1
+            elif self.task_type == TaskType.SeqenceLabeling:
+                batch_size = self._get_batch_size(batch)
+                tok_len = self._get_max_len(batch, key='token_id')
+                tlab = torch.LongTensor(batch_size, tok_len).fill_(-1)
+                for i, label in enumerate(labels):
+                    ll = len(label)
+                    tlab[i, : ll] = torch.LongTensor(label)
+                batch_data.append(tlab)
+                batch_info['label'] = len(batch_data) - 1
+
+            # soft label generated by ensemble models for knowledge distillation
+            if self.soft_label_on and (batch[0].get('softlabel', None) is not None):
+                assert self.task_type != TaskType.Span  # Span task doesn't support soft label yet.
+                sortlabels = [sample['softlabel'] for sample in batch]
+                sortlabels = torch.FloatTensor(sortlabels)
+                batch_info['soft_label'] = sortlabels
+        else:
+            # in test model, label would be used for evaluation
+            batch_info['label'] = labels
             if self.task_type == TaskType.Ranking:
-                batch = self.rebacth(batch)
+                batch_info['true_label'] = [sample['true_label'] for sample in batch]
 
-            # prepare model input
-            batch_data, batch_info = self._prepare_model_input(batch)
-            batch_info['task_id'] = self.task_id  # used for select correct decoding head
-            batch_info['input_len'] = len(batch_data)  # used to select model inputs
-            # select different loss function and other difference in training and testing
-            batch_info['task_type'] = self.task_type
-            batch_info['pairwise_size'] = self.pairwise_size  # need for ranking task
-            if self.gpu:
-                for i, item in enumerate(batch_data):
-                    batch_data[i] = self.patch(item.pin_memory())
-
-            # add label
-            labels = [sample['label'] for sample in batch]
-            if self.is_train:
-                # in training model, label is used by Pytorch, so would be tensor
-                if self.task_type == TaskType.Regression:
-                    batch_data.append(torch.FloatTensor(labels))
-                    batch_info['label'] = len(batch_data) - 1
-                elif self.task_type in (TaskType.Classification, TaskType.Ranking):
-                    batch_data.append(torch.LongTensor(labels))
-                    batch_info['label'] = len(batch_data) - 1
-                elif self.task_type == TaskType.Span:
-                    start = [sample['token_start'] for sample in batch]
-                    end = [sample['token_end'] for sample in batch]
-                    batch_data.append((torch.LongTensor(start), torch.LongTensor(end)))
-                    # unify to one type of label
-                    batch_info['label'] = len(batch_data) - 1
-                    #batch_data.extend([torch.LongTensor(start), torch.LongTensor(end)])
-                    #batch_info['start'] = len(batch_data) - 2
-                    #batch_info['end'] = len(batch_data) - 1
-                elif self.task_type == TaskType.SeqenceLabeling:
-                    batch_size = self._get_batch_size(batch)
-                    tok_len = self._get_max_len(batch, key='token_id')
-                    tlab = torch.LongTensor(batch_size, tok_len).fill_(-1)
-                    for i, label in enumerate(labels):
-                        ll = len(label)
-                        tlab[i, : ll] = torch.LongTensor(label)
-                    batch_data.append(tlab)
-                    batch_info['label'] = len(batch_data) - 1
-
-                # soft label generated by ensemble models for knowledge distillation
-                if self.soft_label_on and (batch[0].get('softlabel', None) is not None):
-                    assert self.task_type != TaskType.Span  # Span task doesn't support soft label yet.
-                    sortlabels = [sample['softlabel'] for sample in batch]
-                    sortlabels = torch.FloatTensor(sortlabels)
-                    batch_info['soft_label'] = self.patch(sortlabels.pin_memory()) if self.gpu else sortlabels
-            else:
-                # in test model, label would be used for evaluation
-                batch_info['label'] = labels
-                if self.task_type == TaskType.Ranking:
-                    batch_info['true_label'] = [sample['true_label'] for sample in batch]
-
-            batch_info['uids'] = [sample['uid'] for sample in batch]  # used in scoring
-            self.offset += 1
-            yield batch_info, batch_data
+        batch_info['uids'] = [sample['uid'] for sample in batch]  # used in scoring
+        return batch_info, batch_data
 
     def _get_max_len(self, batch, key='token_id'):
         tok_len = max(len(x[key]) for x in batch)
@@ -216,4 +176,69 @@ class BatchGen:
                 'mask': 2
             }
             batch_data = [token_ids, type_ids, masks]
-        return batch_data, batch_info
+        return batch_info, batch_data
+
+class BatchGen:
+    def __init__(self, data, batch_size=32, gpu=True, is_train=True,
+                 maxlen=128, dropout_w=0.005,
+                 do_batch=True, weighted_on=False,
+                 task_id=0,
+                 task=None,
+                 task_type=TaskType.Classification,
+                 data_type=DataFormat.PremiseOnly,
+                 soft_label=False,
+                 encoder_type=EncoderModelType.BERT):
+        self._collater = Collater(gpu=gpu, is_train=is_train, dropout_w=dropout_w, task_id=task_id, task_type=task_type, data_type=data_type, soft_label=soft_label, encoder_type=encoder_type)
+        self.batch_size = batch_size
+        self.maxlen = maxlen
+        self.is_train = is_train
+        self.data = data
+        self.task_type=task_type
+        if do_batch:
+            if is_train:
+                indices = list(range(len(self.data)))
+                random.shuffle(indices)
+                data = [self.data[i] for i in indices]
+            self.data = BatchGen.make_baches(data, batch_size)
+        self.offset = 0
+
+    @staticmethod
+    def make_baches(data, batch_size=32):
+        return [data[i:i + batch_size] for i in range(0, len(data), batch_size)]
+
+    @staticmethod
+    def load(path, is_train=True, maxlen=128, factor=1.0, task_type=None):
+        assert task_type is not None
+        with open(path, 'r', encoding='utf-8') as reader:
+            data = []
+            cnt = 0
+            for line in reader:
+                sample = json.loads(line)
+                sample['factor'] = factor
+                cnt += 1
+                if is_train:
+                    if (task_type == TaskType.Ranking) and (len(sample['token_id'][0]) > maxlen or len(sample['token_id'][1]) > maxlen):
+                        continue
+                    if (task_type != TaskType.Ranking) and (len(sample['token_id']) > maxlen):
+                        continue
+                data.append(sample)
+            print('Loaded {} samples out of {}'.format(len(data), cnt))
+            return data
+
+    def reset(self):
+        if self.is_train:
+            indices = list(range(len(self.data)))
+            random.shuffle(indices)
+            self.data = [self.data[i] for i in indices]
+        self.offset = 0
+
+    def __len__(self):
+        return len(self.data)
+
+    def __iter__(self):
+        while self.offset < len(self):
+            batch = self.data[self.offset]
+            batch_info, batch_data = self._collater.collate_fn(batch)
+            batch_info, batch_data = self._collater.patch_data(batch_info, batch_data)
+            self.offset += 1
+            yield batch_info, batch_data
