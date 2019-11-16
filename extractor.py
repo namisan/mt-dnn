@@ -219,7 +219,7 @@ def main():
 
     features_dict = {}
     for batch_meta, batch_data in batcher:
-        batch_meta, batch_data = collater.patch_data(batch_meta, batch_data)
+        batch_meta, batch_data = Collater.patch_data(args.cuda, batch_meta, batch_data)
         all_encoder_layers, _ = model.extract(batch_meta, batch_data)
         embeddings = [all_encoder_layers[idx].detach().cpu().numpy()
                       for idx in layer_indexes]

@@ -63,7 +63,7 @@ collater = Collater(gpu=args.cuda, is_train=False, task_id=args.task_id, task_ty
 test_data = DataLoader(test_data_set, batch_size=args.batch_size_eval, collate_fn=collater.collate_fn, pin_memory=args.cuda)
 
 with torch.no_grad():
-    test_metrics, test_predictions, scores, golds, test_ids = eval_model(model, test_data, collater,
+    test_metrics, test_predictions, scores, golds, test_ids = eval_model(model, test_data,
                                                                          metric_meta=metric_meta,
                                                                          use_cuda=args.cuda, with_label=args.with_label)
 

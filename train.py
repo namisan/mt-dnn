@@ -17,7 +17,7 @@ from mt_dnn.inference import eval_model
 from data_utils.log_wrapper import create_logger
 from data_utils.utils import set_environment
 from data_utils.task_def import TaskType, EncoderModelType
-from mt_dnn.batcher import BatchGen, MTDNNDataset, Collater
+from mt_dnn.batcher import MTDNNDataset, Collater
 from mt_dnn.model import MTDNNModel
 
 
@@ -206,15 +206,10 @@ def main():
 
         train_path = os.path.join(data_dir, '{}_train.json'.format(dataset))
         logger.info('Loading {} as task {}'.format(train_path, task_id))
-        train_data = BatchGen(BatchGen.load(train_path, True, task_type=task_type, maxlen=args.max_seq_len),
-                              batch_size=batch_size,
-                              dropout_w=args.dropout_w,
-                              gpu=args.cuda,
-                              task_id=task_id,
-                              maxlen=args.max_seq_len,
-                              data_type=data_type,
-                              task_type=task_type,
-                              encoder_type=encoder_type)
+        train_data_set = MTDNNDataset(train_path, True, task_type=task_type, maxlen=args.max_seq_len)
+        collater = Collater(dropout_w=args.dropout_w, gpu=args.cuda, task_id=task_id, task_type=task_type,
+                            data_type=data_type, encoder_type=encoder_type)
+        train_data = DataLoader(train_data_set, batch_size=args.batch_size, shuffle=True, collate_fn=collater.collate_fn, pin_memory=args.cuda)
         train_data_list.append(train_data)
 
     opt['answer_opt'] = decoder_opts
@@ -259,7 +254,6 @@ def main():
     logger.info(opt)
     logger.info('#' * 20)
 
-    all_iters = [iter(item) for item in train_data_list]
     all_lens = [len(bg) for bg in train_data_list]
 
     # div number of grad accumulation. 
@@ -330,8 +324,7 @@ def main():
 
     for epoch in range(0, args.epochs):
         logger.warning('At epoch {}'.format(epoch))
-        for train_data in train_data_list:
-            train_data.reset()
+        all_iters = [iter(item) for item in train_data_list]
         start = datetime.now()
         all_indices = []
         if len(train_data_list) > 1 and args.ratio > 0:
@@ -360,6 +353,7 @@ def main():
         for i in range(len(all_indices)):
             task_id = all_indices[i]
             batch_meta, batch_data = next(all_iters[task_id])
+            batch_meta, batch_data = Collater.patch_data(args.cuda, batch_meta, batch_data)
             model.update(batch_meta, batch_data)
             if (model.local_updates) % (args.log_per_updates * args.grad_accumulation_step) == 0 or model.local_updates == 1:
                 ramaining_time = str((datetime.now() - start) / (i + 1) * (len(all_indices) - i - 1)).split('.')[0]
@@ -384,7 +378,6 @@ def main():
                 with torch.no_grad():
                     dev_metrics, dev_predictions, scores, golds, dev_ids= eval_model(model,
                                                                                     dev_data,
-                                                                                    collater,
                                                                                     metric_meta=task_defs.metric_meta_map[prefix],
                                                                                     use_cuda=args.cuda,
                                                                                     label_mapper=task_defs.global_map[prefix])
@@ -407,7 +400,7 @@ def main():
             test_data = test_data_list[idx]
             if test_data is not None:
                 with torch.no_grad():
-                    test_metrics, test_predictions, scores, golds, test_ids= eval_model(model, test_data, collater,
+                    test_metrics, test_predictions, scores, golds, test_ids= eval_model(model, test_data,
                                                                                         metric_meta=task_defs.metric_meta_map[prefix],
                                                                                         use_cuda=args.cuda, with_label=False,
                                                                                         label_mapper=task_defs.global_map[prefix])

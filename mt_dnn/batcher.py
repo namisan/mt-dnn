@@ -61,8 +61,9 @@ class Collater:
             return [UNK_ID if random.uniform(0, 1) < self.dropout_w else e for e in arr]
         else: return arr
 
-    def patch_data(self, batch_info, batch_data):
-        if self.gpu:
+    @staticmethod
+    def patch_data(gpu, batch_info, batch_data):
+        if gpu:
             for i, part in enumerate(batch_data):
                 if isinstance(part, torch.Tensor):
                     batch_data[i] = part.pin_memory().cuda(non_blocking=True)
@@ -203,68 +204,3 @@ class Collater:
             }
             batch_data = [token_ids, type_ids, masks]
         return batch_info, batch_data
-
-class BatchGen:
-    def __init__(self, data, batch_size=32, gpu=True, is_train=True,
-                 maxlen=128, dropout_w=0.005,
-                 do_batch=True, weighted_on=False,
-                 task_id=0,
-                 task=None,
-                 task_type=TaskType.Classification,
-                 data_type=DataFormat.PremiseOnly,
-                 soft_label=False,
-                 encoder_type=EncoderModelType.BERT):
-        self._collater = Collater(gpu=gpu, is_train=is_train, dropout_w=dropout_w, task_id=task_id, task_type=task_type, data_type=data_type, soft_label=soft_label, encoder_type=encoder_type)
-        self.batch_size = batch_size
-        self.maxlen = maxlen
-        self.is_train = is_train
-        self.data = data
-        self.task_type=task_type
-        if do_batch:
-            if is_train:
-                indices = list(range(len(self.data)))
-                random.shuffle(indices)
-                data = [self.data[i] for i in indices]
-            self.data = BatchGen.make_baches(data, batch_size)
-        self.offset = 0
-
-    @staticmethod
-    def make_baches(data, batch_size=32):
-        return [data[i:i + batch_size] for i in range(0, len(data), batch_size)]
-
-    @staticmethod
-    def load(path, is_train=True, maxlen=128, factor=1.0, task_type=None):
-        assert task_type is not None
-        with open(path, 'r', encoding='utf-8') as reader:
-            data = []
-            cnt = 0
-            for line in reader:
-                sample = json.loads(line)
-                sample['factor'] = factor
-                cnt += 1
-                if is_train:
-                    if (task_type == TaskType.Ranking) and (len(sample['token_id'][0]) > maxlen or len(sample['token_id'][1]) > maxlen):
-                        continue
-                    if (task_type != TaskType.Ranking) and (len(sample['token_id']) > maxlen):
-                        continue
-                data.append(sample)
-            print('Loaded {} samples out of {}'.format(len(data), cnt))
-            return data
-
-    def reset(self):
-        if self.is_train:
-            indices = list(range(len(self.data)))
-            random.shuffle(indices)
-            self.data = [self.data[i] for i in indices]
-        self.offset = 0
-
-    def __len__(self):
-        return len(self.data)
-
-    def __iter__(self):
-        while self.offset < len(self):
-            batch = self.data[self.offset]
-            batch_info, batch_data = self._collater.collate_fn(batch)
-            batch_info, batch_data = self._collater.patch_data(batch_info, batch_data)
-            self.offset += 1
-            yield batch_info, batch_data
