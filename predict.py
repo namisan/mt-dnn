@@ -7,32 +7,14 @@ from data_utils.task_def import TaskType
 from experiments.exp_def import TaskDefs, EncoderModelType
 #from experiments.glue.glue_utils import eval_model
 
-from mt_dnn.batcher import BatchGen
+from mt_dnn.batcher import MTDNNDataset, Collater
 from mt_dnn.model import MTDNNModel
 from data_utils.metrics import calc_metrics
+from mt_dnn.inference import eval_model
 
 def dump(path, data):
     with open(path, 'w') as f:
         json.dump(data, f)
-
-def eval_model(model, data, metric_meta, use_cuda=True, with_label=True):
-    data.reset()
-    if use_cuda:
-        model.cuda()
-    predictions = []
-    golds = []
-    scores = []
-    ids = []
-    metrics = {}
-    for batch_meta, batch_data in data:
-        score, pred, gold = model.predict(batch_meta, batch_data)
-        predictions.extend(pred)
-        golds.extend(gold)
-        scores.extend(score)
-        ids.extend(batch_meta['uids'])
-    if with_label:
-        metrics = calc_metrics(metric_meta, golds, predictions, scores)
-    return metrics, predictions, scores, golds, ids
 
 
 parser = argparse.ArgumentParser()
@@ -75,18 +57,13 @@ model = MTDNNModel(config, state_dict=state_dict)
 model.load(checkpoint_path)
 encoder_type = config.get('encoder_type', EncoderModelType.BERT)
 # load data
-test_data = BatchGen(BatchGen.load(args.prep_input, False, task_type=task_type, maxlen=args.max_seq_len),
-                     batch_size=args.batch_size_eval,
-                     gpu=args.cuda, is_train=False,
-                     task_id=args.task_id,
-                     maxlen=args.max_seq_len,
-                     data_type=data_type,
-                     task_type=task_type,
-                     encoder_type=encoder_type)
-
+test_data_set = MTDNNDataset(args.prep_input, False, task_type=task_type, maxlen=args.max_seq_len)
+collater = Collater(gpu=args.cuda, is_train=False, task_id=args.task_id, task_type=task_type,
+                    data_type=data_type, encoder_type=encoder_type)
+test_data = DataLoader(test_data_set, batch_size=args.batch_size_eval, collate_fn=collater.collate_fn, pin_memory=args.cuda)
 
 with torch.no_grad():
-    test_metrics, test_predictions, scores, golds, test_ids = eval_model(model, test_data,
+    test_metrics, test_predictions, scores, golds, test_ids = eval_model(model, test_data, collater,
                                                                          metric_meta=metric_meta,
                                                                          use_cuda=args.cuda, with_label=args.with_label)
 

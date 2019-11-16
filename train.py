@@ -7,6 +7,7 @@ from datetime import datetime
 from pprint import pprint
 import numpy as np
 import torch
+from torch.utils.data import Dataset, DataLoader, BatchSampler
 from pytorch_pretrained_bert.modeling import BertConfig
 from tensorboardX import SummaryWriter
 #from torch.utils.tensorboard import SummaryWriter
@@ -16,7 +17,7 @@ from mt_dnn.inference import eval_model
 from data_utils.log_wrapper import create_logger
 from data_utils.utils import set_environment
 from data_utils.task_def import TaskType, EncoderModelType
-from mt_dnn.batcher import BatchGen
+from mt_dnn.batcher import BatchGen, MTDNNDataset, Collater
 from mt_dnn.model import MTDNNModel
 
 
@@ -239,27 +240,19 @@ def main():
         dev_path = os.path.join(data_dir, '{}_dev.json'.format(dataset))
         dev_data = None
         if os.path.exists(dev_path):
-            dev_data = BatchGen(BatchGen.load(dev_path, False, task_type=task_type, maxlen=args.max_seq_len),
-                                batch_size=args.batch_size_eval,
-                                gpu=args.cuda, is_train=False,
-                                task_id=task_id,
-                                maxlen=args.max_seq_len,
-                                data_type=data_type,
-                                task_type=task_type,
-                                encoder_type=encoder_type)
+            dev_data_set = MTDNNDataset(dev_path, False, task_type=task_type, maxlen=args.max_seq_len)
+            collater = Collater(gpu=args.cuda, is_train=False, task_id=task_id, task_type=task_type,
+                                data_type=data_type, encoder_type=encoder_type)
+            dev_data = DataLoader(dev_data_set, batch_size=args.batch_size_eval, collate_fn=collater.collate_fn, pin_memory=args.cuda)
         dev_data_list.append(dev_data)
 
         test_path = os.path.join(data_dir, '{}_test.json'.format(dataset))
         test_data = None
         if os.path.exists(test_path):
-            test_data = BatchGen(BatchGen.load(test_path, False, task_type=task_type, maxlen=args.max_seq_len),
-                                 batch_size=args.batch_size_eval,
-                                 gpu=args.cuda, is_train=False,
-                                 task_id=task_id,
-                                 maxlen=args.max_seq_len,
-                                 data_type=data_type,
-                                 task_type=task_type,
-                                 encoder_type=encoder_type)
+            test_data_set = MTDNNDataset(test_path, False, task_type=task_type, maxlen=args.max_seq_len)
+            collater = Collater(gpu=args.cuda, is_train=False, task_id=task_id, task_type=task_type,
+                                data_type=data_type, encoder_type=encoder_type)
+            test_data = DataLoader(test_data_set, batch_size=args.batch_size_eval, collate_fn=collater.collate_fn, pin_memory=args.cuda)
         test_data_list.append(test_data)
 
     logger.info('#' * 20)
@@ -391,6 +384,7 @@ def main():
                 with torch.no_grad():
                     dev_metrics, dev_predictions, scores, golds, dev_ids= eval_model(model,
                                                                                     dev_data,
+                                                                                    collater,
                                                                                     metric_meta=task_defs.metric_meta_map[prefix],
                                                                                     use_cuda=args.cuda,
                                                                                     label_mapper=task_defs.global_map[prefix])
@@ -413,7 +407,7 @@ def main():
             test_data = test_data_list[idx]
             if test_data is not None:
                 with torch.no_grad():
-                    test_metrics, test_predictions, scores, golds, test_ids= eval_model(model, test_data,
+                    test_metrics, test_predictions, scores, golds, test_ids= eval_model(model, test_data, collater,
                                                                                         metric_meta=task_defs.metric_meta_map[prefix],
                                                                                         use_cuda=args.cuda, with_label=False,
                                                                                         label_mapper=task_defs.global_map[prefix])

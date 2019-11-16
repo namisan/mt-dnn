@@ -8,7 +8,7 @@ import json
 from pytorch_pretrained_bert.tokenization import BertTokenizer
 from data_utils.log_wrapper import create_logger
 from data_utils.utils import set_environment
-from mt_dnn.batcher import BatchGen
+from mt_dnn.batcher import Collater
 from mt_dnn.model import MTDNNModel
 from prepro_std import _truncate_seq_pair
 from data_utils.task_def import DataFormat, EncoderModelType, TaskType
@@ -194,13 +194,8 @@ def main():
     # process data
     data, is_single_sentence = process_data(args)
     data_type = DataFormat.PremiseOnly if is_single_sentence else DataFormat.PremiseAndOneHypothesis
-    batcher = BatchGen(
-        data,
-        batch_size=args.batch_size,
-        gpu=args.cuda,
-        is_train=False,
-        data_type=data_type)
-    batcher.reset()
+    collater = Collater(gpu=args.cuda, is_train=False, data_type=data_type)
+    batcher = DataLoader(data, batch_size=args.batch_size, collate_fn=collater.collate_fn, pin_memory=args.cuda)
     opt = vars(args)
     # load model
     if os.path.exists(args.checkpoint):
@@ -224,6 +219,7 @@ def main():
 
     features_dict = {}
     for batch_meta, batch_data in batcher:
+        batch_meta, batch_data = collater.patch_data(batch_meta, batch_data)
         all_encoder_layers, _ = model.extract(batch_meta, batch_data)
         embeddings = [all_encoder_layers[idx].detach().cpu().numpy()
                       for idx in layer_indexes]

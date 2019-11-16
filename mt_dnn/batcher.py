@@ -7,9 +7,35 @@ import random
 from shutil import copyfile
 from data_utils.task_def import TaskType, DataFormat
 from data_utils.task_def import EncoderModelType
+from torch.utils.data import Dataset, DataLoader, BatchSampler
 
 UNK_ID=100
 BOS_ID=101
+
+class MTDNNDataset(Dataset):
+    def __init__(self, path, is_train=True, maxlen=128, factor=1.0, task_type=None):
+        assert task_type is not None
+        with open(path, 'r', encoding='utf-8') as reader:
+            data = []
+            cnt = 0
+            for line in reader:
+                sample = json.loads(line)
+                sample['factor'] = factor
+                cnt += 1
+                if is_train:
+                    if (task_type == TaskType.Ranking) and (len(sample['token_id'][0]) > maxlen or len(sample['token_id'][1]) > maxlen):
+                        continue
+                    if (task_type != TaskType.Ranking) and (len(sample['token_id']) > maxlen):
+                        continue
+                data.append(sample)
+            print('Loaded {} samples out of {}'.format(len(data), cnt))
+        self._data = data
+
+    def __len__(self):
+        return len(self._data)
+
+    def __getitem__(self, idx):
+        return self._data[idx]
 
 class Collater:
     def __init__(self, gpu=True, 
