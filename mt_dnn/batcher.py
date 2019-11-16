@@ -85,11 +85,6 @@ class BatchGen:
         v = v.cuda(non_blocking=True)
         return v
 
-    @staticmethod
-    def todevice(v, device):
-        v = v.to(device)
-        return v
-
     def rebacth(self, batch):
         newbatch = []
         for sample in batch:

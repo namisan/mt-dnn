@@ -56,7 +56,7 @@ def data_config(parser):
     parser.add_argument('--tensorboard', action='store_true')
     parser.add_argument('--tensorboard_logdir', default='tensorboard_logdir')
     parser.add_argument("--init_checkpoint", default='mt_dnn_models/bert_model_base.pt', type=str)
-    parser.add_argument('--data_dir', default='data/canonical_data/mt_dnn_uncased_lower')
+    parser.add_argument('--data_dir', default='data/canonical_data/bert_uncased_lower')
     parser.add_argument('--data_sort_on', action='store_true')
     parser.add_argument('--name', default='farmer')
     parser.add_argument('--task_def', type=str, default="experiments/glue/glue_task_def.yml")
