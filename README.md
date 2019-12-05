@@ -33,6 +33,12 @@ Liyuan Liu, Haoming Jiang, Pengcheng He, Weizhu Chen, Xiaodong Liu, Jianfeng Gao
 On the Variance of the Adaptive Learning Rate and Beyond <br/>
 [arXiv version](https://arxiv.org/abs/1908.03265) <br/>
 
+Haoming Jiang, Pengcheng He, Weizhu Chen, Xiaodong Liu, Jianfeng Gao and Tuo Zhao <br/>
+SMART: Robust and Efficient Fine-Tuning for Pre-trained Natural Language Models through Principled Regularized Optimization <br/>
+[arXiv version](https://arxiv.org/abs/1911.03437) <br/>
+
+
+
 ## Quickstart
 
 ### Setup Environment
@@ -202,6 +208,14 @@ We also used some code from: https://github.com/kevinduh/san_mrc <br/>
   title={On the Variance of the Adaptive Learning Rate and Beyond},
   author={Liu, Liyuan and Jiang, Haoming and He, Pengcheng and Chen, Weizhu and Liu, Xiaodong and Gao, Jianfeng and Han, Jiawei},
   journal={arXiv preprint arXiv:1908.03265},
+  year={2019}
+}
+
+
+@article{jiang2019smart,
+  title={SMART: Robust and Efficient Fine-Tuning for Pre-trained Natural Language Models through Principled Regularized Optimization},
+  author={Jiang, Haoming and He, Pengcheng and Chen, Weizhu and Liu, Xiaodong and Gao, Jianfeng and Zhao, Tuo},
+  journal={arXiv preprint arXiv:1911.03437},
   year={2019}
 }
 ```
