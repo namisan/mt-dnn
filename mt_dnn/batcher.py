@@ -14,6 +14,10 @@ BOS_ID=101
 
 class MTDNNDataset(Dataset):
     def __init__(self, path, is_train=True, maxlen=128, factor=1.0, task_type=None):
+        self._data = self.load(path, is_train, maxlen, factor, task_type)
+        
+    @staticmethod
+    def load(path, is_train=True, maxlen=128, factor=1.0, task_type=None):
         assert task_type is not None
         with open(path, 'r', encoding='utf-8') as reader:
             data = []
@@ -29,7 +33,7 @@ class MTDNNDataset(Dataset):
                         continue
                 data.append(sample)
             print('Loaded {} samples out of {}'.format(len(data), cnt))
-        self._data = data
+        return data
 
     def __len__(self):
         return len(self._data)
@@ -181,7 +185,7 @@ class Collater:
                 tok = self.__random_select__(tok)
             token_ids[i, :select_len] = torch.LongTensor(tok[:select_len])
             type_ids[i, :select_len] = torch.LongTensor(sample['type_id'][:select_len])
-            masks[i, :select_len] = torch.LongTensor([1] * select_len)
+            masks[i, : select_len] = torch.LongTensor([1] * select_len)
             if self.__if_pair__(self.data_type):
                 hlen = len(sample['type_id']) - sum(sample['type_id'])
                 hypothesis_masks[i, :hlen] = torch.LongTensor([0] * hlen)
