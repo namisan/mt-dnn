@@ -36,11 +36,10 @@ class TaskDefs:
                 dropout_p_map[task] = task_def["dropout_p"]
             # loss map
             if "loss" in task_def:
-                losses = task_def["loss"]
-                loss_list = []
-                for loss in losses:
-                    loss_list.append(LossCriterion[loss])
-                loss_map[task] = loss_list
+                t_loss = task_def["loss"]
+                #import pdb; pdb.set_trace()
+                loss_crt = LossCriterion[t_loss]
+                loss_map[task] = loss_crt
 
         assert len(uniq_encoderType) == 1, 'The shared encoder has to be the same.'
         self.global_map = global_map

@@ -1,4 +1,8 @@
-import torch 
+# coding=utf-8
+# Copyright (c) Microsoft. All rights reserved.
+# Author: xiaodl@microsoft.com by October, 2019
+
+import torch
 from torch.nn.modules.loss import _Loss
 import torch.nn.functional as F
 from enum import IntEnum
@@ -45,7 +49,7 @@ class SeqCeCriterion(CeCriterion):
         loss = loss * self.alpha
         return loss
 
-class RegCriterion(Criterion):
+class MseCriterion(Criterion):
     def __init__(self, alpha=1.0, name='MSE Regression Criterion'):
         super().__init__()
         self.alpha = alpha
@@ -102,14 +106,14 @@ class SpanCeCriterion(Criterion):
 
 class LossCriterion(IntEnum):
     CeCriterion = 0
-    RegCriterion = 1
+    MseCriterion = 1
     RankCeCriterion = 2
     SpanCeCriterion = 3
     SeqCeCriterion = 4
 
 LOSS_REGISTRY = {
      LossCriterion.CeCriterion: CeCriterion,
-     LossCriterion.RegCriterion: RegCriterion,
+     LossCriterion.MseCriterion: MseCriterion,
      LossCriterion.RankCeCriterion: RankCeCriterion,
      LossCriterion.SpanCeCriterion: SpanCeCriterion,
      LossCriterion.SeqCeCriterion: SeqCeCriterion,

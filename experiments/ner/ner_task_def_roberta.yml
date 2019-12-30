@@ -19,6 +19,7 @@ ner:
   metric_meta:
   - SeqEval
   n_class: 12
+  loss: SeqCeCriterion
   split_names:
   - train
   - dev
@@ -82,6 +83,7 @@ pos:
   metric_meta:
   - SeqEval
   n_class: 49
+  loss: SeqCeCriterion
   split_names:
   - train
   - dev
@@ -119,6 +121,7 @@ chunk:
   metric_meta:
   - SeqEval
   n_class: 23
+  loss: SeqCeCriterion
   split_names:
   - train
   - dev

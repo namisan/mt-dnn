@@ -15,7 +15,7 @@ BOS_ID=101
 class MTDNNDataset(Dataset):
     def __init__(self, path, is_train=True, maxlen=128, factor=1.0, task_type=None):
         self._data = self.load(path, is_train, maxlen, factor, task_type)
-        
+
     @staticmethod
     def load(path, is_train=True, maxlen=128, factor=1.0, task_type=None):
         assert task_type is not None

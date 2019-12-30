@@ -116,8 +116,9 @@ class MTDNNModel(object):
         loss_types = config['loss_types']
         self.task_loss_criterion = []
         for idx, cs in enumerate(loss_types):
-            assert len(cs) > 0
-            lc = [LOSS_REGISTRY[c](name='Loss func of task {}: {}'.format(idx, c)) for c in cs]
+            print(cs)
+            assert cs is not None
+            lc = LOSS_REGISTRY[cs](name='Loss func of task {}: {}'.format(idx, cs))
             self.task_loss_criterion.append(lc)
 
     def train(self):
@@ -155,9 +156,9 @@ class MTDNNModel(object):
             else:
                 weight = batch_data[batch_meta['factor']]
         logits = self.mnetwork(*inputs)
-        loss = 0
-        for lc in self.task_loss_criterion[task_id]:
-            loss = loss + lc(logits, y, weight, ignore_index=-1)
+
+        # comput loss
+        loss = self.task_loss_criterion[task_id](logits, y, weight, ignore_index=-1)
 
         self.train_loss.update(loss.item(), batch_data[batch_meta['token_id']].size(0))
         # scale loss

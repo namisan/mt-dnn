@@ -8,8 +8,6 @@ class TaskType(IntEnum):
     Span = 4
     SeqenceLabeling = 5
 
-
-
 class DataFormat(IntEnum):
     PremiseOnly = 1
     PremiseAndOneHypothesis = 2
