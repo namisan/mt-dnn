@@ -80,7 +80,7 @@ def calc_metrics(metric_meta, golds, predictions, scores, label_mapper=None):
         metric_func = METRIC_FUNC[mm]
         if mm in (Metric.ACC, Metric.F1, Metric.MCC):
             metric = metric_func(predictions, golds)
-        elif mm == Metric.SeqMertirc:
+        elif mm == Metric.SeqEval:
             metric = metric_func(predictions, golds, label_mapper)
         else:
             if mm == Metric.AUC:

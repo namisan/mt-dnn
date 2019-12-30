@@ -33,6 +33,12 @@ Liyuan Liu, Haoming Jiang, Pengcheng He, Weizhu Chen, Xiaodong Liu, Jianfeng Gao
 On the Variance of the Adaptive Learning Rate and Beyond <br/>
 [arXiv version](https://arxiv.org/abs/1908.03265) <br/>
 
+Haoming Jiang, Pengcheng He, Weizhu Chen, Xiaodong Liu, Jianfeng Gao and Tuo Zhao <br/>
+SMART: Robust and Efficient Fine-Tuning for Pre-trained Natural Language Models through Principled Regularized Optimization <br/>
+[arXiv version](https://arxiv.org/abs/1911.03437) <br/>
+
+
+
 ## Quickstart
 
 ### Setup Environment
@@ -94,6 +100,12 @@ Here, we provide two examples, STS-B and RTE. You can use similar scripts to fin
 2. Training </br>
    ```> python train.py --data_dir <data-path> --init_checkpoint <bert/ner-model> --train_dataset ner --test_dataset ner --task_def experiments\ner\ner_task_def.py```
 
+### HNN
+The code to reproduce HNN is under `hnn` folder, to reproduce the results of HNN, run 
+
+```> hnn/script/hnn_train_large.sh```
+
+
 ### Extract embeddings
 1. Extracting embeddings of a pair text example </br>
    ```>python extractor.py --do_lower_case --finput input_examples\pair-input.txt --foutput input_examples\pair-output.json --bert_model bert-base-uncased --checkpoint mt_dnn_models\mt_dnn_base.pt``` </br>
@@ -123,11 +135,9 @@ Here, we go through how to convert a Chinese Tensorflow BERT model into mt-dnn f
    ```python scripts\convert_tf_to_pt.py --tf_checkpoint_root chinese_L-12_H-768_A-12\ --pytorch_checkpoint_path chinese_L-12_H-768_A-12\bert_base_chinese.pt```
 
 ### TODO
-- [x] MT-DNN with Knowledge Distillation code and model. <br/>
-- [x] Merged RAdam.
-- [x] Sequence Labeling.
-- [ ] Publish pretrained Tensorflow checkpoints.
-- [ ] Publish HNN code and model.
+
+- [ ] Release SMART/MT-DNN-SMART which outperforms T5. <br/>
+- [ ] Publish pretrained Tensorflow checkpoints. <br/>
 
 
 ## FAQ
@@ -196,6 +206,14 @@ We also used some code from: https://github.com/kevinduh/san_mrc <br/>
   title={On the Variance of the Adaptive Learning Rate and Beyond},
   author={Liu, Liyuan and Jiang, Haoming and He, Pengcheng and Chen, Weizhu and Liu, Xiaodong and Gao, Jianfeng and Han, Jiawei},
   journal={arXiv preprint arXiv:1908.03265},
+  year={2019}
+}
+
+
+@article{jiang2019smart,
+  title={SMART: Robust and Efficient Fine-Tuning for Pre-trained Natural Language Models through Principled Regularized Optimization},
+  author={Jiang, Haoming and He, Pengcheng and Chen, Weizhu and Liu, Xiaodong and Gao, Jianfeng and Zhao, Tuo},
+  journal={arXiv preprint arXiv:1911.03437},
   year={2019}
 }
 ```

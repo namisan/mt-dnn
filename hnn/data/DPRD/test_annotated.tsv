@@ -1,0 +1,565 @@
+sentence	pronoun_idx	pronoun	coref	candidates
+The sniper shot the terrorist because he was a bad guy.	38	he	the terrorist	The sniper,the terrorist
+The sniper shot the terrorist because he had orders.	38	he	The sniper	The sniper,the terrorist
+The chimpanzee could not use Linux because it was an animal.	43	it	The chimpanzee	The chimpanzee,Linux
+The chimpanzee could not use Linux because it uses different commands than Windows.	43	it	Linux	The chimpanzee,Linux
+Bill punched Bob in the face because he was being rude to Mary.	37	he	Bob	Bill,Bob
+Bill punched Bob in the face because he wanted to protect Mary.	37	he	Bill	Bill,Bob
+Carl borrowed a book from Richard, but the book was never returned to him.	70	him	Richard	Carl,Richard
+Carl borrowed a book from Richard, but the book was unreadable to him.	66	him	Carl	Carl,Richard
+Bill likes to play with Bob because he loves playing.	36	he	Bill	Bill,Bob
+Bill likes to play with Bob but he did not want to.	32	he	Bob	Bill,Bob
+The salesperson told Dave that this would be the best car he ever bought.	58	he	Dave	The salesperson,Dave
+The salesperson told Dave that this would be the best car he ever sold.	58	he	The salesperson	The salesperson,Dave
+The student wanted to ask the professor for help but decided not to because he was too scared.	76	he	The student	The student,the professor
+The student wanted to ask the professor for help but decided not to because he was too intimidating.	76	he	the professor	The student,the professor
+The student couldn't understand the teacher because he had an accent.	52	he	the teacher	The student,the teacher
+The student couldn't understand the teacher because he wasn't paying attention.	52	he	The student	The student,the teacher
+The campers turned on their flashlights because it was dark without them.	68	them	their flashlights	The campers,their flashlights
+The campers turned on their flashlights because the darkness scared them.	68	them	The campers	The campers,their flashlights
+Francis stopped and looked at the penguin because he was intrigued.	50	he	Francis	Francis,the penguin
+Francis stopped and looked at the penguin because he was cute.	50	he	the penguin	Francis,the penguin
+The off-campus apartments were preferred to the on-campus apartments because they were cheaper.	77	they	The off-campus apartments	The off-campus apartments,the on-campus apartments
+The off-campus apartments were preferred to the on-campus apartments because they were more expensive.	77	they	the on-campus apartments	The off-campus apartments,the on-campus apartments
+The general fired his pistol at the monster so he could be a distraction.	47	he	The general	The general,the monster
+The general fired his pistol at the monster so he turned and looked.	47	he	the monster	The general,the monster
+Liverpool lost to Manchester United because they had been mismanaged all season.	44	they	Liverpool	Liverpool,Manchester United
+Liverpool lost to Manchester United because they were a superior team.	44	they	Manchester United	Liverpool,Manchester United
+Rice beat Texas, even though they were a smaller school.	29	they	Rice	Rice,Texas
+Rice beat Texas, even though they were the best team in the nation.	29	they	Texas	Rice,Texas
+The state executes prisoners because they want justice.	37	they	The state	The state,prisoners
+The state executes prisoners because they were convicted of heinous crimes.	37	they	prisoners	The state,prisoners
+Jason built Rocky a robot, and he gave it to him.	31	he	Jason	Jason,Rocky
+Jason built Rocky a robot, so he had more free time.	30	he	Rocky	Jason,Rocky
+My heart pumps blood because it is liquid.	29	it	blood	My heart,blood
+My heart pumps blood because it is a muscle.	29	it	My heart	My heart,blood
+Joe smells better than Adam since he showers regularly.	34	he	Joe	Joe,Adam
+Joe smells better than Adam since he hardly ever showers.	34	he	Adam	Joe,Adam
+The pen is mightier than the sword because it can only stab things.	43	it	the sword	The pen,the sword
+The pen is mightier than the sword because it can be used to write world-changing documents.	43	it	The pen	The pen,the sword
+The cats attacked the humans because they were feral.	37	they	The cats	The cats,the humans
+The cats attacked the humans because they smelled like fish.	37	they	the humans	The cats,the humans
+Bob can beat Larry at arm wrestling because he has more muscles.	44	he	Bob	Bob,Larry
+Bob can beat Larry at arm wrestling because he is a toddler.	44	he	Larry	Bob,Larry
+Donald kicked King but he never cried.	23	he	King	Donald,King
+Donald kicked King but he never felt bad.	23	he	Donald	Donald,King
+Steve went to the meeting with John because he was asked to.	44	he	Steve	Steve,John
+Steve went to the meeting with John because he asked him to.	44	he	John	Steve,John
+Mary gave Sandy her book because she needed it.	33	she	Sandy	Mary,Sandy
+Mary gave Sandy her book because she is generous.	33	she	Mary	Mary,Sandy
+John visited Luke in the hospital because he was sick.	42	he	Luke	John,Luke
+John visited Luke in the hospital because he lived close by.	42	he	John	John,Luke
+John hired Bill because he needed someone.	24	he	John	John,Bill
+John fired Bill because he was incompetent.	24	he	Bill	John,Bill
+John introduced Bill because he knew everyone.	29	he	John	John,Bill
+John introduced Bill because he was new.	29	he	Bill	John,Bill
+John shot Bill and he was jailed.	19	he	John	John,Bill
+John shot Bill and he died.	19	he	Bill	John,Bill
+The Mad Hatter tried to offer a cup of tea to the March Hare, but his hat was too distracting.	66	his	The Mad Hatter	The Mad Hatter,the March Hare
+The Mad Hatter tried to offer a cup of tea to the March Hare, but his long ears were too distracting.	66	his	the March Hare	The Mad Hatter,the March Hare
+Richard blackmailed Senator Carson so that his silence would be secured.	43	his	Senator Carson	Richard,Senator Carson
+Richard blackmailed Senator Carson so that his rise to power would be secured.	43	his	Richard	Richard,Senator Carson
+Tradition dictated the captain hold the Stanley Cup first, and it was pretty.	63	it	the Stanley Cup	Tradition,the Stanley Cup
+Tradition dictated the captain hold the Stanley Cup first, and it is always followed.	63	it	Tradition	Tradition,the Stanley Cup
+The bat hit the ball because it was designed to hit.	29	it	The bat	The bat,the ball
+The bat hit the ball because it was designed to be hit.	29	it	the ball	The bat,the ball
+The program could successfully parse the file because it was programmed well.	54	it	The program	The program,the file
+The program could successfully parse the file because it was formatted well.	54	it	the file	The program,the file
+The article about the fires said that they torched most of Seattle.	38	they	the fires	The article,the fires
+The article about the fires said that they would research the situation further.	38	they	The article	The article,the fires
+The winners were given the awards after they won.	40	they	The winners	The winners,the awards
+The winners were given the awards after they were made.	40	they	the awards	The winners,the awards
+The man jumped on the neighbor's pool and he swam.	42	he	The man	The man,the neighbor
+The man jumped on the neighbor's pool and he stared.	42	he	the neighbor	The man,the neighbor
+The team shredded the report, so that it could rewrite a new one.	38	it	The team	The team,the report
+The team shredded the report, so that it could be rewritten.	38	it	the report	The team,the report
+Bob asked Tom if he could take him to the movies.	17	he	Bob	Bob,Tom
+Bob asked Tom if he could lend some money.	17	he	Tom	Bob,Tom
+Homer punched Flanders because he was being annoying.	31	he	Flanders	Homer,Flanders
+Homer punched Flanders because he was asked to.	31	he	Homer	Homer,Flanders
+Nelson punched Milhouse but he was not hurt.	28	he	Milhouse	Nelson,Milhouse
+Nelson punched Milhouse but he was not caught.	28	he	Nelson	Nelson,Milhouse
+The mermaid swam toward Sue and made her gasp.	37	her	Sue	The mermaid,Sue
+The mermaid swam toward Sue and waved her tail.	38	her	The mermaid	The mermaid,Sue
+The mother bear attacked Karen because she had gotten too close to her cub.	39	she	Karen	The mother bear,Karen
+The mother bear attacked Karen because she was worried for her cub.	39	she	The mother bear	The mother bear,Karen
+Mary smiled at Susan, but she did not smile back.	26	she	Susan	Mary,Susan
+Mary smiled at Susan, but she was not happy to see her.	26	she	Mary	Mary,Susan
+The leech latched onto the hippo so that it could enjoy the sunshine.	41	it	the hippo	The leech,the hippo
+The leech latched onto the hippo because it was hungry.	41	it	The leech	The leech,the hippo
+The people protested the government because they were hungry.	44	they	The people	The people,the government
+The people protested the government because they were raising taxes.	44	they	the government	The people,the government
+I drank the beer with a lime because it was cold.	37	it	the beer	the beer,a lime
+I drank the beer with a lime because it was sour.	37	it	a lime	the beer,a lime
+The employer talked to the employee about being loyal to him.	57	him	The employer	The employer,the employee
+The employer talked to the employee about firing him.	49	him	the employee	The employer,the employee
+A chicken pecked at a bug and it ate it.	30	it	A chicken	A chicken,a bug
+A chicken pecked at a bug and it ran away.	30	it	a bug	A chicken,a bug
+The dogs hate the fleas because they suck blood.	32	they	the fleas	The dogs,the fleas
+The dogs hate the fleas because they hate bugs.	32	they	The dogs	The dogs,the fleas
+Steven Seagal challenged Jean Claude Van Damme to a fight because he wanted to prove he was the stronger man.	66	he	Steven Seagal	Steven Seagal,Jean Claude Van Damme
+Steven Seagal challenged Jean Claude Van Damme to a fight because he is a worthy opponent.	66	he	Jean Claude Van Damme	Steven Seagal,Jean Claude Van Damme
+Girls like puppies because they are adorable.	27	they	puppies	Girls,puppies
+Girls like puppies because they like adorable things.	27	they	Girls	Girls,puppies
+Jack got more votes than John because the people liked him.	55	him	Jack	Jack,John
+Jack got more votes than John because the people did not like him.	62	him	John	Jack,John
+The car passed the truck because it was going too slow.	33	it	the truck	The car,the truck
+The car passed the truck because it needed to go faster.	33	it	The car	The car,the truck
+My phone is working better than your phone because it is a newer model.	51	it	My phone	My phone,your phone
+My phone is working better than your phone because it is broken.	51	it	your phone	My phone,your phone
+Raja wanted Rena to take the job because he would be a good candidate.	41	he	Rena	Raja,Rena
+Raja wanted Rena to take the job because he wanted to leave.	41	he	Raja	Raja,Rena
+Sheila tried to repair the old jalopy, even though she had not run in three decades.	51	she	the old jalopy	Sheila,the old jalopy
+Sheila tried to repair the old jalopy, even though she had not worked on cars in three decades.	51	she	Sheila	Sheila,the old jalopy
+The ghost entered the house because it was haunting.	36	it	The ghost	The ghost,the house
+The ghost entered the house because it was haunted.	36	it	the house	The ghost,the house
+The boy escaped the cop but he continued to flee.	28	he	The boy	The boy,the cop
+The boy escaped the cop but he continued to search.	28	he	the cop	The boy,the cop
+The needle punctured the skin but it failed to register pain.	34	it	the skin	The needle,the skin
+The needle punctured the skin but it failed to administer pain.	34	it	The needle	The needle,the skin
+The lion saw the fish and it pounced.	26	it	The lion	The lion,the fish
+The lion saw the fish and it was swimming.	26	it	the fish	The lion,the fish
+The clown smiled at the child and he cried.	34	he	the child	The clown,the child
+The clown smiled at the child and he offered him a balloon.	34	he	The clown	The clown,the child
+The scientists gave the chimps some bananas because they were hungry.	52	they	the chimps	the chimps,some bananas
+The scientists gave the chimps some bananas because they were ripe.	52	they	some bananas	the chimps,some bananas
+The boss fired the worker when he stopped performing well.	31	he	the worker	The boss,the worker
+The boss fired the worker when he called him into the office.	31	he	The boss	The boss,the worker
+The outlet powered the lamp when it had electricity.	33	it	The outlet	The outlet,the lamp
+The outlet powered the lamp when it was plugged in.	33	it	the lamp	The outlet,the lamp
+The paintball player was mad at the referee because he missed a call.	52	he	the referee	The paintball player,the referee
+The paintball player was mad at the referee because he was called out but shouldn't.	52	he	The paintball player	The paintball player,the referee
+The network heads cancelled the TV shows because they were not doing well.	49	they	the TV shows	The network heads,the TV shows
+The network heads cancelled the TV shows because they did not like the content.	49	they	The network heads	The network heads,the TV shows
+The cheetah outran the antelope so it got to eat.	35	it	The cheetah	The cheetah,the antelope
+The cheetah outran the antelope so it got eaten.	35	it	the antelope	The cheetah,the antelope
+The keys typed the words because they were meant to be typed.	33	they	the words	The keys,the words
+The keys typed the words because they were meant to be typed on.	33	they	The keys	The keys,the words
+The racquetball players were annoyed by the other students in the activity center because they were using the racquetball courts to play badminton.	90	they	the other students	The racquetball players,the other students
+The racquetball players were annoyed by the other students in the activity center because they wanted to play and couldn't.	90	they	The racquetball players	The racquetball players,the other students
+The teachers scolded the students because they would not learn the material.	42	they	the students	The teachers,the students
+The teachers scolded the students because they were the authority figures.	42	they	The teachers	The teachers,the students
+The plane was in the sky and it was fast.	29	it	The plane	The plane,the sky
+The plane was in the sky and it was cloudy.	29	it	the sky	The plane,the sky
+Joe crashed into Mike and he had to pay for the damage.	26	he	Mike	Joe,Mike
+Joe crashed into Mike because he needed a place to sleep.	30	he	Joe	Joe,Mike
+The man shot his friend and he died.	28	he	his friend	The man,his friend
+The man shot his friend and he was arrested.	28	he	The man	The man,his friend
+The man killed the boss because he hated the job.	32	he	The man	The man,the boss
+The man killed the boss because he fired him.	32	he	the boss	The man,the boss
+Joe raced against Steven because he thought it would be easy.	33	he	Joe	Joe,Steven
+Joe raced against Steven because he would not say no.	33	he	Steven	Joe,Steven
+The light hit the mirror and it reflected.	29	it	The light	The light,the mirror
+The light hit the mirror and it shattered.	29	it	the mirror	The light,the mirror
+Google Plus is expected to be a replacement for Facebook but it still does not have enough active users.	61	it	Google Plus	Google Plus,Facebook
+Google Plus is expected to be a replacement for Facebook but it still has a lot more active users.	61	it	Facebook	Google Plus,Facebook
+The spear easily pierced through the armor because it was too sharp.	51	it	The spear	The spear,the armor
+The spear easily pierced through the armor because it was too thin.	51	it	the armor	The spear,the armor
+The cat caught the mouse because it was clever.	33	it	The cat	The cat,the mouse
+The cat caught the mouse because it was careless.	33	it	the mouse	The cat,the mouse
+Joseph did not defeat William in the match, so he paid $100.	47	he	Joseph	Joseph,William
+Joseph did not defeat William in the match, so he earned $100.	47	he	William	Joseph,William
+Adam failed to kill Alexander, so he hired a bodygaurd in case of a second attempt.	34	he	Alexander	Adam,Alexander
+Adam failed to kill Alexander, so he hired an assassin for the second attempt.	34	he	Adam	Adam,Alexander
+The bowl had a crack, so it was filled in.	25	it	a crack	The bowl,a crack
+The bowl had a crack, so it was thrown away.	25	it	The bowl	The bowl,a crack
+The student told the instructor that he was sick.	37	he	The student	The student,the instructor
+The student told the instructor that he talked fast.	37	he	the instructor	The student,the instructor
+Joe put Bob in the time machine and he went to the future.	36	he	Bob	Joe,Bob
+Joe put Bob in the time machine and he created another one.	36	he	Joe	Joe,Bob
+Bill asked Joe if he could borrow some money.	18	he	Bill	Bill,Joe
+Bill asked Joe if he had any money.	18	he	Joe	Bill,Joe
+The chef held the waiter so that he would not flee.	33	he	the waiter	The chef,the waiter
+The chef held the waiter so that he did not fall off.	33	he	The chef	The chef,the waiter
+Tony helped Jeff because he wanted to help.	25	he	Tony	Tony,Jeff
+Tony helped Jeff because he needed help.	25	he	Jeff	Tony,Jeff
+The cat was afraid of the dog because it was scary.	38	it	the dog	The cat,the dog
+The cat was afraid of the dog because it was timid.	38	it	The cat	The cat,the dog
+The violin fell off the table because someone knocked it off.	54	it	The violin	The violin,the table
+The violin fell off the table because it was unstable.	38	it	the table	The violin,the table
+Lily gave Amber a hug because she was sad.	30	she	Amber	Lily,Amber
+Lily gave Amber a hug because she was sorry.	30	she	Lily	Lily,Amber
+The birds ate the seeds because they were hungry.	32	they	The birds	The birds,the seeds
+The birds ate the seeds because they were tasty.	32	they	the seeds	The birds,the seeds
+Josie did not like Sarah, but she did not know it.	30	she	Sarah	Josie,Sarah
+Josie did not like Sarah, but she did not tell her.	30	she	Josie	Josie,Sarah
+Ken tried to sneak past the boss because he was late for work.	41	he	Ken	Ken,the boss
+Ken tried to sneak past the boss because he was looking for late people.	41	he	the boss	Ken,the boss
+The hyenas scavenged from the lions because they were desperate.	44	they	The hyenas	The hyenas,the lions
+The hyenas scavenged from the lions because they had left scraps.	44	they	the lions	The hyenas,the lions
+The fisherman hooked a big fish but he got away.	36	he	a big fish	The fisherman,a big fish
+The fisherman hooked a big fish but he dropped his pole.	36	he	The fisherman	The fisherman,a big fish
+The geology department petitioned the school board for money because they needed funding.	69	they	The geology department	The geology department,the school board
+The geology department petitioned the school board for money because they could grant funding.	69	they	the school board	The geology department,the school board
+George scored against Thomas in the shootout, so he won the game.	49	he	George	George,Thomas
+George scored against Thomas in the shootout, so he lost the game.	49	he	Thomas	George,Thomas
+Lakshman asked Vivan to get him some ice cream because he was hot.	55	he	Lakshman	Lakshman,Vivan
+Lakshman asked Vivan to get him some ice cream because he owed him money.	55	he	Vivan	Lakshman,Vivan
+Yuri owed Ivan money because he paid for the vodka.	29	he	Ivan	Yuri,Ivan
+Yuri owed Ivan money because he lost the bet.	29	he	Yuri	Yuri,Ivan
+Steve hired Jose because he was a hard worker.	25	he	Jose	Steve,Jose
+Steve hired Jose because he could not find anyone better.	25	he	Steve	Steve,Jose
+The outlaw shot the sheriff, but he did not shoot the deputy.	33	he	The outlaw	The outlaw,the sheriff
+The outlaw shot the sheriff, but he shot back.	33	he	the sheriff	The outlaw,the sheriff
+Kelly neglected to tell Katie that their rent was due, but she told her later.	59	she	Kelly	Kelly,Katie
+Kelly neglected to tell Katie that their rent was due, but she remembered that it was due on the first of every month.	59	she	Katie	Kelly,Katie
+The committee increased the price of the tickets to the dance for the students, but they did not like it.	84	they	the students	The committee,the students
+The committee increased the price of the tickets to the dance for the students, but they changed their decision later.	84	they	The committee	The committee,the students
+John wanted George to run for President because he was a great governor.	48	he	George	John,George
+John wanted George to run for President because he did not want to.	48	he	John	John,George
+Olivia wants to make amends with Emily, but she is apprehensive.	44	she	Olivia	Olivia,Emily
+Olivia wants to make amends with Emily, but she no longer wants to be friends.	44	she	Emily	Olivia,Emily
+Jill saw Jane fall down, and she helped her up.	29	she	Jill	Jill,Jane
+Jill saw Jane fall down, and she asked her for help.	29	she	Jane	Jill,Jane
+Larry purchased some of Marty's Lemonade, and he made money.	46	he	Marty	Larry,Marty
+Larry purchased some of Marty's Lemonade, and he wanted the recipe.	46	he	Larry	Larry,Marty
+The professor gave the student a bad grade because he did not study.	51	he	the student	The professor,the student
+The professor gave the student a bad grade because he was strict.	51	he	The professor	The professor,the student
+We took the books to the shops because they were old.	39	they	the books	the books,the shops
+We took the books to the shops because they would buy them.	39	they	the shops	the books,the shops
+We gave the fruit to the humans because they were hungry.	40	they	the humans	the fruit,the humans
+We gave the fruit to the humans because they were ripe.	40	they	the fruit	the fruit,the humans
+Battlefield 3 is more fun than Modern Warfare 3 because it is a better game.	56	it	Battlefield 3	Battlefield 3,Modern Warfare 3
+Battlefield 3 is more fun than Modern Warfare 3 because it is a crappy game.	56	it	Modern Warfare 3	Battlefield 3,Modern Warfare 3
+John attacked Tim because he hates communists.	26	he	John	John,Tim
+John attacked Tim because he was a communist.	26	he	Tim	John,Tim
+Someone hit Billy in the face because he was angry.	38	he	Someone	Someone,Billy
+Someone hit Billy in the face because he was being rude.	38	he	Billy	Someone,Billy
+Joe has more money than Adam since he has a better job.	35	he	Joe	Joe,Adam
+Joe has more money than Adam since he has no job.	35	he	Adam	Joe,Adam
+Pigs are better than sheep because they make bacon.	35	they	Pigs	Pigs,sheep
+Pigs are better than sheep because they do not make bacon.	35	they	sheep	Pigs,sheep
+The car beat the bike because it was faster.	30	it	The car	The car,the bike
+The car beat the bike because it was too slow.	30	it	the bike	The car,the bike
+The blimp hit the tree because it lost air.	31	it	The blimp	The blimp,the tree
+The blimp hit the tree because it was in the way.	31	it	the tree	The blimp,the tree
+Bob sued Bill because he was embezzling funds.	22	he	Bill	Bob,Bill
+Bob sued Bill because he wanted more money.	22	he	Bob	Bob,Bill
+I gave the donkey some food because it was hungry.	36	it	the donkey	some food,the donkey
+I gave the donkey some food because it was fresh.	36	it	some food	some food,the donkey
+The humans were afraid of the robots because they were weak.	45	they	The humans	The humans,the robots
+The humans were afraid of the robots because they were strong.	45	they	the robots	The humans,the robots
+The Playstation is outperforming the Xbox because it has better games.	50	it	The Playstation	The Playstation,the Xbox
+The Playstation is outperforming the Xbox because it is prone to hardware failure.	50	it	the Xbox	The Playstation,the Xbox
+Sean is better than Watson at anaphora resolution because he can naturally understand natural language.	58	he	Sean	Sean,Watson
+Sean is better than Watson at anaphora resolution because he has trouble understanding natural language.	58	he	Watson	Sean,Watson
+Sentient machines will kill all humans because they have giant death rays.	47	they	Sentient machines	Sentient machines,all humans
+Sentient machines will kill all humans because they are inferior beings.	47	they	all humans	Sentient machines,all humans
+Watson beat Ken at Jeopardy because he is a superior machine.	36	he	Watson	Watson,Ken
+Watson beat Ken at Jeopardy because he is an inferior human.	36	he	Ken	Watson,Ken
+Larry trusted Page because Bill told him to.	37	him	Larry	Larry,Page
+Larry trusted Page because Bill knows him.	38	him	Page	Larry,Page
+Cosby supported Jay because Thea really liked him.	46	him	Jay	Cosby,Jay
+Cosby supported Jay because Thea asked him to.	39	him	Cosby	Cosby,Jay
+Jace loves Jesus because he died for him.	25	he	Jesus	Jace,Jesus
+Jace loves Jesus because he tasted his goodness.	25	he	Jace	Jace,Jesus
+Olga kicked Sara because she woke her up.	25	she	Sara	Olga,Sara
+Olga kicked Sara because she was drunk.	25	she	Olga	Olga,Sara
+Nola shot Christina in the head because she threatened to take all of her money.	40	she	Christina	Nola,Christina
+Nola shot Christina in the head because she thought it was a good idea to kill a human being.	40	she	Nola	Nola,Christina
+Rebecca kissed Dina because she loves her.	28	she	Rebecca	Rebecca,Dina
+Rebecca kissed Dina because she is a sweet girl.	28	she	Dina	Rebecca,Dina
+Mom brought Sara from school early because she was sick.	43	she	Sara	Mom,Sara
+Mom brought Sara from school early because she had an early meeting.	43	she	Mom	Mom,Sara
+Gorden got mad at his brother because he forgot to bring him chocolate.	38	he	his brother	Gorden,his brother
+Gorden got mad at his brother because he did not get good sleep.	38	he	Gorden	Gorden,his brother
+John asked Bill because he was confused.	24	he	John	John,Bill
+John asked Bill because he knew the answer.	24	he	Bill	John,Bill
+John rated Bill because he was the judge.	24	he	John	John,Bill
+John rated Bill because he was a contestant.	24	he	Bill	John,Bill
+John called Bill because he needed someone to talk to.	25	he	John	John,Bill
+John called Bill because he was a good listener.	25	he	Bill	John,Bill
+John killed Bill because he was fighting for his life.	25	he	John	John,Bill
+John killed Bill because he was a zombie.	25	he	Bill	John,Bill
+Billy beat Tommy at Scrabble because that newbie had no skill.	37	that newbie	Tommy	Billy,Tommy
+Billy beat Tommy at Scrabble because that newbie had all the luck.	37	that newbie	Billy	Billy,Tommy
+Mary had a little lamb until she was stolen by Cindy.	29	she	a little lamb	Mary,a little lamb
+Mary had a little lamb until she had lamb chops for dinner.	29	she	Mary	Mary,a little lamb
+The wolves chased the deer because they were predators.	35	they	The wolves	The wolves,the deer
+The wolves chased the deer because they were prey.	35	they	the deer	The wolves,the deer
+The girls ate the apples because they were hungry.	33	they	The girls	The girls,the apples
+The girls ate the apples because they were ripe.	33	they	the apples	The girls,the apples
+The minister befriended King George so he would not get beheaded.	39	he	The minister	The minister,King George
+The minister befriended King George so he could have some friends.	39	he	King George	The minister,King George
+Mary likes Joe because she has a cool name.	23	she	Joe	Mary,Joe
+Mary likes Joe because she likes females.	23	she	Mary	Mary,Joe
+The bat hit the ball because it flew in the way of the trajectory.	29	it	The bat	The bat,the ball
+The bat hit the ball because it flew straight at the poor animal.	29	it	the ball	The bat,the ball
+The knife sliced through the flesh because it was sharp.	43	it	The knife	The knife,the flesh
+The knife sliced through the flesh because it was tender.	43	it	the flesh	The knife,the flesh
+The boy lied to his father about the crime, but he still felt uneasy and was slowly overcome with guilt.	48	he	The boy	The boy,his father
+The boy lied to his father about the crime, but he still felt uneasy and was slowly overcome with curiosity.	48	he	his father	The boy,his father
+The apple wine entered my mouth because it tastes good.	40	it	The apple wine	The apple wine,my mouth
+The apple wine entered my mouth because it was not full.	40	it	my mouth	The apple wine,my mouth
+The boy helped his friend move because he was going to be free all day.	39	he	The boy	The boy,his friend
+The boy helped his friend move because he was going to be busy all day.	39	he	his friend	The boy,his friend
+The boy secretly watched his friend because he wanted the secret information.	44	he	The boy	The boy,his friend
+The boy secretly watched his friend because he had the secret information.	44	he	his friend	The boy,his friend
+The bug was flying towards the light, but it was exterminated prematurely.	42	it	The bug	The bug,the light
+The bug was flying towards the light, but it was extinguished prematurely.	42	it	the light	The bug,the light
+The man offered the boy candy, but he had no candy.	35	he	The man	The man,the boy
+The man offered the boy candy, but he got no candy.	35	he	the boy	The man,the boy
+Paul screamed at Jack since he was angry.	28	he	Paul	Paul,Jack
+Paul screamed at Jack since he was ignoring him.	28	he	Jack	Paul,Jack
+The baby cow cried at the farmer because he wanted milk.	41	he	The baby cow	The baby cow,the farmer
+The baby cow cried at the farmer because he had milk.	41	he	the farmer	The baby cow,the farmer
+My teacher asked a student to make sentences because he was late to class.	53	he	a student	My teacher,a student
+My teacher asked a student to make sentences because he wanted to see him write.	53	he	My teacher	My teacher,a student
+The gym teachers trained the students because they wanted to teach them discipline.	46	they	The gym teachers	The gym teachers,the students
+The gym teachers trained the students because they wanted to become better players.	46	they	the students	The gym teachers,the students
+The Skyline drifts better than the F-150 because it is well balanced.	49	it	The Skyline	The Skyline,the F-150
+The Skyline drifts better than the F-150 because it is not meant to drift.	49	it	the F-150	The Skyline,the F-150
+The city council granted a permit to the construction workers because they were well qualified.	70	they	the construction workers	The city council,the construction workers
+The city council granted a permit to the construction workers because they were elected to encourage business.	70	they	The city council	The city council,the construction workers
+Rick Perry is doing stronger than Mitt Romney in the polls, but he is coming back as a strong candidate.	64	he	Mitt Romney	Rick Perry, Mitt Romney
+Rick Perry is doing stronger than Mitt Romney in the polls, but he is confident to maintain the lead.	64	he	Rick Perry	Rick Perry, Mitt Romney
+The Detroit Lions beat the Dallas Cowboys because they had more desire to win.	50	they	The Detroit Lions	The Detroit Lions,the Dallas Cowboys
+The Detroit Lions beat the Dallas Cowboys because they were unprepared.	50	they	the Dallas Cowboys	The Detroit Lions,the Dallas Cowboys
+James Cameron is more successful than Michael Bay because his movies sell more worldwide.	58	his	James Cameron	James Cameron,Michael Bay
+James Cameron is more successful than Michael Bay because his movies do not create as much hype.	58	his	Michael Bay	James Cameron,Michael Bay
+Audrey Hepburn made more movies than Katherine Hepburn because she was pretty and talented.	63	she	Audrey Hepburn	Audrey Hepburn,Katherine Hepburn
+Audrey Hepburn made more movies than Katherine Hepburn because she was not as good at acting.	63	she	Katherine Hepburn	Audrey Hepburn,Katherine Hepburn
+The Penguins scored two goals against the Flyers in two minutes because they were not concentrating.	72	they	the Flyers	The Penguins,the Flyers
+The Penguins scored two goals against the Flyers in two minutes because they are more skilled.	72	they	The Penguins	The Penguins,the Flyers
+Taylor Swift is higher in record sales over Beyonce because more people can relate to her music.	86	her	Taylor Swift	Taylor Swift,Beyonce
+Taylor Swift is higher in record sales over Beyonce because people are not passionate about her music.	92	her	Beyonce	Taylor Swift,Beyonce
+Fox News is more popular in ratings than CNN since they are more interesting.	51	they	Fox News	Fox News,CNN
+Fox News is more popular in ratings than CNN since they are boring.	51	they	CNN	Fox News,CNN
+The Autobots try to stop the Decepticons since they want the world to live in peace.	47	they	The Autobots	The Autobots,the Decepticons
+The Autobots try to stop the Decepticons since they want to destroy the world.	47	they	the Decepticons	The Autobots,the Decepticons
+Californians are better than New Yorkers because they have Hollywood.	49	they	Californians	Californians,New Yorkers
+Californians are better than New Yorkers because they do not have Hollywood lots to produce movies.	49	they	New Yorkers	Californians,New Yorkers
+The Mongolians attacked the Chinese because they are always eager for war.	44	they	The Mongolians	The Mongolians,the Chinese
+The Mongolians attacked the Chinese because they are pacifists.	44	they	the Chinese	The Mongolians,the Chinese
+Jupiter is bigger than the Earth, but it is lighter due to being mostly gas.	38	it	Jupiter	Jupiter,the Earth
+Jupiter is bigger than the Earth, but it is heavier due to being solid.	38	it	the Earth	Jupiter,the Earth
+Brick is better than clay for building houses because they are much stronger building materials.	54	they	Brick	Brick,clay
+Brick is better than clay for building houses because they become weak from water.	54	they	clay	Brick,clay
+The Dallas Cowboys are more successful as a franchise than the Saints because they are considered "America's Team".	78	they	The Dallas Cowboys	The Dallas Cowboys,the Saints
+The Dallas Cowboys are more successful as a franchise than the Saints because they do not have the same amount of market value.	78	they	the Saints	The Dallas Cowboys,the Saints
+The US government declared war on Iraq because they were responding to their attack on US soil.	47	they	The US government	The US government,Iraq
+The US government declared war on Iraq because they attacked on US soil.	47	they	Iraq	The US government,Iraq
+The Home Owners Association denied the request by the Pittsburg family for a new shed since they failed to pay the annual fee.	92	they	the Pittsburg family	The Home Owners Association,the Pittsburg family
+The Home Owners Association denied the request by the Pittsburg family for a new shed since they felt it would not be good for the community.	92	they	The Home Owners Association	The Home Owners Association,the Pittsburg family
+Fleece feels better than cotton since they are much softer.	38	they	Fleece	Fleece,cotton
+Fleece feels better than cotton since they are of worse quality.	38	they	cotton	Fleece,cotton
+The Police feared allowing the protesters to organize, so they denied their ability to gather.	58	they	The Police	The Police,the protesters
+The Police feared allowing the protesters to organize, but they decided to organize anyway.	59	they	the protesters	The Police,the protesters
+The government revoked the ability for oil companies to drill in the United States since they are trying to protect the environment.	89	they	The government	The government,oil companies
+The government revoked the ability for oil companies to drill in the United States since they are trying to drill for more oil reserves.	89	they	oil companies	The government,oil companies
+The Military Police threw the army recruits in the brig since they were causing a distrubance in the neighboring town.	62	they	the army recruits	The Military Police,the army recruits
+The Military Police threw the army recruits in the brig since they were enforcing the rules of being in the army.	62	they	The Military Police	The Military Police,the army recruits
+Harvey Dent blames the Batman for losing his love because he did not save her.	58	he	the Batman	Harvey Dent,the Batman
+Harvey Dent blames the Batman for losing his love because he was saved instead of his girlfriend.	58	he	Harvey Dent	Harvey Dent,the Batman
+Intel performs better than AMD in the processing market, but they do not do as well in the graphics market.	61	they	Intel	Intel,AMD
+Intel Performs better than AMD in the processing market, but they are more successful in the graphics market instead.	61	they	AMD	Intel,AMD
+The football players went on strike against the NFL organization, but they will play again when their demands are met.	70	they	The football players	The football players,the NFL organization
+The football players went on strike against the NFL organization, but they will consider their demands to send the strike.	70	they	the NFL organization	The football players,the NFL organization
+Disney World offers a much wider array of rides than Six Flags since they have a much larger budget due to their merchandising.	69	they	Disney World	Disney World,Six Flags
+Disney World offers a much wider array of rides than Six Flags since they are more limited on budget due to not having other sources of revenue.	69	they	Six Flags	Disney World,Six Flags
+South Korea does not like North Korea because they are constantly threatening their peace.	46	they	North Korea	South Korea,North Korea
+South Korea does not like North Korea because they are always forced to defend their peace.	46	they	South Korea	South Korea,North Korea
+The prosecutor viciously attacked the defendants since they are trying to convict them of the crime.	55	they	The prosecutor	The prosecutor,the defendants
+The prosecutor viciously attacked the defendants since they are trying to convict their client of a crime.	55	they	the defendants	The prosecutor,the defendants
+The ruling class treats the citizens poorly because they are superior.	52	they	The ruling class	The ruling class,the citizens
+The ruling class treats the citizens poorly because they are inferior.	52	they	the citizens	The ruling class,the citizens
+Bill Gates is similar to Steve Jobs, but he is the previous CEO of Microsoft.	41	he	Bill Gates	Bill Gates,Steve Jobs
+Bill Gates is similar to Steve Jobs, but he is the previous CEO of Apple.	41	he	Steve Jobs	Bill Gates,Steve Jobs
+Bill Clinton speaks better than George Bush, since he is a practiced orator.	51	he	Bill Clinton	Bill Clinton,George Bush
+Bill Clinton speaks better than George Bush, since he is not a practiced orator.	51	he	George Bush	Bill Clinton,George Bush
+Federer consistently beat Nadal since he was the better tennis player.	38	he	Federer	Federer,Nadal
+Federer consistently beat Nadal since he was the worse tennis player.	38	he	Nadal	Federer,Nadal
+Internet Explorer believes they have less security holes than Firefox, but they conducted the tests themselves.	27	they	Internet Explorer	Internet Explorer,Firefox
+Internet Explorer believes they have less security holes than Firefox, but they do not trust Microsoft's test results.	27	they	Firefox	Internet Explorer,Firefox
+President Clinton pardoned Roger Clinton because he wanted to free his half-brother.	49	he	President Clinton	President Clinton,Roger Clinton
+President Clinton pardoned Roger Clinton because he was the president's half-brother.	49	he	Roger Clinton	President Clinton,Roger Clinton
+Sony recently locked 90000 users from their accounts because they had been been compromised.	61	they	90000 users	Sony,90000 users
+Sony recently locked 90000 users from their accounts because they had hackers compromise their customer's information.	61	they	Sony	Sony,90000 users
+Harley hides from Dyna because she is afraid of her.	31	she	Harley	Harley,Dyna
+Harley hides from Dyna because she is scary.	31	she	Dyna	Harley,Dyna
+Toyota has the luxury brand Lexus: they are built for the rich.	35	they	Lexus	Lexus,Toyota
+Toyota has the luxury brand Lexus, although they typically sell for the average consumer.	44	they	Toyota	Lexus,Toyota
+Batman constantly tries to arrest the Joker, but he is also a vigilante.	49	he	Batman	Batman,the Joker
+Batman constantly tried to arrest the Joker, but he always manages to get out.	49	he	the Joker	Batman,the Joker
+Netflix recently split their DVD service to site Qwikster, but they quickly removed the move due to public backlash.	63	they	Netflix	Netflix,Qwikster
+Netflix recently split their DVD service to site Qwikster, but they had a short lived life for the site.	63	they	Qwikster	Netflix,Qwikster
+Canada is bigger than the United Kingdom, but they do not have the population to back it up.	46	they	Canada	Canada,the United Kingdom
+Canada is bigger than the United Kingdom, but they have a much larger population.	46	they	the United Kingdom	Canada,the United Kingdom
+Gamers are generally perceived as nerds compared to athletes since they are stereotypically anti-social.	67	they	Gamers	Gamers,athletes
+Gamers are generally perceived as nerds compared to athletes since they are stereotypically social and in good shape.	67	they	athletes	Gamers,athletes
+Ray William Johnson surpassed NigaHiga in Youtube subscribers, but he considers that being number two is still a huge achievement.	67	he	NigaHiga	Ray William Johnson,NigaHiga
+Ray William Johnson surpassed NigaHiga in Youtube subscribers, but he wants to increase the gap even more.	67	he	Ray William Johnson	Ray William Johnson,NigaHiga
+The management provided bonuses to the employees since they wanted to keep their workers happy at the company.	55	they	The management	The management,the employees
+The management provided bonuses to the employees since they need to be kept happy to stay productive.	55	they	the employees	The management,the employees
+The disease center quarantined the people since they were afraid of the outbreak spreading.	48	they	The disease center	The disease center,the people
+The disease center quarantined the people because they may be infected.	50	they	the people	The disease center,the people
+The security team locked the scientists inside the building because they had to keep confidential information inside.	68	they	The security team	The security team,the scientists
+The security team locked the scientists inside the building since they had access to confidential materials that need to be kept secret.	66	they	the scientists	The security team,the scientists
+The FDA revoked the medical licenses of corrupt doctors since they enforce strict medical guidelines.	62	they	The FDA	The FDA,corrupt doctors
+The FDA revoked the medical licenses of corrupt doctors because they have been improperly issuing drugs.	64	they	corrupt doctors	The FDA,corrupt doctors
+Christian Bale once lost his temper at the man holding his lighting because he has a short temper.	76	he	Christian Bale	Christian Bale,the man
+Christian Bale once lost his temper at the man holding his lighting, but he did not do anything that earned getting yelled at.	73	he	the man	Christian Bale,the man
+Andrea threw a promotion party in honor of Lindsay since she recently got promoted.	57	she	Lindsay	Andrea,Lindsay
+Andrea threw a promotion party in honor of Lindsay because she wanted to do something special for her.	59	she	Andrea	Andrea,Lindsay
+Michael Phelps was fined by Judge Louis because he was caught with illegal drugs.	48	he	Michael Phelps	Michael Phelps,Judge Louis
+Michael Phelps was fined by Judge Louis because he has to uphold federal law.	48	he	Judge Louis	Michael Phelps,Judge Louis
+Lloyd traded his truck to Roger for his motorcycle since he wanted to have a truck.	57	he	Roger	Lloyd,Roger
+Lloyd traded his truck to Roger for his motorcycle since he preferred a small vehicle.	57	he	Lloyd	Lloyd,Roger
+The hotel staff tended to the royal family since they needed to keep them satisfied as occupants.	49	they	The hotel staff	The hotel staff,the royal family
+The hotel staff tended to the royal family, however, they felt the service was unsatisfactory.	53	they	the royal family	The hotel staff,the royal family
+Donald Trump fired his servant, Luigi, because he felt his service was below average.	47	he	Donald Trump	Donald Trump,Luigi
+Donald Trump fired his servant, Luigi, but he can find another job elsewhere.	43	he	Luigi	Donald Trump,Luigi
+The teaching staff wanted to treat the students to a special lunch because they did so well on their standardized tests.	75	they	the students	The teaching staff,the students
+The teaching staff wanted to treat the students to a special lunch but they did not have enough money in the budget.	71	they	The teaching staff	The teaching staff,the students
+Some actors choose to perform their own stunts instead of using stunt doubles since they like to keep it as authentic as possible.	84	they	Some actors	Some actors,stunt doubles
+Some actors choose to perform their own stunts instead of using stunt doubles although they are professionals who specialize in stunts.	87	they	stunt doubles	Some actors,stunt doubles
+Tatoo artists specialize in creating works of arts on their customers, because they are paid professionals in their field.	79	they	Tatoo artists	Tatoo artists,their customers
+Tatoo artists specialize in creating works of arts on their customers, hence they are willing to pay well for these pieces of work.	77	they	their customers	Tatoo artists,their customers
+The drug cartel enlists the help of the local population to work their fields since they are considered cheap labor.	84	they	the local population	The drug cartel,the local population
+The drug cartel enlists the help of the local population to work their fields since they need cheap labor to maximize their profits.	84	they	The drug cartel	The drug cartel,the local population
+The Samurais respected honor while pirates have a disregard for honor, because they hold true to the policy of fighting with honor.	79	they	The Samurais	The Samurais,pirates
+The Samurais respected honor while pirates have a disregard for honor, since they are only interested in increasing their wealth.	77	they	pirates	The Samurais,pirates
+JP Morgan Bank developed a mobile banking application which gives an edge over competitor Bank of America since they appeal well consumers who want accessible banking.	112	they	JP Morgan Bank	JP Morgan Bank,Bank of America
+JP Morgan Bank developed a mobile banking application which gives an edge over competitor Bank of America, but they will probably develop their own mobile application soon as well.	111	they	Bank of America	JP Morgan Bank,Bank of America
+The Russian Syndicate decided to remove some of their lower members so they could keep their operations as secret as possible.	71	they	The Russian Syndicate	The Russian Syndicate,their lower members
+The Russian Syndicate decided to remove some of their lower members because they knew too much about their operations.	76	they	their lower members	The Russian Syndicate,their lower members
+The SWAT team moved in on the compound to prevent the terrorists from launching a deadly missile because they wanted to preserve the lives of innocents.	105	they	The SWAT team	The SWAT team,the terrorists
+The SWAT team moved in on the compound to prevent the terrorists from launching a deadly missile because they were trying to terrorize the global population.	105	they	the terrorists	The SWAT team,the terrorists
+Speed boats need to pass strict tests for use while row boats have no guidelines, since they are more prone to mechanical failures due to their moving parts.	88	they	Speed boats	Speed boats,row boats
+Speed boats need to pass strict tests for use while row boats have no guidelines because they are powered by paddles instead of mechanical engines.	89	they	row boats	Speed boats,row boats
+Jane Bingum presented strong evidence against Claire, so she would be able to win her case.	57	she	Jane Bingum	Jane Bingum,Claire
+Jane Bingum presented strong evidence against Claire, but she may present a strong defense on her part.	58	she	Claire	Jane Bingum,Claire
+Michael decided to freeze himself in cryo-stasis even though his father was against it, because he hopes to be unfrozen in the future when there is a cure available.	96	he	Michael	Michael,his father
+Michael decided to freeze himself in cryo-stasis even though his father was against it, so he tried to convince him not to do it.	91	he	his father	Michael,his father
+Trick Or Treaters are celebrating the holiday earlier during the day at Church since they are encouraged to do it during the day and among friends for safety reasons.	85	they	Trick Or Treaters	Trick Or Treaters,Church
+Trick Or Treaters are celebrating the holiday earlier during the day at Church, but they cannot convince everybody to do it during the day.	84	they	Church	Trick Or Treaters,Church
+Research studies recently revealed that Netflix consumes over 37 percent of the world's internet bandwidth since they need that much due to high demand of their streaming services.	113	they	Netflix	Research studies,Netflix
+Research studies recently revealed that Netflix consumes over 37 percent of the world's internet bandwidth, but they may not be entirely accurate now due to recent changes in Netflix subscribers.	112	they	Research studies	Research studies,Netflix
+Captain Picard tends to confide in Commander Riker since he wants to ensure he develops into a fine captain one day.	57	he	Captain Picard	Captain Picard,Commander Riker
+Captain Picard tends to confide in Commander Riker because he needs to soak up as much experience as he can.	59	he	Commander Riker	Captain Picard,Commander Riker
+Data is an android who can learn new materials much faster than Acting Ensign Wesley since he has the ability to learn vasts amount of information quickly into his database.	91	he	Data	Data,Acting Ensign Wesley
+Data is an android who can learn new materials much faster than Acting Ensign Wesley, because he does not have an electronic brain to learn as quickly.	94	he	Acting Ensign Wesley	Data,Acting Ensign Wesley
+The Next Generation was well received by Trekkies because they stayed true to the roots established in the first Star Trek.	58	they	The Next Generation	The Next Generation,Trekkies
+The Next Generation was well received by Trekkies, but they will always perceive the first Star Trek to be the best.	55	they	Trekkies	The Next Generation,Trekkies
+Pei Wei sells sesame chicken as a signature dish since they have much demand for this particular dish.	55	they	Pei Wei	Pei Wei,sesame chicken
+Pei Wei sells sesame chicken as a signature dish, so they are constantly picked as an order.	53	they	sesame chicken	Pei Wei,sesame chicken
+Lois was scolded by her daughter because she was accused of being a terrible mother.	41	she	Lois	Lois,her daughter
+Lois was scolded by her daughter, so she thought about how she could be better.	37	she	her daughter	Lois,her daughter
+The priests quoted the words of the Bible for all the suspected witches they found, since they needed to quote holy words to rid the evil.	72	they	The priests	The priests,the suspected witches
+The priests quoted the words of the Bible for all the suspected witches they found, since they feared the words of the Bible.	72	they	the suspected witches	The priests,the suspected witches
+The victims of the Black Plague blamed the witches for causing the curse because they did not understand diseases at the time.	81	they	The victims of the Black Plague	The victims of the Black Plague,the witches
+The victims of the Black Plague blamed the witches for causing the curse, but they were falsely accused.	78	they	the witches	The victims of the Black Plague,the witches
+Two deserted crusaders agreed to transport a girl for the priests, but they agreed in exchange for being pardoned.	71	they	Two deserted crusaders	Two deserted crusaders,the priests
+Two deserted crusaders agreed to transport a girl for the priests, since they needed more fellow priests to assist in removing the evil from her.	73	they	the priests	Two deserted crusaders,the priests
+The alter boy assisted Knight Mordron in his mission because he hopes he will get knighted afterwards.	61	he	The alter boy	The alter boy,Knight Mordron
+The alter boy assisted Knight Mordron in his mission, but he did not want his help.	58	he	Knight Mordron	The alter boy,Knight Mordron
+King James eagerly awaited the arrival of Prince Henry because he was expected to propose to his daughter.	63	he	Prince Henry	King James,Prince Henry
+King James eagerly awaited the arrival of Prince Henry so he prepared many celebrations to welcome him.	58	he	King James	King James,Prince Henry
+Crusader Andrews saved the life of Crusader Christopher because he did not want to see him die.	64	he	Crusader Andrews	Crusader Andrews,Crusader Christopher
+Crusader Andrews saved the life of Crusader Christopher, so he thanked him personally with his sword afterwards.	60	he	Crusader Christopher	Crusader Andrews,Crusader Christopher
+The blacksmith refused to repair the armor for the knight because he only does work if paid upfront.	66	he	The blacksmith	The blacksmith,the knight
+The blacksmith refused to repair the armor for the knight because he did not have any money to pay with.	66	he	the knight	The blacksmith,the knight
+The Eagles managed to completely dominate the Cowboys this weekend since they were much stronger in handling the ball.	73	they	The Eagles	The Eagles,the Cowboys
+The Eagles managed to completely dominate the Cowboys this weekend, but they were able to at least keep it from being a shutout.	72	they	the Cowboys	The Eagles,the Cowboys
+Mel got in trouble with a collector named Bohr because he lost a huge sum of money due to his gambling habit.	55	he	Mel	Mel,a collector named Bohr
+Mel got in trouble with a collector named Bohr, so he tracked him down to try to collect all the owed money.	51	he	a collector named Bohr	Mel,a collector named Bohr
+AMD recently managed to break a record in the New Guiness Book of Records, because they managed to overclock their processor to unheard heights.	83	they	AMD	AMD,the New Guiness Book of Records
+AMD recently managed to break a record in the New Guiness Book of Records, so they immortalized them in their record keeping.	78	they	the New Guiness Book of Records	AMD,the New Guiness Book of Records
+The U.S.S Enterprise tried to assist a sister ship, but they arrived too late to save them.	56	they	The U.S.S Enterprise	The U.S.S Enterprise,a sister ship
+The U.S.S Enterprise tried to assist a sister ship, but they did not receive help quick enough to prevent their demise.	56	they	a sister ship	The U.S.S Enterprise,a sister ship
+The Prince of Wales knighted William, so he gave his son the accolade with a sword.	41	he	The Prince of Wales	The Prince of Wales,William
+The Prince of Wales knighted William because he could not compete in the tournament without being of nobility.	45	he	William	The Prince of Wales,William
+Ryan Higa sometimes guest stars in videos for Kev Jumbo because he wants his friend's videos to succeed as well.	64	he	Ryan Higa	Ryan Higa,Kev Jumbo
+Ryan Higa sometimes guest stars in videos for Kev Jumbo so he is beginning to gather a bigger following due to his friend's help.	59	he	Kev Jumbo	Ryan Higa,Kev Jumbo
+Planet 343's sandstorm forces the inhabitants underground because they have winds of upwards to 50 mph.	66	they	Planet 343's sandstorm	Planet 343's sandstorm,the inhabitants
+Planet 343's sandstorm forces the inhabitants underground, but they have plenty of food sources stored away.	63	they	the inhabitants	Planet 343's sandstorm,the inhabitants
+The Marines are considerably afraid of the aliens because they are known to hunt down humans.	58	they	the aliens	The Marines,the aliens
+The Marines are considerably afraid of the aliens, but they will still use their discipline to overcome their fears.	55	they	The Marines	The Marines,the aliens
+The children learned how to kill poisonous snakes from the adults since they have experience surviving in the outdoors.	72	they	the adults	The children,the adults
+The children learned how to kill poisonous snakes from the adults so they can also survive in the wild by themselves.	69	they	The children	The children,the adults
+The public school board of educators initiated a physical education plan on the students since they scored so low on the health and fitness standardized test.	95	they	the students	The public school board of educators,the students
+The public school board of educators initiated a physical education plan on the students so that they could help them become healthy again.	97	they	The public school board of educators	The public school board of educators,the students
+Range Rover recently revealed their new lineup of cars at Times Square for thousands of New Yorkers since they are advertising their new high end models.	106	they	Range Rover	Range Rover,thousands of New Yorkers
+Range Rover recently revealed their new lineup of cars at Times Square for thousands of New Yorkers so they would be enticed to purchase their cars.	103	they	thousands of New Yorkers	Range Rover,thousands of New Yorkers
+Raiden could not follow and guide Liu Kang in the world of darkness since he could not enter this realm without breaking the rules.	74	he	Raiden	Raiden,Liu Kang
+Raiden could not follow and guide Liu Kang in the world of darkness, but he will be able to find another guide instead.	73	he	Liu Kang	Raiden,Liu Kang
+Banks usually offer bonus points for new credit card applicants since they want them to specifically bank with them.	70	they	Banks	Banks,new credit card applicants
+Banks usually offer bonus points for new credit card applicants because they are often enticed by free offerings.	72	they	new credit card applicants	Banks,new credit card applicants
+Hair Stylists transformed the Cowboy's Cheerleaders into beauties, since they need to look top notch for the game.	73	they	the Cowboy's Cheerleaders	Hair Stylists,the Cowboy's Cheerleaders
+Hair Stylists transformed the Cowboy's Cheerleaders into beauties, so they put much product into their hair.	70	they	Hair Stylists	Hair Stylists,the Cowboy's Cheerleaders
+The patrons enjoyed the food made by the chefs immensely because they made the food with exquisite sauces.	65	they	the chefs	The patrons,the chefs
+The patrons enjoyed the food made by the chefs immensely, so they paid very well to enjoy this meal.	61	they	The patrons	The patrons,the chefs
+Beowulf arrived to slay Grendell for the kingdom, so he and his men went out to the caves to locate him.	53	he	Beowulf	Beowulf,Grendell
+Beowulf arrived to slay Grendell for the kingdom, but he is very difficult to slay due to his demon magic.	54	he	Grendell	Beowulf,Grendell
+Paypal has to settle millions of disputes every year by disgruntled users since they are sometimes a victim of fraud from purchasing through the internet.	80	they	disgruntled users	Paypal,disgruntled users
+Paypal has to settle millions of disputes every year by disgruntled users because they provide a transaction protection policy.	82	they	Paypal	Paypal,disgruntled users
+The slaves were forced to do the bidding of the nobles since they have no rights.	61	they	The slaves	The slaves,the nobles
+The slaves were forced to do the bidding of the nobles so they do not have to do any of the hard labor.	58	they	the nobles	The slaves,the nobles
+Scientists have created a serum which transforms men into super soldiers, because they needed to create an unstoppable army.	82	they	Scientists	Scientists,men
+Scientists have created a serum which transforms men into super soldiers, but they may experience side effects.	78	they	men	Scientists,men
+The prisoners were held captive by the German forces since they were captured in the last battle.	59	they	The prisoners	The prisoners,the German forces
+The prisoners were held captive by the German forces since they needed to gather intelligence from them.	59	they	the German forces	The prisoners,the German forces
+Captain America lost a good friend, Michael, because he could not catch him before falling.	53	he	Captain America	Captain America,Michael
+Captain America lost a good friend, Michael, because he was killed in an accident.	53	he	Michael	Captain America,Michael
+Neil Armstrong was actually sent on a secret mission assigned by President Kennedy to investigate an abnormal event because he needed the US to beat Russia there.	124	he	President Kennedy	Neil Armstrong,President Kennedy
+Neil Armstrong was actually sent on a secret mission assigned by President Kennedy to investigate an abnormal event so he was trained on what exactly he needed to do.	119	he	Neil Armstrong	Neil Armstrong,President Kennedy
+The CIA control intelligence gathering for the United States because they have some of the best people who specialize in this type of work.	69	they	The CIA	The CIA,the United States
+The CIA control intelligence gathering for the United States since they need to stay one step ahead of others to remain a superpower.	67	they	the United States	The CIA,the United States
+Sentinel tried to betray Optimus by enslaving the human race, but he did not succeed in his plan.	66	he	Sentinel	Sentinel,Optimus
+Sentinel tried to betray Optimus by enslaving the human race because he wanted the humans to rule again.	69	he	Optimus	Sentinel,Optimus
+Amazon prime encourages Netflix users to switch because they offer a lower cost and additional benefits program.	56	they	Amazon prime	Amazon prime,Netflix
+Amazon prime encourages Netflix users to switch since they overcharge their users now.	54	they	Netflix	Amazon prime,Netflix
+Dell replaced all their Blackberry phones with their own because they lost confidence in their brand due to to recent network outage.	65	they	Dell	Dell,their Blackberry phones
+Dell replaced all their Blackberry phones with their own, but they are still prominent on other vendor sites.	62	they	their Blackberry phones	Dell,their Blackberry phones
+Malware has increased over four hundred percent on the Android platform because they are a free platform which allows any developer to post their applications.	80	they	the Android platform	Malware,the Android platform
+Malware has increased over four hundred percent on the Android platform since they do not need to get vetted to be uploaded.	78	they	Malware	Malware,the Android platform
+Some Motorcycle enthusiasts are selling a TRON lightcycle to TRON fans because they specialize in making movie related vehicles.	79	they	Some Motorcycle enthusiasts	Some Motorcycle enthusiasts,TRON fans
+Some Motorcycle enthusiasts are selling a TRON lightcycle to TRON fans, but they may be turned off by the asking price.	76	they	TRON fans	Some Motorcycle enthusiasts,TRON fans
+The board of directors reviewed the findings of the scientists to determine funding because they are interested in the potential profits for the company.	92	they	The board of directors	The board of directors,the scientists
+The board of directors reviewed the findings of the scientists to determine funding, so they need to present their findings in a way that can attract more money.	88	they	the scientists	The board of directors,the scientists
+Some fan girls created a rap about Windows phones because they are in love with their new electronics.	58	they	Some fan girls	Some fan girls,Windows phones
+Some fan girls created a rap about Windows phones, but they did not become more popular.	55	they	Windows phones	Some fan girls,Windows phones
+Some enthusiastic Black Friday shoppers are already lining up at retail stores so they can be the first in line for door busters.	82	they	Some enthusiastic Black Friday shoppers	Some enthusiastic Black Friday shoppers,retail stores
+Some enthusiastic Black Friday shoppers are already lining up at retail stores because they have some really low priced items that will be on sale.	87	they	retail stores	Some enthusiastic Black Friday shoppers,retail stores
+The campus police pepper sprayed the UC Davis students because they were blocking private property.	63	they	the UC Davis students	The campus police,the UC Davis students
+The campus police pepper sprayed the UC Davis students, so they faced an angry backlash by those who do not agree with their actions.	59	they	The campus police	The campus police,the UC Davis students
+Apple was in talks with Verizon to be their dedicated phone provider initially, but they gave the deal to AT&T in the end.	84	they	Apple	Apple,Verizon
+Apple was in talks with Verizon to be their dedicated phone provider initially because they were a prime candidate to provide their service.	87	they	Verizon	Apple,Verizon
+Parents care for their children considerably because they love them undeniably to want to keep them save.	53	they	Parents	Parents,their children
+Parents care for their children considerably since they are their pride and joy.	51	they	their children	Parents,their children
+Cats are more territorial than dogs since they always try and insert their dominance over others.	42	they	Cats	Cats,dogs
+Cats are more territorial than dogs, but they can also be territorial at times when marking their territory.	41	they	dogs	Cats,dogs
+Kung Fu teachers try to pass on discipline to their disciples since they want them to learn more than just technique.	68	they	Kung Fu teachers	Kung Fu teachers,their disciples
+Kung Fu teachers try to pass on discipline to their disciples, but they do not always learn what they are being taught very well.	67	they	their disciples	Kung Fu teachers,their disciples
+Mark tried to sabotage Tom because he wants to be employee of the month.	35	he	Mark	Mark,Tom
+Mark tried to sabotage Tom, but he got caught in the process.	32	he	Tom	Mark,Tom
+The Walking Dead is proving to be a big hit among zombie enthusiasts because they have made a series that greatly appeals to them.	77	they	The Walking Dead	The Walking Dead,zombie enthusiasts
+The Walking Dead is proving to be a big hit among zombie enthusiasts so they are watching the show every week.	72	they	zombie enthusiasts	The Walking Dead,zombie enthusiasts
+Guns generally increase in value over time to gun collectors if unfired, because they need to be in mint condition to be extremely valuable.	81	they	Guns	Guns,gun collectors
+Guns generally increase in value over time to gun collectors if unfired, since they prefer to collect things that are in perfect condition.	79	they	gun collectors	Guns,gun collectors
+Jim hunted the monster, because he was scary.	32	he	the monster	Jim,the monster
+Jim hunted the monster, although he was afraid of him.	33	he	Jim	Jim,the monster
+Arnold Schwarzenegger cannot terminate John Conner, because he is protecting him.	60	he	Arnold Schwarzenegger	Arnold Schwarzenegger,John Conner
+Arnold Schwarzenegger cannot terminate John Conner, because he is the leader of the resistance.	60	he	John Conner	Arnold Schwarzenegger,John Conner
+Jim likes John, but he does not like him back.	20	he	John	Jim,John
+Jim likes John, but he is not liked back.	20	he	Jim	Jim,John
+The skeleton was scarier than the pumpkin, because it looked like it was walking.	51	it	The skeleton	The skeleton,the pumpkin
+The skeleton was scarier than the pumpkin, because it was rather simplistic and orange.	51	it	the pumpkin	The skeleton,the pumpkin
+Schrodinger's cat walks into an empty building, but where is it now?	61	it	Schrodinger's cat	Schrodinger's cat,an empty building
+Schrodinger's cat walks into an empty building, but does it contain him?	57	it	an empty building	Schrodinger's cat,an empty building
+Bob kicked Larry, because he was mad.	26	he	Bob	Bob,Larry
+Bob kicked Larry, because he made a condescending comment.	26	he	Larry	Bob,Larry
+The program deleted the reference to the data, but it did not delete it.	51	it	The program	The program,the data
+The program deleted the reference to the data, but it was not deleted.	51	it	the data	The program,the data
+The criminal shocked John, because he pulled out a gun.	35	he	The criminal	The criminal,John
+The criminal shocked John, because he was not expecting it.	35	he	John	The criminal,John
+A banana and an apple go walking, when the yellow one does the talking.	50	one	A banana	A banana,an apple
+A banana and an apple go walking, when the red one does the talking.	47	one	an apple	A banana,an apple
+The employer offered Katie a job, because she was a fit for the company.	42	she	Katie	The employer,Katie
+The employer offered Katie a job, because she liked the interviewee.	42	she	The employer	The employer,Katie
+Jim was delighted to see Jack, because he brightened up his day.	39	he	Jack	Jim,Jack
+Jim was delighted to see Jack, because he was given the strength to finish his day.	39	he	Jim	Jim,Jack
+He likes Cuba and hates Japan because it is a communist country.	38	it	Cuba	Cuba,Japan
+He likes Cuba and hates Japan because it is not a communist country.	38	it	Japan	Cuba,Japan
+Saudi Arabians do not respect the Bangladeshis because they are poor.	55	they	Bangladeshis	Saudi Arabians,Bangladeshis
+Saudi Arabians do not respect the Bangladeshis because they are rich.	55	they	Saudi Arabians	Saudi Arabians,Bangladeshis
