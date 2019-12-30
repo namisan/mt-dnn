@@ -16,6 +16,8 @@ class TaskDefs:
         dropout_p_map = {}
         encoderType_map = {}
         loss_map = {}
+        kd_loss_map = {}
+
         uniq_encoderType = set()
         for task, task_def in self._task_def_dic.items():
             assert "_" not in task, "task name should not contain '_', current task name: %s" % task
@@ -36,11 +38,18 @@ class TaskDefs:
                 dropout_p_map[task] = task_def["dropout_p"]
             # loss map
             if "loss" in task_def:
-                losses = task_def["loss"]
-                loss_list = []
-                for loss in losses:
-                    loss_list.append(LossCriterion[loss])
-                loss_map[task] = loss_list
+                t_loss = task_def["loss"]
+                loss_crt = LossCriterion[t_loss]
+                loss_map[task] = loss_crt
+            else:
+                loss_map[task] = None
+
+            if "kd_loss" in task_def:
+                t_loss = task_def["kd_loss"]
+                loss_crt = LossCriterion[t_loss]
+                kd_loss_map[task] = loss_crt
+            else:
+                kd_loss_map[task] = None
 
         assert len(uniq_encoderType) == 1, 'The shared encoder has to be the same.'
         self.global_map = global_map
@@ -52,3 +61,4 @@ class TaskDefs:
         self.dropout_p_map = dropout_p_map
         self.encoderType = uniq_encoderType.pop()
         self.loss_map = loss_map
+        self.kd_loss_map = kd_loss_map
