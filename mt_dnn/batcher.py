@@ -15,7 +15,7 @@ BOS_ID=101
 class MTDNNDataset(Dataset):
     def __init__(self, path, is_train=True, maxlen=128, factor=1.0, task_type=None):
         self._data = self.load(path, is_train, maxlen, factor, task_type)
-        
+
     @staticmethod
     def load(path, is_train=True, maxlen=128, factor=1.0, task_type=None):
         assert task_type is not None
@@ -81,7 +81,7 @@ class Collater:
 
         return batch_info, batch_data
 
-    def rebacth(self, batch):
+    def rebatch(self, batch):
         newbatch = []
         for sample in batch:
             size = len(sample['token_id'])
@@ -101,7 +101,7 @@ class Collater:
 
     def collate_fn(self, batch):
         if self.task_type == TaskType.Ranking:
-            batch = self.rebacth(batch)
+            batch = self.rebatch(batch)
 
         # prepare model input
         batch_info, batch_data = self._prepare_model_input(batch)
