@@ -175,7 +175,8 @@ class MTDNNModel(object):
         if self.config.get('mkd_opt', 0) > 0 and ('soft_label' in batch_meta):
             soft_labels = batch_meta['soft_label']
             soft_labels = self._to_cuda(soft_labels) if self.config['cuda'] else soft_labels
-            kd_loss = self.kd_task_loss_criterion[task_id](logits, y, weight, ignore_index=-1)
+            kd_lc = self.kd_task_loss_criterion[task_id]
+            kd_loss = kd_lc(logits, soft_labels, weight, ignore_index=-1) if kd_lc else 0
             loss = loss + kd_loss
 
         self.train_loss.update(loss.item(), batch_data[batch_meta['token_id']].size(0))
