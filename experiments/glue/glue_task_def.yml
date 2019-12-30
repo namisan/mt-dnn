@@ -7,6 +7,7 @@ cola:
   - ACC
   - MCC
   loss: CeCriterion
+  kd_loss: MseCriterion
   n_class: 2
   task_type: Classification
 mnli:
@@ -21,6 +22,7 @@ mnli:
   metric_meta:
   - ACC
   loss: CeCriterion
+  kd_loss: MseCriterion
   n_class: 3
   split_names:
   - train
@@ -37,6 +39,7 @@ mrpc:
   - ACC
   - F1
   loss: CeCriterion
+  kd_loss: MseCriterion
   n_class: 2
   task_type: Classification
 qnli:
@@ -49,6 +52,7 @@ qnli:
   metric_meta:
   - ACC
   loss: CeCriterion
+  kd_loss: MseCriterion
   n_class: 2
   task_type: Classification
 qqp:
@@ -59,6 +63,7 @@ qqp:
   - ACC
   - F1
   loss: CeCriterion
+  kd_loss: MseCriterion
   n_class: 2
   task_type: Classification
 rte:
@@ -71,6 +76,7 @@ rte:
   metric_meta:
   - ACC
   loss: CeCriterion
+  kd_loss: MseCriterion
   n_class: 2
   task_type: Classification
 scitail:
@@ -83,6 +89,7 @@ scitail:
   metric_meta:
   - ACC
   loss: CeCriterion
+  kd_loss: MseCriterion
   n_class: 2
   task_type: Classification
 snli:
@@ -96,6 +103,7 @@ snli:
   metric_meta:
   - ACC
   loss: CeCriterion
+  kd_loss: MseCriterion
   n_class: 3
   task_type: Classification
 sst:
@@ -105,6 +113,7 @@ sst:
   metric_meta:
   - ACC
   loss: CeCriterion
+  kd_loss: MseCriterion
   n_class: 2
   task_type: Classification
 stsb:
@@ -116,6 +125,7 @@ stsb:
   - Spearman
   n_class: 1
   loss: MseCriterion
+  kd_loss: MseCriterion
   task_type: Regression
 wnli:
   data_format: PremiseAndOneHypothesis
@@ -124,5 +134,6 @@ wnli:
   metric_meta:
   - ACC
   loss: CeCriterion
+  kd_loss: MseCriterion
   n_class: 2
   task_type: Classification

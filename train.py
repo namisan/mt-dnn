@@ -173,6 +173,8 @@ def main():
     task_types = []
     dropout_list = []
     loss_types = []
+    kd_loss_types = []
+
     for dataset in args.train_datasets:
         prefix = dataset.split('_')[0]
         if prefix in tasks: continue
@@ -193,6 +195,8 @@ def main():
             decoder_opts.append(dopt)
         task_types.append(task_type)
         loss_types.append(task_defs.loss_map[prefix])
+        kd_loss_types.append(task_defs.kd_loss_map[prefix])
+
         if prefix not in tasks:
             tasks[prefix] = len(tasks)
             if args.mtl_opt < 1: nclass_list.append(nclass)
@@ -216,6 +220,8 @@ def main():
     opt['task_types'] = task_types
     opt['tasks_dropout_p'] = dropout_list
     opt['loss_types'] = loss_types
+    opt['kd_loss_types'] = kd_loss_types
+
     args.label_size = ','.join([str(l) for l in nclass_list])
     logger.info(args.label_size)
     dev_data_list = []

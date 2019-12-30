@@ -120,27 +120,38 @@ class MTDNNModel(object):
             lc = LOSS_REGISTRY[cs](name='Loss func of task {}: {}'.format(idx, cs))
             self.task_loss_criterion.append(lc)
 
+    def _setup_kd_lossmap(self, config):
+        loss_types = config['kd_loss_types']
+        self.kd_task_loss_criterion = []
+        if config.get('mkd_opt', 0) > 0:
+            for idx, cs in enumerate(loss_types):
+                assert cs is not None
+                lc = LOSS_REGISTRY[cs](name='Loss func of task {}: {}'.format(idx, cs))
+                self.kd_task_loss_criterion.append(lc)
+
     def train(self):
         if self.para_swapped:
-            #self.ema.swap_parameters()
             self.para_swapped = False
+
+    def _to_cuda(self, tensor):
+        if tensor is None: return tensor
+
+        if isinstance(tensor, list) or isinstance(tensor, tuple):
+            y = [e.cuda(non_blocking=True) for e in tensor]
+            for e in y:
+                e.requires_grad = False
+        else:
+            y = tensor.cuda(non_blocking=True)
+            y.requires_grad = False
+        return y
 
     def update(self, batch_meta, batch_data):
         self.network.train()
         y = batch_data[batch_meta['label']]
         soft_labels = None
-        #if self.config.get('mkd_opt', 0) > 0 and ('soft_label' in batch_meta):
-        #    soft_labels = batch_meta['soft_label']
 
         task_type = batch_meta['task_type']
-        if self.config['cuda']:
-            if isinstance(y, list) or isinstance(y, tuple):
-                y = [e.cuda(non_blocking=True) for e in y]
-                for e in y:
-                    e.requires_grad = False
-            else:
-                y = y.cuda(non_blocking=True)
-                y.requires_grad = False
+        y = self._to_cuda(y) if self.config['cuda'] else y
 
         task_id = batch_meta['task_id']
         inputs = batch_data[:batch_meta['input_len']]
@@ -157,7 +168,16 @@ class MTDNNModel(object):
         logits = self.mnetwork(*inputs)
 
         # compute loss
-        loss = self.task_loss_criterion[task_id](logits, y, weight, ignore_index=-1)
+        loss = 0
+        if self.task_loss_criterion[task_id] and (y is not None):
+            loss = self.task_loss_criterion[task_id](logits, y, weight, ignore_index=-1)
+
+        # compute kd loss
+        if self.config.get('mkd_opt', 0) > 0 and ('soft_label' in batch_meta):
+            soft_labels = batch_meta['soft_label']
+            soft_labels = self._to_cuda(soft_labels) if self.config['cuda'] else soft_labels
+            kd_loss = self.kd_task_loss_criterion[task_id](logits, y, weight, ignore_index=-1)
+            loss = loss + kd_loss
 
         self.train_loss.update(loss.item(), batch_data[batch_meta['token_id']].size(0))
         # scale loss
