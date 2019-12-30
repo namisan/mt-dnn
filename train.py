@@ -96,10 +96,6 @@ def train_config(parser):
     parser.add_argument("--model_ckpt", default='checkpoints/model_0.pt', type=str)
     parser.add_argument("--resume", action='store_true')
 
-    # EMA
-    parser.add_argument('--ema_opt', type=int, default=0)
-    parser.add_argument('--ema_gamma', type=float, default=0.995)
-
     # scheduler
     parser.add_argument('--have_lr_scheduler', dest='have_lr_scheduler', action='store_false')
     parser.add_argument('--multi_step_lr', type=str, default='10,20,30')

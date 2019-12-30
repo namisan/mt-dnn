@@ -12,7 +12,6 @@ from torch.optim.lr_scheduler import *
 from data_utils.utils import AverageMeter
 from pytorch_pretrained_bert import BertAdam as Adam
 from module.bert_optim import Adamax, RAdam
-#from module.my_optim import EMA
 from mt_dnn.loss import LOSS_REGISTRY
 from .matcher import SANBertNetwork
 
@@ -254,12 +253,9 @@ class MTDNNModel(object):
 
     def save(self, filename):
         network_state = dict([(k, v.cpu()) for k, v in self.network.state_dict().items()])
-        #ema_state = dict(
-        #    [(k, v.cpu()) for k, v in self.ema.model.state_dict().items()]) if self.ema is not None else dict()
         params = {
             'state': network_state,
             'optimizer': self.optimizer.state_dict(),
-            #'ema': ema_state,
             'config': self.config,
         }
         torch.save(params, filename)
