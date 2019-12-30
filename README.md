@@ -51,10 +51,10 @@ SMART: Robust and Efficient Fine-Tuning for Pre-trained Natural Language Models 
 
 #### Use docker:
 1. Pull docker </br>
-   ```> docker pull allenlao/pytorch-mt-dnn:v0.21```
+   ```> docker pull allenlao/pytorch-mt-dnn:v0.5```
 
 2. Run docker </br>
-   ```> docker run -it --rm --runtime nvidia  allenlao/pytorch-mt-dnn:v0.21 bash``` </br>
+   ```> docker run -it --rm --runtime nvidia  allenlao/pytorch-mt-dnn:v0.5 bash``` </br>
    Please refer to the following link if you first use docker: https://docs.docker.com/
 
 ### Train a toy MT-DNN model
@@ -221,4 +221,5 @@ We also used some code from: https://github.com/kevinduh/san_mrc <br/>
 
 For help or issues using MT-DNN, please submit a GitHub issue.
 
-For personal communication related to MT-DNN, please contact Xiaodong Liu (`xiaodl@microsoft.com`), Pengcheng He (`penhe@microsoft.com`), Weizhu Chen (`wzchen@microsoft.com`), Jianfeng Gao (`jfgao@microsoft.com`) or Yu Wang (`yuwan@microsoft.com`).
+For personal communication related to MT-DNN, please contact Xiaodong Liu (`xiaodl@microsoft.com`), Pengcheng He (`penhe@microsoft.com`), Weizhu Chen (`wzchen@microsoft.com`), Jianfeng Gao (`jfgao@microsoft.com`), Yu Wang (`yuwan@microsoft.com`) or Jianshu Ji
+(`jianshuj@microsoft.com`).
