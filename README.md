@@ -98,7 +98,7 @@ Here, we provide two examples, STS-B and RTE. You can use similar scripts to fin
    ```> python experiments/ner/prepro.py```
 
 2. Training </br>
-   ```> python train.py --data_dir <data-path> --init_checkpoint <bert/ner-model> --train_dataset ner --test_dataset ner --task_def experiments\ner\ner_task_def.py```
+   ```> python train.py --data_dir <data-path> --init_checkpoint <bert/ner-model> --train_dataset ner --test_dataset ner --task_def experiments\ner\ner_task_def.yml```
 
 ### HNN
 The code to reproduce HNN is under `hnn` folder, to reproduce the results of HNN, run 
