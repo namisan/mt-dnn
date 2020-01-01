@@ -171,6 +171,7 @@ def main():
     loss_types = []
     kd_loss_types = []
 
+    train_collater = Collater(dropout_w=args.dropout_w, encoder_type=encoder_type)
     for dataset in args.train_datasets:
         prefix = dataset.split('_')[0]
         if prefix in tasks: continue
@@ -206,10 +207,8 @@ def main():
 
         train_path = os.path.join(data_dir, '{}_train.json'.format(dataset))
         logger.info('Loading {} as task {}'.format(train_path, task_id))
-        train_data_set = MTDNNDataset(train_path, True, task_type=task_type, maxlen=args.max_seq_len)
-        collater = Collater(dropout_w=args.dropout_w, gpu=args.cuda, task_id=task_id, task_type=task_type,
-                            data_type=data_type, encoder_type=encoder_type)
-        train_data = DataLoader(train_data_set, batch_size=args.batch_size, shuffle=True, collate_fn=collater.collate_fn, pin_memory=args.cuda)
+        train_data_set = MTDNNDataset(train_path, True, maxlen=args.max_seq_len, task_id=task_id, task_type=task_type, data_type=data_type)
+        train_data = DataLoader(train_data_set, batch_size=args.batch_size, shuffle=True, collate_fn=train_collater.collate_fn, pin_memory=args.cuda)
         train_data_list.append(train_data)
 
     opt['answer_opt'] = decoder_opts
@@ -222,6 +221,7 @@ def main():
     logger.info(args.label_size)
     dev_data_list = []
     test_data_list = []
+    test_collater = Collater(is_train=False, encoder_type=encoder_type)
     for dataset in args.test_datasets:
         prefix = dataset.split('_')[0]
         task_id = tasks_class[task_defs.n_class_map[prefix]] if args.mtl_opt > 0 else tasks[prefix]
@@ -237,19 +237,15 @@ def main():
         dev_path = os.path.join(data_dir, '{}_dev.json'.format(dataset))
         dev_data = None
         if os.path.exists(dev_path):
-            dev_data_set = MTDNNDataset(dev_path, False, task_type=task_type, maxlen=args.max_seq_len)
-            collater = Collater(gpu=args.cuda, is_train=False, task_id=task_id, task_type=task_type,
-                                data_type=data_type, encoder_type=encoder_type)
-            dev_data = DataLoader(dev_data_set, batch_size=args.batch_size_eval, collate_fn=collater.collate_fn, pin_memory=args.cuda)
+            dev_data_set = MTDNNDataset(dev_path, False, maxlen=args.max_seq_len, task_id=task_id, task_type=task_type, data_type=data_type)
+            dev_data = DataLoader(dev_data_set, batch_size=args.batch_size_eval, collate_fn=test_collater.collate_fn, pin_memory=args.cuda)
         dev_data_list.append(dev_data)
 
         test_path = os.path.join(data_dir, '{}_test.json'.format(dataset))
         test_data = None
         if os.path.exists(test_path):
-            test_data_set = MTDNNDataset(test_path, False, task_type=task_type, maxlen=args.max_seq_len)
-            collater = Collater(gpu=args.cuda, is_train=False, task_id=task_id, task_type=task_type,
-                                data_type=data_type, encoder_type=encoder_type)
-            test_data = DataLoader(test_data_set, batch_size=args.batch_size_eval, collate_fn=collater.collate_fn, pin_memory=args.cuda)
+            test_data_set = MTDNNDataset(test_path, False, maxlen=args.max_seq_len, task_id=task_id, task_type=task_type, data_type=data_type)
+            test_data = DataLoader(test_data_set, batch_size=args.batch_size_eval, collate_fn=test_collater.collate_fn, pin_memory=args.cuda)
         test_data_list.append(test_data)
 
     logger.info('#' * 20)
