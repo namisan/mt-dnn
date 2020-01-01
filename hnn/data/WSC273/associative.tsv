@@ -1,0 +1,38 @@
+left	pron	right	candidates	selected
+The painting in Mark's living room shows an oak tree.	It	is to the right of a house.	The painting,The oak tree	1
+There is a gap in the wall. You can see the garden through	it	.	The gap,The wall	0
+There is a gap in the wall. You can see the garden behind	it	.	The gap,The wall	1
+My meeting started at 4:00 and I needed to catch the train at 4:30,  so there wasn't much time. Luckily,	it	was short, so it worked out.	The meeting,The train	0
+I couldn't put the pot on the shelf because	it	was too tall.	The pot,The shelf	0
+I'm sure that my map will show this building;	it	is very good.	The map,The building	0
+I'm sure that my map will show this building;	it	is very famous.	The map,The building	1
+It was a summer afternoon, and the dog was sitting in the middle of the lawn. After a while, it got up and moved to a spot under the tree,  because	it	was cooler.	The dog,The spot under the tree	1
+I was trying to open the lock with the key, but someone had filled the  keyhole with chewing gum, and I couldn't get	it	in.	The key,The chewing gum	0
+In the storm, the tree fell down and crashed through the roof of my  house. Now, I have to get	it	repaired.	The tree,The roof	1
+John was jogging through the park when he saw a man juggling watermelons.	He	was very impressive.	John,The juggler	1
+Sam and Amy are passionately in love, but Amy's parents are unhappy about it, because	they	are fifteen.	Sam and Amy,Amy's parents	0
+Joe has sold his house and bought a new one a few miles away. He will be moving out of	it	on Thursday.	The old house,The new house	0
+Joe has sold his house and bought a new one a few miles away. He will be moving into	it	on Thursday.	The old house,The new house	1
+Many people start to read Paul's books and can't put them down.	They	are gripped because Paul writes so well.	People,Paul's books	0
+Many people start to read Paul's books and can't put them down.	They	are popular because Paul writes so well.	People,Paul's books	1
+Mary took out her flute and played one of her favorite pieces. She has had	it	since she was a child.	The flute,The piece	0
+The path to the lake was blocked, so we couldn't use	it	.	The path,The lake	0
+The path to the lake was blocked, so we couldn't reach	it	.	The path,The lake	1
+The sun was covered by a thick cloud all morning, but luckily, by the time the picnic started,	it	was out.	The sun,The cloud	0
+Fred and Alice had very warm down coats, but	they	were not prepared for the cold in Alaska.	Fred and Alice,coats	0
+Fred and Alice had very warm down coats, but	they	were not enough for the cold in Alaska.	Fred and Alice,coats	1
+The foxes are getting in at night and attacking the chickens. I shall have to guard	them	.	The foxes,The chickens	1
+Fred covered his eyes with his hands, because the wind was blowing sand around. He opened	them	when the wind stopped.	His eyes,His hands	0
+Archaeologists have concluded that humans lived in Laputa 20,000 years ago.	They	hunted for evidence on the river banks.	Archaeologists,Prehistoric humans	0
+Archaeologists have concluded that humans lived in Laputa 20,000 years ago.	They	hunted for deer on the river banks.	Archaeologists,Prehistoric humans	1
+The scientists are studying three species of fish that have recently been found living in the Indian Ocean.	They	began two years ago.	The scientists,The fish	0
+The scientists are studying three species of fish that have recently been found living in the Indian Ocean.	They	appeared two years ago.	The scientists,The fish	1
+The police arrested all of the gang members.	They	were trying to stop the drug trade in the neighborhood.	The police,The gang members	0
+The police arrested all of the gang members.	They	were trying to run the drug trade in the neighborhood.	The police,The gang members	1
+I put the cake away in the refrigerator.	It	has a lot of butter in it.	The cake,The refrigerator	0
+I put the cake away in the refrigerator.	It	has a lot of leftovers in it.	The cake,The refrigerator	1
+Sam broke both his ankles and he's walking with crutches. But a month or so from now	they	should be better.	The ankles,The crutches	0
+Sam broke both his ankles and he's walking with crutches. But a month or so from now	they	should be unnecessary.	The ankles,The crutches	1
+I stuck a pin through a carrot. When I pulled the pin out,	it	left a hole.	The pin,The carrot	0
+The man lifted the boy onto	his	bunk bed.	The man,The boy	1
+I put the heavy book on the table and	it	broke.	The heavy book,The table	1

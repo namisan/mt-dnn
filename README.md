@@ -33,6 +33,12 @@ Liyuan Liu, Haoming Jiang, Pengcheng He, Weizhu Chen, Xiaodong Liu, Jianfeng Gao
 On the Variance of the Adaptive Learning Rate and Beyond <br/>
 [arXiv version](https://arxiv.org/abs/1908.03265) <br/>
 
+Haoming Jiang, Pengcheng He, Weizhu Chen, Xiaodong Liu, Jianfeng Gao and Tuo Zhao <br/>
+SMART: Robust and Efficient Fine-Tuning for Pre-trained Natural Language Models through Principled Regularized Optimization <br/>
+[arXiv version](https://arxiv.org/abs/1911.03437) <br/>
+
+
+
 ## Quickstart
 
 ### Setup Environment
@@ -45,10 +51,10 @@ On the Variance of the Adaptive Learning Rate and Beyond <br/>
 
 #### Use docker:
 1. Pull docker </br>
-   ```> docker pull allenlao/pytorch-mt-dnn:v0.21```
+   ```> docker pull allenlao/pytorch-mt-dnn:v0.5```
 
 2. Run docker </br>
-   ```> docker run -it --rm --runtime nvidia  allenlao/pytorch-mt-dnn:v0.21 bash``` </br>
+   ```> docker run -it --rm --runtime nvidia  allenlao/pytorch-mt-dnn:v0.5 bash``` </br>
    Please refer to the following link if you first use docker: https://docs.docker.com/
 
 ### Train a toy MT-DNN model
@@ -89,10 +95,18 @@ Here, we provide two examples, STS-B and RTE. You can use similar scripts to fin
 
 ### Sequence Labeling Task
 1. Preprocess data </br>
-   ```> python experiments/ner/prepro.py```
+   a) Download NER data to data/ner including: {train/valid/test}.txt </br>
+   b) Convert NER data to the canonical format: ```> python experiments\ner\prepro.py --data data\ner --output_dir data\canonical_data``` </br>
+   c) Preprocess the canonical data to the MT-DNN format: ```> python prepro_std.py --do_lower_case --root_dir data\canonical_data --task_def experiments\ner\ner_task_def.yml --model bert-base-uncased``` </br>
 
 2. Training </br>
-   ```> python train.py --data_dir <data-path> --init_checkpoint <bert/ner-model> --train_dataset ner --test_dataset ner --task_def experiments\ner\ner_task_def.py```
+   ```> python train.py --data_dir <data-path> --init_checkpoint <bert/ner-model> --train_dataset ner --test_dataset ner --task_def experiments\ner\ner_task_def.yml```
+
+### HNN
+The code to reproduce HNN is under `hnn` folder, to reproduce the results of HNN, run 
+
+```> hnn/script/hnn_train_large.sh```
+
 
 ### Extract embeddings
 1. Extracting embeddings of a pair text example </br>
@@ -123,11 +137,9 @@ Here, we go through how to convert a Chinese Tensorflow BERT model into mt-dnn f
    ```python scripts\convert_tf_to_pt.py --tf_checkpoint_root chinese_L-12_H-768_A-12\ --pytorch_checkpoint_path chinese_L-12_H-768_A-12\bert_base_chinese.pt```
 
 ### TODO
-- [x] MT-DNN with Knowledge Distillation code and model. <br/>
-- [x] Merged RAdam.
-- [x] Sequence Labeling.
-- [ ] Publish pretrained Tensorflow checkpoints.
-- [ ] Publish HNN code and model.
+
+- [ ] Release SMART/MT-DNN-SMART which outperforms T5. <br/>
+- [ ] Publish pretrained Tensorflow checkpoints. <br/>
 
 
 ## FAQ
@@ -198,9 +210,18 @@ We also used some code from: https://github.com/kevinduh/san_mrc <br/>
   journal={arXiv preprint arXiv:1908.03265},
   year={2019}
 }
+
+
+@article{jiang2019smart,
+  title={SMART: Robust and Efficient Fine-Tuning for Pre-trained Natural Language Models through Principled Regularized Optimization},
+  author={Jiang, Haoming and He, Pengcheng and Chen, Weizhu and Liu, Xiaodong and Gao, Jianfeng and Zhao, Tuo},
+  journal={arXiv preprint arXiv:1911.03437},
+  year={2019}
+}
 ```
 ### Contact Information
 
 For help or issues using MT-DNN, please submit a GitHub issue.
 
-For personal communication related to MT-DNN, please contact Xiaodong Liu (`xiaodl@microsoft.com`), Pengcheng He (`penhe@microsoft.com`), Weizhu Chen (`wzchen@microsoft.com`), Jianfeng Gao (`jfgao@microsoft.com`) or Yu Wang (`yuwan@microsoft.com`).
+For personal communication related to MT-DNN, please contact Xiaodong Liu (`xiaodl@microsoft.com`), Pengcheng He (`penhe@microsoft.com`), Weizhu Chen (`wzchen@microsoft.com`), Jianfeng Gao (`jfgao@microsoft.com`), Yu Wang (`yuwan@microsoft.com`) or Jianshu Ji
+(`jianshuj@microsoft.com`).

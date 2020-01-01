@@ -424,6 +424,8 @@ def load_data(file_path, data_format, task_type, label_dict=None):
             assert len(fields) > 5
             row = {"uid": fields[0], "ruid": fields[1].split(","), "label": fields[2], "premise": fields[3],
                    "hypothesis": fields[4:]}
+        elif data_format == DataFormat.Seqence:
+            row = {"uid": fields[0], "label": eval(fields[1]),  "premise": eval(fields[2])}
         else:
             raise ValueError(data_format)
 
@@ -444,6 +446,9 @@ def load_data(file_path, data_format, task_type, label_dict=None):
             row["olabel"] = labels
         elif task_type == TaskType.Span:
             pass  # don't process row label
+        elif task_type == TaskType.SeqenceLabeling:
+            assert type(row["label"]) is list
+            row["label"] = [label_dict[label] for label in row["label"]]
 
         rows.append(row)
     return rows
