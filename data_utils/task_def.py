@@ -12,7 +12,8 @@ class DataFormat(IntEnum):
     PremiseOnly = 1
     PremiseAndOneHypothesis = 2
     PremiseAndMultiHypothesis = 3
-    Seqence = 4
+    MRC = 4
+    Seqence = 5
 
 class EncoderModelType(IntEnum):
     BERT = 1

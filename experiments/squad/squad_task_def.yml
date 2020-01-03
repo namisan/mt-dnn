@@ -1,5 +1,5 @@
-squad-v2:
-  data_format: PremiseAndOneHypothesis
+squad:
+  data_format: MRC
   encoder_type: BERT
   dropout_p: 0.05
   enable_san: false
@@ -12,8 +12,8 @@ squad-v2:
   split_names:
     - train
     - dev
-squad:
-  data_format: PremiseAndOneHypothesis
+squad-v2:
+  data_format: MRC
   encoder_type: BERT
   dropout_p: 0.05
   enable_san: false
