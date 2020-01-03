@@ -14,7 +14,7 @@ def normalize_qa_field(s: str, replacement_list):
         s = s.replace(replacement, " " * len(replacement))  # ensure answer_start and answer_end still valid
     return s
 
-END = 'EOSEOS'
+#END = 'EOSEOS'
 def load_data(path, is_train=True, v2_on=False):
     rows = []
     with open(path, encoding="utf8") as f:
@@ -41,9 +41,12 @@ def load_data(path, is_train=True, v2_on=False):
                     answer_end = answer_start + len(answer)
                 else:
                     # for questions without answers, give a fake answer
-                    answer = END
-                    answer_start = len(context) - len(END)
-                    answer_end = len(context)
+                    #answer = END
+                    #answer_start = len(context) - len(END)
+                    #answer_end = len(context)
+                    answer = ''
+                    answer_start = -1
+                    answer_end = -1
                 answer = normalize_qa_field(answer, ["\n", "\t", ":::"])
                 context = normalize_qa_field(context, ["\n", "\t"])
                 question = normalize_qa_field(question, ["\n", "\t"])
