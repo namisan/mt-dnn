@@ -17,7 +17,7 @@ from mt_dnn.inference import eval_model
 from data_utils.log_wrapper import create_logger
 from data_utils.utils import set_environment
 from data_utils.task_def import TaskType, EncoderModelType
-from mt_dnn.batcher import MTDNNDataset, Collater
+from mt_dnn.batcher import SingleTaskDataset, Collater
 from mt_dnn.model import MTDNNModel
 
 
@@ -207,7 +207,7 @@ def main():
 
         train_path = os.path.join(data_dir, '{}_train.json'.format(dataset))
         logger.info('Loading {} as task {}'.format(train_path, task_id))
-        train_data_set = MTDNNDataset(train_path, True, maxlen=args.max_seq_len, task_id=task_id, task_type=task_type, data_type=data_type)
+        train_data_set = SingleTaskDataset(train_path, True, maxlen=args.max_seq_len, task_id=task_id, task_type=task_type, data_type=data_type)
         train_data = DataLoader(train_data_set, batch_size=args.batch_size, shuffle=True, collate_fn=train_collater.collate_fn, pin_memory=args.cuda)
         train_data_list.append(train_data)
 
@@ -237,14 +237,14 @@ def main():
         dev_path = os.path.join(data_dir, '{}_dev.json'.format(dataset))
         dev_data = None
         if os.path.exists(dev_path):
-            dev_data_set = MTDNNDataset(dev_path, False, maxlen=args.max_seq_len, task_id=task_id, task_type=task_type, data_type=data_type)
+            dev_data_set = SingleTaskDataset(dev_path, False, maxlen=args.max_seq_len, task_id=task_id, task_type=task_type, data_type=data_type)
             dev_data = DataLoader(dev_data_set, batch_size=args.batch_size_eval, collate_fn=test_collater.collate_fn, pin_memory=args.cuda)
         dev_data_list.append(dev_data)
 
         test_path = os.path.join(data_dir, '{}_test.json'.format(dataset))
         test_data = None
         if os.path.exists(test_path):
-            test_data_set = MTDNNDataset(test_path, False, maxlen=args.max_seq_len, task_id=task_id, task_type=task_type, data_type=data_type)
+            test_data_set = SingleTaskDataset(test_path, False, maxlen=args.max_seq_len, task_id=task_id, task_type=task_type, data_type=data_type)
             test_data = DataLoader(test_data_set, batch_size=args.batch_size_eval, collate_fn=test_collater.collate_fn, pin_memory=args.cuda)
         test_data_list.append(test_data)
 

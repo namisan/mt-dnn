@@ -12,12 +12,34 @@ from torch.utils.data import Dataset, DataLoader, BatchSampler
 UNK_ID=100
 BOS_ID=101
 
-class MTDNNDataset(Dataset):
+class MultiTaskDataset(Dataset):
+    def __init__(self, datasets):
+        self._datasets = datasets
+
+        task_id_2_data_set_dic = {}        
+        for dataset in datasets:
+            task_id = dataset.get_task_id()
+            assert task_id not in task_id_2_data_set_dic, "Duplicate task_id %s" % task_id
+            task_id_2_data_set_dic[task_id] = dataset
+
+        self._task_id_2_data_set_dic = task_id_2_data_set_dic
+
+    def __len__(self):
+        return sum(len(dataset) for dataset in self._datasets)
+
+    def __getitem__(self, idx):
+        task_id, sample_id = idx
+        return self._task_id_2_data_set_dic[task_id][sample_id]
+
+class SingleTaskDataset(Dataset):
     def __init__(self, path, is_train=True, maxlen=128, factor=1.0, task_id=0, task_type=TaskType.Classification, data_type=DataFormat.PremiseOnly):
         self._data = self.load(path, is_train, maxlen, factor, task_type)
         self._task_id = task_id
         self._task_type = task_type
         self._data_type = data_type
+
+    def get_task_id(self):
+        return self._task_id
 
     @staticmethod
     def load(path, is_train=True, maxlen=128, factor=1.0, task_type=None):

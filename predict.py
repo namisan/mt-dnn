@@ -7,7 +7,7 @@ from data_utils.task_def import TaskType
 from experiments.exp_def import TaskDefs, EncoderModelType
 #from experiments.glue.glue_utils import eval_model
 
-from mt_dnn.batcher import MTDNNDataset, Collater
+from mt_dnn.batcher import SingleTaskDataset, Collater
 from mt_dnn.model import MTDNNModel
 from data_utils.metrics import calc_metrics
 from mt_dnn.inference import eval_model
@@ -57,7 +57,7 @@ model = MTDNNModel(config, state_dict=state_dict)
 model.load(checkpoint_path)
 encoder_type = config.get('encoder_type', EncoderModelType.BERT)
 # load data
-test_data_set = MTDNNDataset(args.prep_input, False, task_type=task_type, maxlen=args.max_seq_len)
+test_data_set = SingleTaskDataset(args.prep_input, False, task_type=task_type, maxlen=args.max_seq_len)
 collater = Collater(gpu=args.cuda, is_train=False, task_id=args.task_id, task_type=task_type,
                     data_type=data_type, encoder_type=encoder_type)
 test_data = DataLoader(test_data_set, batch_size=args.batch_size_eval, collate_fn=collater.collate_fn, pin_memory=args.cuda)
