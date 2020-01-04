@@ -17,7 +17,7 @@ from mt_dnn.inference import eval_model
 from data_utils.log_wrapper import create_logger
 from data_utils.utils import set_environment
 from data_utils.task_def import TaskType, EncoderModelType
-from mt_dnn.batcher import SingleTaskDataset, Collater
+from mt_dnn.batcher import SingleTaskDataset, MultiTaskDataset, Collater, MultiTaskBatchSampler
 from mt_dnn.model import MTDNNModel
 
 
@@ -172,6 +172,7 @@ def main():
     kd_loss_types = []
 
     train_collater = Collater(dropout_w=args.dropout_w, encoder_type=encoder_type)
+    train_datasets = []
     for dataset in args.train_datasets:
         prefix = dataset.split('_')[0]
         if prefix in tasks: continue
@@ -208,8 +209,12 @@ def main():
         train_path = os.path.join(data_dir, '{}_train.json'.format(dataset))
         logger.info('Loading {} as task {}'.format(train_path, task_id))
         train_data_set = SingleTaskDataset(train_path, True, maxlen=args.max_seq_len, task_id=task_id, task_type=task_type, data_type=data_type)
+        train_datasets.append(train_data_set)
         train_data = DataLoader(train_data_set, batch_size=args.batch_size, shuffle=True, collate_fn=train_collater.collate_fn, pin_memory=args.cuda)
         train_data_list.append(train_data)
+    multi_task_train_dataset = MultiTaskDataset(train_datasets)
+    multi_task_batch_sampler = MultiTaskBatchSampler(train_datasets, args.batch_size, args.mix_opt, args.ratio)
+    multi_task_train_data = DataLoader(multi_task_train_dataset, batch_sampler=multi_task_batch_sampler, collate_fn=train_collater.collate_fn, pin_memory=args.cuda)
 
     opt['answer_opt'] = decoder_opts
     opt['task_types'] = task_types
@@ -322,39 +327,13 @@ def main():
 
     for epoch in range(0, args.epochs):
         logger.warning('At epoch {}'.format(epoch))
-        all_iters = [iter(item) for item in train_data_list]
         start = datetime.now()
-        all_indices = []
-        if len(train_data_list) > 1 and args.ratio > 0:
-            main_indices = [0] * len(train_data_list[0])
-            extra_indices = []
-            for i in range(1, len(train_data_list)):
-                extra_indices += [i] * len(train_data_list[i])
-            random_picks = int(min(len(train_data_list[0]) * args.ratio, len(extra_indices)))
-            extra_indices = np.random.choice(extra_indices, random_picks, replace=False)
-            if args.mix_opt > 0:
-                extra_indices = extra_indices.tolist()
-                random.shuffle(extra_indices)
-                all_indices = extra_indices + main_indices
-            else:
-                all_indices = main_indices + extra_indices.tolist()
 
-        else:
-            for i in range(1, len(train_data_list)):
-                all_indices += [i] * len(train_data_list[i])
-            if args.mix_opt > 0:
-                random.shuffle(all_indices)
-            all_indices += [0] * len(train_data_list[0])
-        if args.mix_opt < 1:
-            random.shuffle(all_indices)
-
-        for i in range(len(all_indices)):
-            task_id = all_indices[i]
-            batch_meta, batch_data = next(all_iters[task_id])
+        for i, (batch_meta, batch_data) in enumerate(multi_task_train_data):
             batch_meta, batch_data = Collater.patch_data(args.cuda, batch_meta, batch_data)
             model.update(batch_meta, batch_data)
             if (model.local_updates) % (args.log_per_updates * args.grad_accumulation_step) == 0 or model.local_updates == 1:
-                ramaining_time = str((datetime.now() - start) / (i + 1) * (len(all_indices) - i - 1)).split('.')[0]
+                ramaining_time = str((datetime.now() - start) / (i + 1) * (len(multi_task_train_data) - i - 1)).split('.')[0]
                 logger.info('Task [{0:2}] updates[{1:6}] train loss[{2:.5f}] remaining[{3}]'.format(task_id,
                                                                                                     model.updates,
                                                                                                     model.train_loss.avg,
@@ -415,6 +394,7 @@ def main():
         model.save(model_file)
     if args.tensorboard:
         tensorboard.close()
+
 
 if __name__ == '__main__':
     main()
