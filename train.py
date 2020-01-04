@@ -161,7 +161,6 @@ def main():
     # update data dir
     opt['data_dir'] = data_dir
     batch_size = args.batch_size
-    train_data_list = []
     tasks = {}
     tasks_class = {}
     nclass_list = []
@@ -171,7 +170,6 @@ def main():
     loss_types = []
     kd_loss_types = []
 
-    train_collater = Collater(dropout_w=args.dropout_w, encoder_type=encoder_type)
     train_datasets = []
     for dataset in args.train_datasets:
         prefix = dataset.split('_')[0]
@@ -210,8 +208,7 @@ def main():
         logger.info('Loading {} as task {}'.format(train_path, task_id))
         train_data_set = SingleTaskDataset(train_path, True, maxlen=args.max_seq_len, task_id=task_id, task_type=task_type, data_type=data_type)
         train_datasets.append(train_data_set)
-        train_data = DataLoader(train_data_set, batch_size=args.batch_size, shuffle=True, collate_fn=train_collater.collate_fn, pin_memory=args.cuda)
-        train_data_list.append(train_data)
+    train_collater = Collater(dropout_w=args.dropout_w, encoder_type=encoder_type)
     multi_task_train_dataset = MultiTaskDataset(train_datasets)
     multi_task_batch_sampler = MultiTaskBatchSampler(train_datasets, args.batch_size, args.mix_opt, args.ratio)
     multi_task_train_data = DataLoader(multi_task_train_dataset, batch_sampler=multi_task_batch_sampler, collate_fn=train_collater.collate_fn, pin_memory=args.cuda)
@@ -257,18 +254,13 @@ def main():
     logger.info(opt)
     logger.info('#' * 20)
 
-    all_lens = [len(bg) for bg in train_data_list]
-
     # div number of grad accumulation. 
-    num_all_batches = args.epochs * sum(all_lens) // args.grad_accumulation_step
+    num_all_batches = args.epochs * len(multi_task_train_data) // args.grad_accumulation_step
     logger.info('############# Gradient Accumulation Info #############')
-    logger.info('number of step: {}'.format(args.epochs * sum(all_lens)))
+    logger.info('number of step: {}'.format(args.epochs * len(multi_task_train_data)))
     logger.info('number of grad grad_accumulation step: {}'.format(args.grad_accumulation_step))
     logger.info('adjusted number of step: {}'.format(num_all_batches))
     logger.info('############# Gradient Accumulation Info #############')
-
-    if len(train_data_list) > 1 and args.ratio > 0:
-        num_all_batches = int(args.epochs * (len(train_data_list[0]) * (1 + args.ratio)))
 
     bert_model_path = args.init_checkpoint
     state_dict = None
