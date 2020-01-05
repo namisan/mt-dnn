@@ -323,6 +323,7 @@ def main():
 
         for i, (batch_meta, batch_data) in enumerate(multi_task_train_data):
             batch_meta, batch_data = Collater.patch_data(args.cuda, batch_meta, batch_data)
+            task_id = batch_meta['task_id']
             model.update(batch_meta, batch_data)
             if (model.local_updates) % (args.log_per_updates * args.grad_accumulation_step) == 0 or model.local_updates == 1:
                 ramaining_time = str((datetime.now() - start) / (i + 1) * (len(multi_task_train_data) - i - 1)).split('.')[0]
