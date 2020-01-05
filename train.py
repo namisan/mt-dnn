@@ -17,7 +17,7 @@ from mt_dnn.inference import eval_model
 from data_utils.log_wrapper import create_logger
 from data_utils.utils import set_environment
 from data_utils.task_def import TaskType, EncoderModelType
-from mt_dnn.batcher import MTDNNDataset, Collater
+from mt_dnn.batcher import SingleTaskDataset, MultiTaskDataset, Collater, MultiTaskBatchSampler
 from mt_dnn.model import MTDNNModel
 
 
@@ -161,7 +161,6 @@ def main():
     # update data dir
     opt['data_dir'] = data_dir
     batch_size = args.batch_size
-    train_data_list = []
     tasks = {}
     tasks_class = {}
     nclass_list = []
@@ -171,6 +170,7 @@ def main():
     loss_types = []
     kd_loss_types = []
 
+    train_datasets = []
     for dataset in args.train_datasets:
         prefix = dataset.split('_')[0]
         if prefix in tasks: continue
@@ -206,11 +206,12 @@ def main():
 
         train_path = os.path.join(data_dir, '{}_train.json'.format(dataset))
         logger.info('Loading {} as task {}'.format(train_path, task_id))
-        train_data_set = MTDNNDataset(train_path, True, task_type=task_type, maxlen=args.max_seq_len)
-        collater = Collater(dropout_w=args.dropout_w, gpu=args.cuda, task_id=task_id, task_type=task_type,
-                            data_type=data_type, encoder_type=encoder_type)
-        train_data = DataLoader(train_data_set, batch_size=args.batch_size, shuffle=True, collate_fn=collater.collate_fn, pin_memory=args.cuda)
-        train_data_list.append(train_data)
+        train_data_set = SingleTaskDataset(train_path, True, maxlen=args.max_seq_len, task_id=task_id, task_type=task_type, data_type=data_type)
+        train_datasets.append(train_data_set)
+    train_collater = Collater(dropout_w=args.dropout_w, encoder_type=encoder_type)
+    multi_task_train_dataset = MultiTaskDataset(train_datasets)
+    multi_task_batch_sampler = MultiTaskBatchSampler(train_datasets, args.batch_size, args.mix_opt, args.ratio)
+    multi_task_train_data = DataLoader(multi_task_train_dataset, batch_sampler=multi_task_batch_sampler, collate_fn=train_collater.collate_fn, pin_memory=args.cuda)
 
     opt['answer_opt'] = decoder_opts
     opt['task_types'] = task_types
@@ -222,6 +223,7 @@ def main():
     logger.info(args.label_size)
     dev_data_list = []
     test_data_list = []
+    test_collater = Collater(is_train=False, encoder_type=encoder_type)
     for dataset in args.test_datasets:
         prefix = dataset.split('_')[0]
         task_id = tasks_class[task_defs.n_class_map[prefix]] if args.mtl_opt > 0 else tasks[prefix]
@@ -237,37 +239,28 @@ def main():
         dev_path = os.path.join(data_dir, '{}_dev.json'.format(dataset))
         dev_data = None
         if os.path.exists(dev_path):
-            dev_data_set = MTDNNDataset(dev_path, False, task_type=task_type, maxlen=args.max_seq_len)
-            collater = Collater(gpu=args.cuda, is_train=False, task_id=task_id, task_type=task_type,
-                                data_type=data_type, encoder_type=encoder_type)
-            dev_data = DataLoader(dev_data_set, batch_size=args.batch_size_eval, collate_fn=collater.collate_fn, pin_memory=args.cuda)
+            dev_data_set = SingleTaskDataset(dev_path, False, maxlen=args.max_seq_len, task_id=task_id, task_type=task_type, data_type=data_type)
+            dev_data = DataLoader(dev_data_set, batch_size=args.batch_size_eval, collate_fn=test_collater.collate_fn, pin_memory=args.cuda)
         dev_data_list.append(dev_data)
 
         test_path = os.path.join(data_dir, '{}_test.json'.format(dataset))
         test_data = None
         if os.path.exists(test_path):
-            test_data_set = MTDNNDataset(test_path, False, task_type=task_type, maxlen=args.max_seq_len)
-            collater = Collater(gpu=args.cuda, is_train=False, task_id=task_id, task_type=task_type,
-                                data_type=data_type, encoder_type=encoder_type)
-            test_data = DataLoader(test_data_set, batch_size=args.batch_size_eval, collate_fn=collater.collate_fn, pin_memory=args.cuda)
+            test_data_set = SingleTaskDataset(test_path, False, maxlen=args.max_seq_len, task_id=task_id, task_type=task_type, data_type=data_type)
+            test_data = DataLoader(test_data_set, batch_size=args.batch_size_eval, collate_fn=test_collater.collate_fn, pin_memory=args.cuda)
         test_data_list.append(test_data)
 
     logger.info('#' * 20)
     logger.info(opt)
     logger.info('#' * 20)
 
-    all_lens = [len(bg) for bg in train_data_list]
-
     # div number of grad accumulation. 
-    num_all_batches = args.epochs * sum(all_lens) // args.grad_accumulation_step
+    num_all_batches = args.epochs * len(multi_task_train_data) // args.grad_accumulation_step
     logger.info('############# Gradient Accumulation Info #############')
-    logger.info('number of step: {}'.format(args.epochs * sum(all_lens)))
+    logger.info('number of step: {}'.format(args.epochs * len(multi_task_train_data)))
     logger.info('number of grad grad_accumulation step: {}'.format(args.grad_accumulation_step))
     logger.info('adjusted number of step: {}'.format(num_all_batches))
     logger.info('############# Gradient Accumulation Info #############')
-
-    if len(train_data_list) > 1 and args.ratio > 0:
-        num_all_batches = int(args.epochs * (len(train_data_list[0]) * (1 + args.ratio)))
 
     bert_model_path = args.init_checkpoint
     state_dict = None
@@ -326,39 +319,14 @@ def main():
 
     for epoch in range(0, args.epochs):
         logger.warning('At epoch {}'.format(epoch))
-        all_iters = [iter(item) for item in train_data_list]
         start = datetime.now()
-        all_indices = []
-        if len(train_data_list) > 1 and args.ratio > 0:
-            main_indices = [0] * len(train_data_list[0])
-            extra_indices = []
-            for i in range(1, len(train_data_list)):
-                extra_indices += [i] * len(train_data_list[i])
-            random_picks = int(min(len(train_data_list[0]) * args.ratio, len(extra_indices)))
-            extra_indices = np.random.choice(extra_indices, random_picks, replace=False)
-            if args.mix_opt > 0:
-                extra_indices = extra_indices.tolist()
-                random.shuffle(extra_indices)
-                all_indices = extra_indices + main_indices
-            else:
-                all_indices = main_indices + extra_indices.tolist()
 
-        else:
-            for i in range(1, len(train_data_list)):
-                all_indices += [i] * len(train_data_list[i])
-            if args.mix_opt > 0:
-                random.shuffle(all_indices)
-            all_indices += [0] * len(train_data_list[0])
-        if args.mix_opt < 1:
-            random.shuffle(all_indices)
-
-        for i in range(len(all_indices)):
-            task_id = all_indices[i]
-            batch_meta, batch_data = next(all_iters[task_id])
+        for i, (batch_meta, batch_data) in enumerate(multi_task_train_data):
             batch_meta, batch_data = Collater.patch_data(args.cuda, batch_meta, batch_data)
+            task_id = batch_meta['task_id']
             model.update(batch_meta, batch_data)
             if (model.local_updates) % (args.log_per_updates * args.grad_accumulation_step) == 0 or model.local_updates == 1:
-                ramaining_time = str((datetime.now() - start) / (i + 1) * (len(all_indices) - i - 1)).split('.')[0]
+                ramaining_time = str((datetime.now() - start) / (i + 1) * (len(multi_task_train_data) - i - 1)).split('.')[0]
                 logger.info('Task [{0:2}] updates[{1:6}] train loss[{2:.5f}] remaining[{3}]'.format(task_id,
                                                                                                     model.updates,
                                                                                                     model.train_loss.avg,
@@ -419,6 +387,7 @@ def main():
         model.save(model_file)
     if args.tensorboard:
         tensorboard.close()
+
 
 if __name__ == '__main__':
     main()
