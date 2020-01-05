@@ -353,7 +353,7 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
 
     def build_data_mrc(data, dump_path, max_seq_len=MRC_MAX_SEQ_LEN, tokenizer=None, label_mapper=None, is_training=True):
         with open(dump_path, 'w', encoding='utf-8') as writer:
-            unique_id = 1000000000
+            unique_id = 1000000000 # TODO: this is from BERT, needed to remove it...
             for example_index, sample in enumerate(data):
                 ids = sample['uid']
                 doc = sample['premise']
@@ -365,7 +365,7 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
                 is_valid = squad_utils.is_valid_answer(doc_tokens, answer_start_adjusted, answer_end_adjusted, answer)
                 if not is_valid: continue
                 """
-                TODO: support RoBERTa
+                TODO --xiaodl: support RoBERTa
                 """
                 feature_list = squad_utils.mrc_feature(tokenizer,
                                         unique_id,
@@ -383,7 +383,7 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
                 unique_id += len(feature_list)
 
                 for feature in feature_list:
-                    so = json.dumps({'uid': feature.unique_id,
+                    so = json.dumps({'uid': ids,
                                 'token_id' : feature.input_ids,
                                 'mask': feature.input_mask,
                                 'type_id': feature.segment_ids,
@@ -394,7 +394,8 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
                                 'token_is_max_context': feature.token_is_max_context,
                                 'start_position': feature.start_position,
                                 'end_position': feature.end_position,
-                                'is_impossible': feature.is_impossible})
+                                'label': feature.is_impossible,
+                                'doc': doc})
                     writer.write('{}\n'.format(so))
 
 

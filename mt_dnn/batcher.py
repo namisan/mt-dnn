@@ -206,9 +206,9 @@ class Collater:
             elif task_type in (TaskType.Classification, TaskType.Ranking):
                 batch_data.append(torch.LongTensor(labels))
                 batch_info['label'] = len(batch_data) - 1
-            elif task_type == TaskType.Span:
-                start = [sample['token_start'] for sample in batch]
-                end = [sample['token_end'] for sample in batch]
+            elif self.task_type == TaskType.Span:
+                start = [sample['start_position'] for sample in batch]
+                end = [sample['end_position'] for sample in batch]
                 batch_data.append((torch.LongTensor(start), torch.LongTensor(end)))
                 # unify to one type of label
                 batch_info['label'] = len(batch_data) - 1
