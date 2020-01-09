@@ -147,6 +147,8 @@ class Collater:
                     batch_data[i] = part.pin_memory().cuda(non_blocking=True)
                 elif isinstance(part, tuple):
                     batch_data[i] = tuple(sub_part.pin_memory().cuda(non_blocking=True) for sub_part in part)
+                elif isinstance(part, list):
+                    batch_data[i] = [sub_part.pin_memory().cuda(non_blocking=True) for sub_part in part]
                 else:
                     raise TypeError("unknown batch data type at %s: %s" % (i, part))
                     
@@ -206,7 +208,7 @@ class Collater:
             elif task_type in (TaskType.Classification, TaskType.Ranking):
                 batch_data.append(torch.LongTensor(labels))
                 batch_info['label'] = len(batch_data) - 1
-            elif self.task_type == TaskType.Span:
+            elif task_type == TaskType.Span:
                 start = [sample['start_position'] for sample in batch]
                 end = [sample['end_position'] for sample in batch]
                 batch_data.append((torch.LongTensor(start), torch.LongTensor(end)))
