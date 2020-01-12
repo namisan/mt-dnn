@@ -236,11 +236,12 @@ class MTDNNModel(object):
             score = score.reshape(-1).tolist()
             return score, final_predict, batch_meta['label']
         elif task_type == TaskType.Span:
-            import pdb; pdb.set_trace()
             start, end = score
+            predictions = []
             if self.config['encoder_type'] == EncoderModelType.BERT:
                 import experiments.squad.squad_utils as mrc_utils
-                predictions = mrc_utils.extract_answer(batch_meta, batch_data,start, end, self.config.get('max_answer_len', 5))
+                scores, predictions = mrc_utils.extract_answer(batch_meta, batch_data,start, end, self.config.get('max_answer_len', 5))
+            return scores, predictions, batch_meta['answer']
         else:
             if task_type == TaskType.Classification:
                 score = F.softmax(score, dim=1)

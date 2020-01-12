@@ -37,6 +37,7 @@ def model_config(parser):
                         help='bilinear/simple/defualt')
     parser.add_argument('--answer_merge_opt', type=int, default=1)
     parser.add_argument('--answer_mem_type', type=int, default=1)
+    parser.add_argument('--max_answer_len', type=int, default=5)
     parser.add_argument('--answer_dropout_p', type=float, default=0.1)
     parser.add_argument('--answer_weight_norm_on', action='store_true')
     parser.add_argument('--dump_state_on', action='store_true')
@@ -350,7 +351,8 @@ def main():
                                                                                     dev_data,
                                                                                     metric_meta=task_defs.metric_meta_map[prefix],
                                                                                     use_cuda=args.cuda,
-                                                                                    label_mapper=label_dict)
+                                                                                    label_mapper=label_dict,
+                                                                                    task_type=task_defs.task_type_map[prefix])
                 for key, val in dev_metrics.items():
                     if args.tensorboard:
                         tensorboard.add_scalar('dev/{}/{}'.format(dataset, key), val, global_step=epoch)
@@ -373,7 +375,8 @@ def main():
                     test_metrics, test_predictions, scores, golds, test_ids= eval_model(model, test_data,
                                                                                         metric_meta=task_defs.metric_meta_map[prefix],
                                                                                         use_cuda=args.cuda, with_label=False,
-                                                                                        label_mapper=label_dict)
+                                                                                        label_mapper=label_dict,
+                                                                                        task_type=task_defs.task_type_map[prefix])
                 score_file = os.path.join(output_dir, '{}_test_scores_{}.json'.format(dataset, epoch))
                 results = {'metrics': test_metrics, 'predictions': test_predictions, 'uids': test_ids, 'scores': scores}
                 dump(score_file, results)
@@ -383,8 +386,8 @@ def main():
                     submit(official_score_file, results, label_dict)
                 logger.info('[new test scores saved.]')
 
-        model_file = os.path.join(output_dir, 'model_{}.pt'.format(epoch))
-        model.save(model_file)
+        #model_file = os.path.join(output_dir, 'model_{}.pt'.format(epoch))
+        #model.save(model_file)
     if args.tensorboard:
         tensorboard.close()
 

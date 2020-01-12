@@ -381,7 +381,6 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
                                         answer_text=answer,
                                         is_training=True)
                 unique_id += len(feature_list)
-
                 for feature in feature_list:
                     so = json.dumps({'uid': ids,
                                 'token_id' : feature.input_ids,
@@ -395,7 +394,9 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
                                 'start_position': feature.start_position,
                                 'end_position': feature.end_position,
                                 'label': feature.is_impossible,
-                                'doc': doc})
+                                'doc': doc,
+                                'doc_offset': feature.doc_offset,
+                                'answer': [answer]})
                     writer.write('{}\n'.format(so))
 
 
@@ -560,7 +561,8 @@ def main(args):
         data_format = DataFormat[task_def["data_format"]]
         task_type = TaskType[task_def["task_type"]]
         label_mapper = task_defs.global_map.get(task, None)
-        split_names = task_def.get("split_names", ["train", "dev", "test"])
+
+        split_names = task_def.get("split_names", ["dev", "test"])
         for split_name in split_names:
             rows = load_data(
                 os.path.join(root, "%s_%s.tsv" % (task, split_name)),

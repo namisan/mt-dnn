@@ -1,12 +1,11 @@
 squad:
   data_format: MRC
   encoder_type: BERT
-  dropout_p: 0.05
+  dropout_p: 0.1
   enable_san: false
   metric_meta:
-    - ACC
-    - MCC
-  n_class: 1
+    - EmF1
+  n_class: 2
   task_type: Span
   loss: SpanCeCriterion
   split_names:
@@ -15,12 +14,11 @@ squad:
 squad-v2:
   data_format: MRC
   encoder_type: BERT
-  dropout_p: 0.05
+  dropout_p: 0.1
   enable_san: false
   metric_meta:
-    - ACC
-    - MCC
-  n_class: 1
+    - EmF1
+  n_class: 2
   task_type: Span
   loss: SpanCeCriterion
   split_names:

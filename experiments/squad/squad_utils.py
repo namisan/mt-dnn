@@ -1,3 +1,4 @@
+import os
 import six
 import json
 import string
@@ -342,6 +343,22 @@ def mrc_feature(tokenizer, unique_id, example_index, query, doc_tokens, answer_s
         unique_id_cp += 1
     return feature_list
 
+def gen_gold_name(dir, path, version, suffix='json'):
+    fname = '{}-{}.{}'.format(path, version, suffix)
+    return os.path.join(dir, fname)
+
+def load_squad_label(path):
+    rows = {}
+    with open(path, encoding="utf8") as f:
+        data = json.load(f)['data']
+    for article in tqdm.tqdm(data, total=len(data)):
+        for paragraph in article['paragraphs']:
+            for qa in paragraph['qas']:
+                uid, question = qa['id'], qa['question']
+                is_impossible = qa.get('is_impossible', False)
+                label = 1 if is_impossible else 0
+                rows[uid] = label
+    return rows
 
 def position_encoding(m, threshold=4):
     encoding = np.ones((m, m), dtype=np.float32)
@@ -484,6 +501,8 @@ def extract_answer(batch_meta, batch_data, start, end, keep_first_token=False, m
     start, end = masking_score(mask, batch_meta, start, end)
     #####
     predictions = []
+    answer_scores = []
+
     for i in range(start.size(0)):
         uid = uids[i]
         scores = torch.ger(start[i], end[i])
@@ -510,5 +529,31 @@ def extract_answer(batch_meta, batch_data, start, end, keep_first_token=False, m
         raw_answer = ' '.join(context[rs:re+1])
         # extract final answer
         answer = get_final_text(tok_text, raw_answer, True, False)
-        predictions.append({'uid': uid, 'score': float(best_score), 'answer': answer})
-    return predictions
+        predictions.append(answer)
+        answer_scores.append(float(best_score))
+    return predictions, answer_scores
+
+def select_answers(ids, predictions, scores):
+    assert len(ids) == len(predictions)
+    predictions_list = {}
+    for idx, uid in enumerate(ids):
+        score = scores[idx]
+        ans = predictions[idx]
+        lst = predictions_list.get(uid, [])
+        lst.append((ans, score))
+        predictions_list[uid] = lst
+    final = {}
+    scores = {}
+    for key, val in predictions_list.items():
+        idx = np.argmax([v[1] for v in val])
+        final[key] = val[idx][1]
+        scores[key] = val[idx][0]
+    return final, scores
+
+def merge_answers(ids, golds):
+    gold_list = {}
+    for idx, uid in enumerate(ids):
+        gold = golds[idx]
+        if not uid in gold_list:
+            gold_list[uid] = gold
+    return gold_list

@@ -241,6 +241,7 @@ class Collater:
                 batch_info['doc_offset'] = [sample['doc_offset'] for sample in batch]
                 batch_info['doc'] = [sample['doc'] for sample in batch]
                 batch_info['tokens'] = [sample['tokens'] for sample in batch]
+                batch_info['answer'] = [sample['answer'] for sample in batch]
 
         batch_info['uids'] = [sample['uid'] for sample in batch]  # used in scoring
         return batch_info, batch_data
