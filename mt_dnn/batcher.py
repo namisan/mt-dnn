@@ -8,6 +8,8 @@ from shutil import copyfile
 from data_utils.task_def import TaskType, DataFormat
 from data_utils.task_def import EncoderModelType
 from torch.utils.data import Dataset, DataLoader, BatchSampler
+from experiments.mlm_utils import truncate_seq_pair, load_loose_json
+from experiments.mlm_utils import create_instances_from_document, create_masked_lm_predictions
 
 UNK_ID=100
 BOS_ID=101
@@ -86,18 +88,60 @@ class MultiTaskDataset(Dataset):
         return self._task_id_2_data_set_dic[task_id][sample_id]
 
 class SingleTaskDataset(Dataset):
-    def __init__(self, path, is_train=True, maxlen=128, factor=1.0, task_id=0, task_type=TaskType.Classification, data_type=DataFormat.PremiseOnly):
-        self._data = self.load(path, is_train, maxlen, factor, task_type)
+    def __init__(self, 
+                 path,
+                 is_train=True,
+                 maxlen=512,
+                 factor=1.0,
+                 task_id=0,
+                 task_type=TaskType.Classification,
+                 data_type=DataFormat.PremiseOnly,
+                 bert_model='bert-base-uncased',
+                 do_lower_case=True,
+                 masked_lm_prob=0.15,
+                 seed=13,
+                 short_seq_prob=0.1,
+                 max_seq_length=512,
+                 max_predictions_per_seq=80):
+        data, tokenizer = self.load(path, is_train, maxlen, factor, task_type, bert_model, do_lower_case)
+        self._data = data
+        self._tokenizer = tokenizer
         self._task_id = task_id
         self._task_type = task_type
         self._data_type = data_type
+        # below is for MLM
+        if task_type is TaskType.MaskLM:
+            assert tokenizer is not None
+        # init vocab words
+        self._vocab_words = None if tokenizer is None else list(self.tokenizer.vocab.keys())
+        self._masked_lm_prob = masked_lm_prob
+        self._seed = seed
+        self._short_seq_prob = short_seq_prob
+        self._max_seq_length = max_seq_length
+        self._max_predictions_per_seq = max_predictions_per_seq
 
     def get_task_id(self):
         return self._task_id
 
     @staticmethod
-    def load(path, is_train=True, maxlen=128, factor=1.0, task_type=None):
+    def load(path, is_train=True, maxlen=512, factor=1.0, task_type=None, bert_model='bert-base-uncased', do_lower_case=True):
         assert task_type is not None
+
+        if task_type == TaskType.MaskLM:
+            def load_mlm_data():
+                tokenizer = BertTokenizer.from_pretrained(bert_model,
+                                                          do_lower_case=do_lower_case)
+                vocab_words = list(tokenizer.vocab.keys())
+                data = load_loose_json(path)
+                docs = []
+                for doc in data:
+                    paras = doc['text'].split('\n\n')
+                    paras = [para.strip() for para in paras if len(para.strip()) > 0]
+                    tokens = [tokenizer.tokenize(para) for para in paras]
+                    docs.append(tokens)
+                return docs, tokenizer
+            return docs, tokenizer
+
         with open(path, 'r', encoding='utf-8') as reader:
             data = []
             cnt = 0
@@ -112,14 +156,38 @@ class SingleTaskDataset(Dataset):
                         continue
                 data.append(sample)
             print('Loaded {} samples out of {}'.format(len(data), cnt))
-        return data
+        return data, None
 
     def __len__(self):
         return len(self._data)
 
     def __getitem__(self, idx):
-        return {"task": {"task_id": self._task_id, "task_type": self._task_type, "data_type": self._data_type}, 
-                "sample": self._data[idx]}
+        if self._task_type == TaskType.MaskLM:
+            # create a MLM instance
+            instances = create_instances_from_document(self._data,
+                                                       idx,
+                                                       self._max_seq_length,
+                                                       self._short_seq_prob,
+                                                       self._masked_lm_prob,
+                                                       self.max_predictions_per_seq,
+                                                       self.vocab_words,
+                                                       self.rng)
+            instance_ids = list(range(0, len(instances)))
+            choice = np.random.choice(instance_ids, 1)
+            labels = self.tokenizer.convert_tokens_to_ids(instance.masked_lm_labels)
+            position = instance.masked_lm_positions
+            labels = [lab if idx in position else -1 for idx, lab in enumerate(labels)]
+            sample = {'token_id': self.tokenizer.convert_tokens_to_ids(instance.tokens),
+                      'type_id': instance.segment_ids,
+                      'nsp_lab': 1 if instance.is_random_next else 0,
+                      'position': instance.masked_lm_positions,
+                      'label': labels,
+                      'uid': idx}
+            return {"task": {"task_id": self._task_id, "task_type": self._task_type, "data_type": self._data_type},
+                    "sample": sample}
+        else:
+            return {"task": {"task_id": self._task_id, "task_type": self._task_type, "data_type": self._data_type}, 
+                    "sample": self._data[idx]}
 
 class Collater:
     def __init__(self, 
