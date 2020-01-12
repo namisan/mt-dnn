@@ -386,8 +386,8 @@ def main():
                     submit(official_score_file, results, label_dict)
                 logger.info('[new test scores saved.]')
 
-        #model_file = os.path.join(output_dir, 'model_{}.pt'.format(epoch))
-        #model.save(model_file)
+        model_file = os.path.join(output_dir, 'model_{}.pt'.format(epoch))
+        model.save(model_file)
     if args.tensorboard:
         tensorboard.close()
 
