@@ -6,6 +6,7 @@ from sklearn.metrics import accuracy_score, f1_score
 from sklearn.metrics import roc_auc_score
 from scipy.stats import pearsonr, spearmanr
 from seqeval.metrics import classification_report
+from data_utils.squad_eval import evaluate_func
 
 def compute_acc(predicts, labels):
     return 100.0 * accuracy_score(labels, predicts)
@@ -48,6 +49,10 @@ def compute_seqacc(predicts, labels, label_mapper):
     report = classification_report(y_true, y_pred,digits=4)
     return report
 
+def compute_emf1(predicts, labels):
+    return evaluate_func(labels, predicts)
+
+
 class Metric(Enum):
     ACC = 0
     F1 = 1
@@ -56,6 +61,7 @@ class Metric(Enum):
     Spearman = 4
     AUC = 5
     SeqEval = 7
+    EmF1 = 8
 
 
 
@@ -66,7 +72,8 @@ METRIC_FUNC = {
  Metric.Pearson: compute_pearson,
  Metric.Spearman: compute_spearman,
  Metric.AUC: compute_auc,
- Metric.SeqEval: compute_seqacc
+ Metric.SeqEval: compute_seqacc,
+ Metric.EmF1: compute_emf1
 }
 
 
@@ -82,6 +89,8 @@ def calc_metrics(metric_meta, golds, predictions, scores, label_mapper=None):
             metric = metric_func(predictions, golds)
         elif mm == Metric.SeqEval:
             metric = metric_func(predictions, golds, label_mapper)
+        elif mm == Metric.EmF1:
+            metric = metric_func(predictions, golds)
         else:
             if mm == Metric.AUC:
                 assert len(scores) == 2 * len(golds), "AUC is only valid for binary classification problem"
