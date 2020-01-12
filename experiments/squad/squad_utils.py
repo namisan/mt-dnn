@@ -1,7 +1,16 @@
+import six
 import json
 import string
 import collections
+import torch.nn.functional as F
+import numpy as np
+import torch
+import math
 from data_utils.task_def import EncoderModelType
+from pytorch_pretrained_bert.tokenization import BertTokenizer
+
+LARGE_NEG_NUM = -1.0e5
+tokenizer = None
 
 def remove_punc(text):
     exclude = set(string.punctuation)
@@ -202,7 +211,8 @@ class InputFeatures(object):
                 segment_ids,
                 start_position=None,
                 end_position=None,
-                is_impossible=None):
+                is_impossible=None,
+                doc_offset=0):
         self.unique_id = unique_id
         self.example_index = example_index
         self.doc_span_index = doc_span_index
@@ -215,6 +225,7 @@ class InputFeatures(object):
         self.start_position = start_position
         self.end_position = end_position
         self.is_impossible = is_impossible
+        self.doc_offset = doc_offset
 
     def __str__(self):
         return json.dumps({
@@ -229,7 +240,8 @@ class InputFeatures(object):
             'segment_ids': self.segment_ids,
             'start_position': self.start_position,
             'end_position': self.end_position,
-            'is_impossible': self.is_impossible
+            'is_impossible': self.is_impossible,
+            'doc_offset' : self.doc_offset
             })
 
 def mrc_feature(tokenizer, unique_id, example_index, query, doc_tokens, answer_start_adjusted, answer_end_adjusted, is_impossible, max_seq_len, max_query_len, doc_stride, answer_text=None, is_training=True):
@@ -287,6 +299,7 @@ def mrc_feature(tokenizer, unique_id, example_index, query, doc_tokens, answer_s
         # The mask has 1 for real tokens and 0 for padding tokens. Only real
         # tokens are attended to.
         input_mask = [1] * len(input_ids)
+        doc_offset = len(query_ids) + 2
 
         start_position = None
         end_position = None
@@ -303,7 +316,7 @@ def mrc_feature(tokenizer, unique_id, example_index, query, doc_tokens, answer_s
                 start_position = 0
                 end_position = 0
             else:
-                doc_offset = len(query_ids) + 2
+                #doc_offset = len(query_ids) + 2
                 start_position = tok_start_position - doc_start + doc_offset
                 end_position = tok_end_position - doc_start + doc_offset
 
@@ -323,9 +336,179 @@ def mrc_feature(tokenizer, unique_id, example_index, query, doc_tokens, answer_s
           segment_ids=segment_ids,
           start_position=start_position,
           end_position=end_position,
-          is_impossible=is_impossible)
+          is_impossible=is_impossible,
+          doc_offset=doc_offset)
         feature_list.append(feature)
         unique_id_cp += 1
     return feature_list
 
 
+def position_encoding(m, threshold=4):
+    encoding = np.ones((m, m), dtype=np.float32)
+    for i in range(m):
+        for j in range(i, m):
+            if j - i > threshold:
+                encoding[i][j] = float(1.0 / math.log(j - i + 1))
+    return torch.from_numpy(encoding)
+
+def get_final_text(pred_text, orig_text, do_lower_case, verbose_logging=False):
+    """Project the tokenized prediction back to the original text."""
+
+    # When we created the data, we kept track of the alignment between original
+    # (whitespace tokenized) tokens and our WordPiece tokenized tokens. So
+    # now `orig_text` contains the span of our original text corresponding to the
+    # span that we predicted.
+    #
+    # However, `orig_text` may contain extra characters that we don't want in
+    # our prediction.
+    #
+    # For example, let's say:
+    #   pred_text = steve smith
+    #   orig_text = Steve Smith's
+    #
+    # We don't want to return `orig_text` because it contains the extra "'s".
+    #
+    # We don't want to return `pred_text` because it's already been normalized
+    # (the SQuAD eval script also does punctuation stripping/lower casing but
+    # our tokenizer does additional normalization like stripping accent
+    # characters).
+    #
+    # What we really want to return is "Steve Smith".
+    #
+    # Therefore, we have to apply a semi-complicated alignment heruistic between
+    # `pred_text` and `orig_text` to get a character-to-charcter alignment. This
+    # can fail in certain cases in which case we just return `orig_text`.
+
+    def _strip_spaces(text):
+        ns_chars = []
+        ns_to_s_map = collections.OrderedDict()
+        for (i, c) in enumerate(text):
+            if c == " ":
+                continue
+            ns_to_s_map[len(ns_chars)] = i
+            ns_chars.append(c)
+        ns_text = "".join(ns_chars)
+        return (ns_text, ns_to_s_map)
+
+    # We first tokenize `orig_text`, strip whitespace from the result
+    # and `pred_text`, and check if they are the same length. If they are
+    # NOT the same length, the heuristic has failed. If they are the same
+    # length, we assume the characters are one-to-one aligned.
+    #tokenizer = tokenization.BasicTokenizer(do_lower_case=do_lower_case)
+    global tokenizer
+    if tokenizer is None:
+        tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+
+    tok_text = " ".join(tokenizer.tokenize(orig_text))
+
+    start_position = tok_text.find(pred_text)
+    if start_position == -1:
+        return orig_text
+    end_position = start_position + len(pred_text) - 1
+
+    (orig_ns_text, orig_ns_to_s_map) = _strip_spaces(orig_text)
+    (tok_ns_text, tok_ns_to_s_map) = _strip_spaces(tok_text)
+
+    if len(orig_ns_text) != len(tok_ns_text):
+        return orig_text
+
+    # We then project the characters in `pred_text` back to `orig_text` using
+    # the character-to-character alignment.
+    tok_s_to_ns_map = {}
+    for (i, tok_index) in six.iteritems(tok_ns_to_s_map):
+        tok_s_to_ns_map[tok_index] = i
+
+    orig_start_position = None
+    if start_position in tok_s_to_ns_map:
+        ns_start_position = tok_s_to_ns_map[start_position]
+        if ns_start_position in orig_ns_to_s_map:
+            orig_start_position = orig_ns_to_s_map[ns_start_position]
+
+    if orig_start_position is None:
+        return orig_text
+
+    orig_end_position = None
+    if end_position in tok_s_to_ns_map:
+        ns_end_position = tok_s_to_ns_map[end_position]
+        if ns_end_position in orig_ns_to_s_map:
+            orig_end_position = orig_ns_to_s_map[ns_end_position]
+
+    if orig_end_position is None:
+        return orig_text
+
+    output_text = orig_text[orig_start_position:(orig_end_position + 1)]
+    return output_text
+
+def masking_score(mask, batch_meta, start, end, keep_first_token=False):
+    """For MRC, e.g., SQuAD
+    """
+    start = start.data.cpu()
+    end = end.data.cpu()
+    score_mask = start.new(mask.size()).zero_()
+    score_mask = score_mask.data.cpu()
+    token_is_max_contexts = batch_meta['token_is_max_context']
+    doc_offsets = batch_meta['doc_offset']
+    word_maps = batch_meta['token_to_orig_map']
+    batch_size = score_mask.size(0)
+    doc_len = score_mask.size(1)
+    for i in range(batch_size):
+        doc_offset = doc_offsets[i]
+        if keep_first_token:
+            score_mask[i][1:doc_offset] = 1.0
+        else:
+            score_mask[i][:doc_offset] = 1.0
+        for j in range(doc_len):
+            sj = str(j)
+            if mask[i][j] == 0:
+                score_mask[i][j] == 1.0
+            if sj in token_is_max_contexts[i] and (not token_is_max_contexts[i][sj]):
+                score_mask[i][j] == 1.0
+    score_mask = score_mask * LARGE_NEG_NUM
+    start = start + score_mask
+    end = end + score_mask
+    start = F.softmax(start, 1)
+    end = F.softmax(end, 1)
+    return start, end
+
+def extract_answer(batch_meta, batch_data, start, end, keep_first_token=False, max_len=5):
+    doc_len = start.size(1)
+    pos_enc = position_encoding(doc_len, max_len)
+    token_is_max_contexts = batch_meta['token_is_max_context']
+    doc_offsets = batch_meta['doc_offset']
+    word_maps = batch_meta['token_to_orig_map']
+    tokens = batch_meta['tokens']
+    contexts = batch_meta['doc']
+    uids = batch_meta['uids']
+    mask = batch_data[batch_meta['mask']].data.cpu()
+    # need to fill mask
+    start, end = masking_score(mask, batch_meta, start, end)
+    #####
+    predictions = []
+    for i in range(start.size(0)):
+        uid = uids[i]
+        scores = torch.ger(start[i], end[i])
+        scores = scores * pos_enc
+        scores.triu_()
+        scores = scores.numpy()
+        best_idx = np.argpartition(scores, -1, axis=None)[-1]
+        best_score = np.partition(scores, -1, axis=None)[-1]
+        s_idx, e_idx = np.unravel_index(best_idx, scores.shape)
+        s_idx, e_idx = int(s_idx), int(e_idx)
+        ###
+        tok_tokens = tokens[i][s_idx:(e_idx + 1)]
+        tok_text = ' '.join(tok_tokens)
+        # De-tokenize WordPieces that have been split off.
+        tok_text = tok_text.replace(' ##', '')
+        tok_text = tok_text.replace('##', '')
+        # Clean whitespace
+        tok_text = tok_text.strip()
+        tok_text = ' '.join(tok_text.split())
+        ###
+        context = contexts[i].split()
+        rs = word_maps[i][str(s_idx)]
+        re = word_maps[i][str(e_idx)]
+        raw_answer = ' '.join(context[rs:re+1])
+        # extract final answer
+        answer = get_final_text(tok_text, raw_answer, True, False)
+        predictions.append({'uid': uid, 'score': float(best_score), 'answer': answer})
+    return predictions
