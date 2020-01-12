@@ -15,9 +15,12 @@ from data_utils.xlnet_utils import preprocess_text, encode_ids
 from data_utils.xlnet_utils import CLS_ID, SEP_ID
 from experiments.squad import squad_utils
 
+
 DEBUG_MODE = False
 MAX_SEQ_LEN = 512
-
+DOC_STRIDE = 180
+MAX_QUERY_LEN = 64
+MRC_MAX_SEQ_LEN = 384
 ### XLNET ###
 SEG_ID_A = 0
 SEG_ID_B = 1
@@ -264,34 +267,11 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
                 else:
                     input_ids, _, type_ids = bert_feature_extractor(
                         premise, hypothesis, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
-                    if task_type == TaskType.Span:
-                        seg_a_start = len(type_ids) - sum(type_ids)
-                        seg_a_end = len(type_ids)
-                        answer_start, answer_end, answer, is_impossible = squad_utils.parse_squad_label(label)
-                        span_start, span_end = squad_utils.calc_tokenized_span_range(premise, hypothesis, answer,
-                                                                                     answer_start, answer_end,
-                                                                                     tokenizer, encoderModelType)
-                        span_start = seg_a_start + span_start
-                        span_end = min(seg_a_end, seg_a_start + span_end)
-                        answer_tokens = tokenizer.convert_ids_to_tokens(input_ids[span_start:span_end])
-                        if span_start >= span_end:
-                            span_start = -1
-                            span_end = -1
-                        features = {
-                            'uid': ids,
-                            'label': is_impossible,
-                            'answer': answer,
-                            "answer_tokens" : answer_tokens,
-                            "token_start": span_start,
-                            "token_end": span_end,
-                            'token_id': input_ids,
-                            'type_id': type_ids}
-                    else:
-                        features = {
-                            'uid': ids,
-                            'label': label,
-                            'token_id': input_ids,
-                            'type_id': type_ids}
+                    features = {
+                        'uid': ids,
+                        'label': label,
+                        'token_id': input_ids,
+                        'type_id': type_ids}
                 writer.write('{}\n'.format(json.dumps(features)))
 
     def build_data_premise_and_multi_hypo(
@@ -371,10 +351,55 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
                 features = {'uid': ids, 'label': label, 'token_id': input_ids, 'type_id': type_ids}
                 writer.write('{}\n'.format(json.dumps(features)))
 
-    # We only support BERT based MRC for now
-    if task_type == TaskType.Span:
-        assert data_format == DataFormat.PremiseAndOneHypothesis
-        assert encoderModelType == EncoderModelType.BERT
+    def build_data_mrc(data, dump_path, max_seq_len=MRC_MAX_SEQ_LEN, tokenizer=None, label_mapper=None, is_training=True):
+        with open(dump_path, 'w', encoding='utf-8') as writer:
+            unique_id = 1000000000 # TODO: this is from BERT, needed to remove it...
+            for example_index, sample in enumerate(data):
+                ids = sample['uid']
+                doc = sample['premise']
+                query = sample['hypothesis']
+                label = sample['label']
+                doc_tokens, cw_map = squad_utils.token_doc(doc)
+                answer_start, answer_end, answer, is_impossible = squad_utils.parse_squad_label(label)
+                answer_start_adjusted, answer_end_adjusted = squad_utils.recompute_span(answer, answer_start, cw_map)
+                is_valid = squad_utils.is_valid_answer(doc_tokens, answer_start_adjusted, answer_end_adjusted, answer)
+                if not is_valid: continue
+                """
+                TODO --xiaodl: support RoBERTa
+                """
+                feature_list = squad_utils.mrc_feature(tokenizer,
+                                        unique_id,
+                                        example_index,
+                                        query,
+                                        doc_tokens,
+                                        answer_start_adjusted,
+                                        answer_end_adjusted,
+                                        is_impossible,
+                                        max_seq_len,
+                                        MAX_QUERY_LEN,
+                                        DOC_STRIDE,
+                                        answer_text=answer,
+                                        is_training=True)
+                unique_id += len(feature_list)
+                for feature in feature_list:
+                    so = json.dumps({'uid': ids,
+                                'token_id' : feature.input_ids,
+                                'mask': feature.input_mask,
+                                'type_id': feature.segment_ids,
+                                'example_index': feature.example_index,
+                                'doc_span_index':feature.doc_span_index,
+                                'tokens': feature.tokens,
+                                'token_to_orig_map': feature.token_to_orig_map,
+                                'token_is_max_context': feature.token_is_max_context,
+                                'start_position': feature.start_position,
+                                'end_position': feature.end_position,
+                                'label': feature.is_impossible,
+                                'doc': doc,
+                                'doc_offset': feature.doc_offset,
+                                'answer': [answer]})
+                    writer.write('{}\n'.format(so))
+
+
     if data_format == DataFormat.PremiseOnly:
         build_data_premise_only(
             data,
@@ -390,6 +415,8 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
             data, dump_path, max_seq_len, tokenizer, encoderModelType)
     elif data_format == DataFormat.Seqence:
         build_data_sequence(data, dump_path, max_seq_len, tokenizer, lab_dict)
+    elif data_format == DataFormat.MRC:
+        build_data_mrc(data, dump_path, max_seq_len, tokenizer, encoderModelType)
     else:
         raise ValueError(data_format)
 
@@ -426,6 +453,13 @@ def load_data(file_path, data_format, task_type, label_dict=None):
                    "hypothesis": fields[4:]}
         elif data_format == DataFormat.Seqence:
             row = {"uid": fields[0], "label": eval(fields[1]),  "premise": eval(fields[2])}
+
+        elif data_format == DataFormat.MRC:
+            row = {
+                "uid": fields[0],
+                "label": fields[1],
+                "premise": fields[2],
+                "hypothesis": fields[3]}
         else:
             raise ValueError(data_format)
 
@@ -527,7 +561,8 @@ def main(args):
         data_format = DataFormat[task_def["data_format"]]
         task_type = TaskType[task_def["task_type"]]
         label_mapper = task_defs.global_map.get(task, None)
-        split_names = task_def.get("split_names", ["train", "dev", "test"])
+
+        split_names = task_def.get("split_names", ["dev", "test"])
         for split_name in split_names:
             rows = load_data(
                 os.path.join(root, "%s_%s.tsv" % (task, split_name)),

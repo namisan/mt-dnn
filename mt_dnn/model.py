@@ -2,7 +2,6 @@
 # Copyright (c) Microsoft. All rights reserved.
 import logging
 import sys
-
 import numpy as np
 import torch
 import torch.nn as nn
@@ -15,7 +14,7 @@ from module.bert_optim import Adamax, RAdam
 from mt_dnn.loss import LOSS_REGISTRY
 from .matcher import SANBertNetwork
 
-from data_utils.task_def import TaskType
+from data_utils.task_def import TaskType, EncoderModelType
 
 logger = logging.getLogger(__name__)
 
@@ -236,6 +235,13 @@ class MTDNNModel(object):
                 final_predict.append(p[: valied_lenght[idx]])
             score = score.reshape(-1).tolist()
             return score, final_predict, batch_meta['label']
+        elif task_type == TaskType.Span:
+            start, end = score
+            predictions = []
+            if self.config['encoder_type'] == EncoderModelType.BERT:
+                import experiments.squad.squad_utils as mrc_utils
+                scores, predictions = mrc_utils.extract_answer(batch_meta, batch_data,start, end, self.config.get('max_answer_len', 5))
+            return scores, predictions, batch_meta['answer']
         else:
             if task_type == TaskType.Classification:
                 score = F.softmax(score, dim=1)
@@ -264,15 +270,11 @@ class MTDNNModel(object):
 
     def load(self, checkpoint):
         model_state_dict = torch.load(checkpoint)
-        if model_state_dict['config']['init_checkpoint'].rsplit('/', 1)[1] != \
-                self.config['init_checkpoint'].rsplit('/', 1)[1]:
-            logger.error(
-                '*** SANBert network is pretrained on a different Bert Model. Please use that to fine-tune for other tasks. ***')
-            sys.exit()
-
         self.network.load_state_dict(model_state_dict['state'], strict=False)
         self.optimizer.load_state_dict(model_state_dict['optimizer'])
-        self.config = model_state_dict['config']
+        self.config.update(model_state_dict['config'])
 
     def cuda(self):
         self.network.cuda()
+
+        

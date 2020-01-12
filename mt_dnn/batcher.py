@@ -70,8 +70,7 @@ class MultiTaskBatchSampler(BatchSampler):
 class MultiTaskDataset(Dataset):
     def __init__(self, datasets):
         self._datasets = datasets
-
-        task_id_2_data_set_dic = {}        
+        task_id_2_data_set_dic = {}
         for dataset in datasets:
             task_id = dataset.get_task_id()
             assert task_id not in task_id_2_data_set_dic, "Duplicate task_id %s" % task_id
@@ -147,6 +146,8 @@ class Collater:
                     batch_data[i] = part.pin_memory().cuda(non_blocking=True)
                 elif isinstance(part, tuple):
                     batch_data[i] = tuple(sub_part.pin_memory().cuda(non_blocking=True) for sub_part in part)
+                elif isinstance(part, list):
+                    batch_data[i] = [sub_part.pin_memory().cuda(non_blocking=True) for sub_part in part]
                 else:
                     raise TypeError("unknown batch data type at %s: %s" % (i, part))
                     
@@ -207,14 +208,12 @@ class Collater:
                 batch_data.append(torch.LongTensor(labels))
                 batch_info['label'] = len(batch_data) - 1
             elif task_type == TaskType.Span:
-                start = [sample['token_start'] for sample in batch]
-                end = [sample['token_end'] for sample in batch]
+                start = [sample['start_position'] for sample in batch]
+                end = [sample['end_position'] for sample in batch]
                 batch_data.append((torch.LongTensor(start), torch.LongTensor(end)))
                 # unify to one type of label
                 batch_info['label'] = len(batch_data) - 1
                 #batch_data.extend([torch.LongTensor(start), torch.LongTensor(end)])
-                #batch_info['start'] = len(batch_data) - 2
-                #batch_info['end'] = len(batch_data) - 1
             elif task_type == TaskType.SeqenceLabeling:
                 batch_size = self._get_batch_size(batch)
                 tok_len = self._get_max_len(batch, key='token_id')
@@ -236,6 +235,13 @@ class Collater:
             batch_info['label'] = labels
             if task_type == TaskType.Ranking:
                 batch_info['true_label'] = [sample['true_label'] for sample in batch]
+            if task_type == TaskType.Span:
+                batch_info['token_to_orig_map'] = [sample['token_to_orig_map'] for sample in batch]
+                batch_info['token_is_max_context'] = [sample['token_is_max_context'] for sample in batch]
+                batch_info['doc_offset'] = [sample['doc_offset'] for sample in batch]
+                batch_info['doc'] = [sample['doc'] for sample in batch]
+                batch_info['tokens'] = [sample['tokens'] for sample in batch]
+                batch_info['answer'] = [sample['answer'] for sample in batch]
 
         batch_info['uids'] = [sample['uid'] for sample in batch]  # used in scoring
         return batch_info, batch_data
