@@ -563,7 +563,7 @@ def main(args):
         task_type = TaskType[task_def["task_type"]]
         label_mapper = task_defs.global_map.get(task, None)
 
-        split_names = task_def.get("split_names", ["dev", "test"])
+        split_names = task_def.get("split_names", ["train", "dev", "test"])
         for split_name in split_names:
             rows = load_data(
                 os.path.join(root, "%s_%s.tsv" % (task, split_name)),
