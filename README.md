@@ -223,5 +223,4 @@ We also used some code from: https://github.com/kevinduh/san_mrc <br/>
 
 For help or issues using MT-DNN, please submit a GitHub issue.
 
-For personal communication related to MT-DNN, please contact Xiaodong Liu (`xiaodl@microsoft.com`), Pengcheng He (`penhe@microsoft.com`), Weizhu Chen (`wzchen@microsoft.com`), Jianfeng Gao (`jfgao@microsoft.com`), Yu Wang (`yuwan@microsoft.com`) or Jianshu Ji
-(`jianshuj@microsoft.com`).
+For personal communication related to this package, please contact Xiaodong Liu (`xiaodl@microsoft.com`), Yu Wang (`yuwan@microsoft.com`), Pengcheng He (`penhe@microsoft.com`), Weizhu Chen (`wzchen@microsoft.com`), Jianshu Ji (`jianshuj@microsoft.com`) or Jianfeng Gao (`jfgao@microsoft.com`).
