@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright (c) Microsoft. All rights reserved.
 """Extract feature vectors.
 """

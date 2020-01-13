@@ -1,6 +1,5 @@
 # coding=utf-8
 # Copyright (c) Microsoft. All rights reserved.
-# Author: xiaodl@microsoft.com by October, 2019
 
 import torch
 from torch.nn.modules.loss import _Loss

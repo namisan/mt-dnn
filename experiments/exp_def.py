@@ -1,3 +1,5 @@
+# coding=utf-8
+# Copyright (c) Microsoft. All rights reserved.
 import yaml
 from data_utils.vocab import Vocabulary
 from data_utils.task_def import TaskType, DataFormat, EncoderModelType
