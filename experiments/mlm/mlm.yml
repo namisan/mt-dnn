@@ -6,3 +6,4 @@ mlm:
   - ACC
   n_class: 30522
   task_type: MaskLM
+  loss: MlmCriterion
