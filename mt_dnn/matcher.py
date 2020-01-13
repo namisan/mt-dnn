@@ -1,12 +1,20 @@
 # coding=utf-8
 # Copyright (c) Microsoft. All rights reserved.
 import torch.nn as nn
-from pytorch_pretrained_bert.modeling import BertConfig, BertLayerNorm, BertModel
+from pytorch_pretrained_bert.modeling import BertLayerNorm
+from transformers import *
 
 from module.dropout_wrapper import DropoutWrapper
 from module.san import SANClassifier
 from data_utils.task_def import EncoderModelType, TaskType
 
+MODEL_CLASSES = {
+    "bert": (BertConfig, BertModel, BertTokenizer),
+    "xlnet": (XLNetConfig, XLNetModel, XLNetTokenizer),
+    "roberta": (RobertaConfig, RobertaModel, RobertaTokenizer),
+    "albert": (AlbertConfig, AlbertModel, AlbertTokenizer),
+    "xlmroberta": (XLMRobertaConfig, XLMRobertaModel, XLMRobertaTokenizer),
+}
 
 class LinearPooler(nn.Module):
     def __init__(self, hidden_size):
@@ -24,16 +32,30 @@ class SANBertNetwork(nn.Module):
     def __init__(self, opt, bert_config=None):
         super(SANBertNetwork, self).__init__()
         self.dropout_list = nn.ModuleList()
+
+        if opt['encoder_type'] not in EncoderModelType:
+            raise ValueError("encoder_type of out of range")
         self.encoder_type = opt['encoder_type']
+
+        literal_encoder_type = EncoderModelType[self.encoder_type].__name__
+        config_class, model_class, tokenizer_class = MODEL_CLASSES[literal_encoder_type]
+        self.bert_config = config_class.from_pretrained(opt['init_checkpoint'])
+        self.bert = model_class.from_pretrained(opt['init_checkpoint'])
+        self.tokenizer = tokenizer_class.from_pretrained(opt['init_checkpoint'])
+        hidden_size = self.bert_config.hidden_size
+
+        '''
         if opt['encoder_type'] == EncoderModelType.ROBERTA:
             from fairseq.models.roberta import RobertaModel
             self.bert = RobertaModel.from_pretrained(opt['init_checkpoint'])
             hidden_size = self.bert.args.encoder_embed_dim
             self.pooler = LinearPooler(hidden_size)
-        else: 
+        else:
+            self.bert = BertModel.from_pretrained(opt['init_checkpoint'])
             self.bert_config = BertConfig.from_dict(opt)
             self.bert = BertModel(self.bert_config)
             hidden_size = self.bert_config.hidden_size
+        '''
 
         if opt.get('dump_feature', False):
             self.opt = opt
