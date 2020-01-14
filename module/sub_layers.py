@@ -26,18 +26,22 @@ class LayerNorm(nn.Module):
         sigma = torch.std(x, 2, keepdim=True).expand_as(x)
         return (x - mu) / (sigma + self.eps) * self.alpha.expand_as(x) + self.beta.expand_as(x)
 
-class RNNencoder(nn.Module):
+class RnnEncoder(nn.Module):
     def __init__(self, in_dim, num_hid, nlayers, bidirect, dropout, rnn_type='LSTM'):
         """
         RNN encoder wrapper.
         Note that the last hidden should be the first embedding for BERT/RoBERTa like model.
         """
-        super(RNNencoder, self).__init__()
+        super(RnnEncoder, self).__init__()
+        assert isinstance(rnn_type, str)
+        rnn_type = rnn_type.upper()
+
         assert rnn_type == 'LSTM' or rnn_type == 'GRU'
-        if rnn_type == 'LSTM':
-            rnn_cls = nn.LSTM
-        else:
-            rnn_cls = nn.GRU
+        try:
+            rnn_cls = getattr(nn, rnn_type)
+        except:
+            print('invalid RNN type: {}'.format(rnn_type))
+            rnn_cls = getattr(nn, 'LSTM')
 
         self.rnn = rnn_cls(
             in_dim, num_hid, nlayers,
