@@ -50,6 +50,12 @@ def model_config(parser):
     parser.add_argument('--init_ratio', type=float, default=1)
     parser.add_argument('--encoder_type', type=int, default=EncoderModelType.BERT)
 
+    # BERT pre-training
+    parser.add_argument('--bert_model_type', type=str, default='bert-base-uncased')
+    parser.add_argument('--do_lower_case', action='store_true')
+    parser.add_argument('--masked_lm_prob', type=float, default=0.15)
+    parser.add_argument('--short_seq_prob', type=float, default=0.2)
+    parser.add_argument('--max_predictions_per_seq', type=int, default=128)
     return parser
 
 

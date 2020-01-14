@@ -4,7 +4,7 @@ import torch.nn as nn
 from pytorch_pretrained_bert.modeling import BertConfig, BertLayerNorm, BertModel
 
 from module.dropout_wrapper import DropoutWrapper
-from module.san import SANClassifier
+from module.san import SANClassifier, MaskLmHeader
 from data_utils.task_def import EncoderModelType, TaskType
 
 
@@ -57,6 +57,12 @@ class SANBertNetwork(nn.Module):
                 out_proj = nn.Linear(hidden_size, 2)
             elif task_type == TaskType.SeqenceLabeling:
                 out_proj = nn.Linear(hidden_size, lab)
+            elif task_type == TaskType.MaskLM:
+                if opt['encoder_type'] == EncoderModelType.ROBERTA:
+                    # TODO: xiaodl
+                    out_proj = MaskLmHeader(self.bert.embeddings.word_embeddings.weight)
+                else:
+                    out_proj = MaskLmHeader(self.bert.embeddings.word_embeddings.weight)
             else:
                 if decoder_opt == 1:
                     out_proj = SANClassifier(hidden_size, hidden_size, lab, opt, prefix='answer', dropout=dropout)
@@ -85,7 +91,8 @@ class SANBertNetwork(nn.Module):
                     module.bias.data.zero_()
                     module.weight.data.fill_(1.0)
             if isinstance(module, nn.Linear):
-                module.bias.data.zero_()
+                if module.bias is not None:
+                    module.bias.data.zero_()
 
         self.apply(init_weights)
 
@@ -112,6 +119,10 @@ class SANBertNetwork(nn.Module):
             pooled_output = self.dropout_list[task_id](pooled_output)
             pooled_output = pooled_output.contiguous().view(-1, pooled_output.size(2))
             logits = self.scoring_list[task_id](pooled_output)
+            return logits
+        elif task_type == TaskType.MaskLM:
+            sequence_output = self.dropout_list[task_id](sequence_output)
+            logits = self.scoring_list[task_id](sequence_output)
             return logits
         else:
             if decoder_opt == 1:

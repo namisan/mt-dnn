@@ -103,12 +103,33 @@ class SpanCeCriterion(Criterion):
         loss = 0.5 * (b + e) * self.alpha
         return loss
 
+class MlmCriterion(Criterion):
+    def __init__(self, alpha=1.0, name='BERT pre-train Criterion'):
+        super().__init__()
+        self.alpha = alpha
+        self.name = name
+
+    def forward(self, input, target, weight=None, ignore_index=-1):
+        """TODO: support sample weight, xiaodl
+        """
+        #import pdb; pdb.set_trace()
+        mlm_y, y = target
+        mlm_p, nsp_p = input
+        mlm_p = mlm_p.view(-1, mlm_p.size(-1))
+        mlm_y = mlm_y.view(-1)
+        mlm_loss = F.cross_entropy(mlm_p, mlm_y, ignore_index=ignore_index)
+        nsp_loss = F.cross_entropy(nsp_p, y)
+        loss = mlm_loss + nsp_loss
+        loss = loss * self.alpha
+        return loss
+
 class LossCriterion(IntEnum):
     CeCriterion = 0
     MseCriterion = 1
     RankCeCriterion = 2
     SpanCeCriterion = 3
     SeqCeCriterion = 4
+    MlmCriterion = 5
 
 LOSS_REGISTRY = {
      LossCriterion.CeCriterion: CeCriterion,
@@ -116,4 +137,5 @@ LOSS_REGISTRY = {
      LossCriterion.RankCeCriterion: RankCeCriterion,
      LossCriterion.SpanCeCriterion: SpanCeCriterion,
      LossCriterion.SeqCeCriterion: SeqCeCriterion,
+     LossCriterion.MlmCriterion: MlmCriterion
 }
