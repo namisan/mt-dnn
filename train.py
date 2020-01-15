@@ -49,6 +49,7 @@ def model_config(parser):
     parser.add_argument('--max_seq_len', type=int, default=512)
     parser.add_argument('--init_ratio', type=float, default=1)
     parser.add_argument('--encoder_type', type=int, default=EncoderModelType.BERT)
+    parser.add_argument('--num_hidden_layers', type=int, default=-1)
 
     # BERT pre-training
     parser.add_argument('--bert_model_type', type=str, default='bert-base-uncased')
@@ -277,6 +278,8 @@ def main():
             config['attention_probs_dropout_prob'] = args.bert_dropout_p
             config['hidden_dropout_prob'] = args.bert_dropout_p
             config['multi_gpu_on'] = opt["multi_gpu_on"]
+            if args.num_hidden_layers != -1:
+                config['num_hidden_layers'] = args.num_hidden_layers
             opt.update(config)
         else:
             logger.error('#' * 20)

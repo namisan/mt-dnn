@@ -27,7 +27,7 @@ class MTDNNModel(object):
         self.train_loss = AverageMeter()
         self.network = SANBertNetwork(opt)
         if state_dict:
-            self.network.load_state_dict(state_dict['state'], strict=False)
+            missing_keys, unexpected_keys = self.network.load_state_dict(state_dict['state'], strict=False)
         self.mnetwork = nn.DataParallel(self.network) if opt['multi_gpu_on'] else self.network
         self.total_param = sum([p.nelement() for p in self.network.parameters() if p.requires_grad])
         if opt['cuda']:
