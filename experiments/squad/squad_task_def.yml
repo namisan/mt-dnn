@@ -1,6 +1,5 @@
 squad:
   data_format: MRC
-  encoder_type: BERT
   dropout_p: 0.1
   enable_san: false
   metric_meta:
@@ -13,7 +12,6 @@ squad:
     - dev
 squad-v2:
   data_format: MRC
-  encoder_type: BERT
   dropout_p: 0.1
   enable_san: false
   metric_meta:
