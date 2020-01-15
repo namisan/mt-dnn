@@ -37,6 +37,7 @@ class MTDNNModel(object):
         self.para_swapped = False
         self.optimizer.zero_grad()
         self._setup_lossmap(self.config)
+        self._setup_kd_lossmap(self.config)
 
     def _get_param_groups(self):
         no_decay = ['bias', 'gamma', 'beta', 'LayerNorm.bias', 'LayerNorm.weight']
@@ -146,7 +147,6 @@ class MTDNNModel(object):
     def update(self, batch_meta, batch_data):
         self.network.train()
         y = batch_data[batch_meta['label']]
-        soft_labels = None
 
         task_type = batch_meta['task_type']
         y = self._to_cuda(y) if self.config['cuda'] else y

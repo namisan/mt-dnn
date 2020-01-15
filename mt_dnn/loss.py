@@ -58,7 +58,8 @@ class MseCriterion(Criterion):
         """weight: sample weight
         """
         if weight:
-            loss = torch.mean(F.mse_loss(input.squeeze(), target, reduce=False) * weight)
+            loss = torch.mean(F.mse_loss(input.squeeze(), target, reduce=False) * 
+                              weight.reshape((target.shape[0], 1)))
         else:
             loss = F.mse_loss(input.squeeze(), target)
         loss = loss * self.alpha

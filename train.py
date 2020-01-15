@@ -72,6 +72,8 @@ def data_config(parser):
     parser.add_argument('--train_datasets', default='mnli')
     parser.add_argument('--test_datasets', default='mnli_mismatched,mnli_matched')
     parser.add_argument('--glue_format_on', action='store_true')
+    parser.add_argument('--mkd-opt', type=int, default=0, 
+                        help=">0 to turn on knowledge distillation, requires 'softlabel' column in input data")
     return parser
 
 
@@ -214,7 +216,7 @@ def main():
         logger.info('Loading {} as task {}'.format(train_path, task_id))
         train_data_set = SingleTaskDataset(train_path, True, maxlen=args.max_seq_len, task_id=task_id, task_type=task_type, data_type=data_type)
         train_datasets.append(train_data_set)
-    train_collater = Collater(dropout_w=args.dropout_w, encoder_type=encoder_type)
+    train_collater = Collater(dropout_w=args.dropout_w, encoder_type=encoder_type, soft_label=args.mkd_opt > 0)
     multi_task_train_dataset = MultiTaskDataset(train_datasets)
     multi_task_batch_sampler = MultiTaskBatchSampler(train_datasets, args.batch_size, args.mix_opt, args.ratio)
     multi_task_train_data = DataLoader(multi_task_train_dataset, batch_sampler=multi_task_batch_sampler, collate_fn=train_collater.collate_fn, pin_memory=args.cuda)
