@@ -1,10 +1,13 @@
 # coding=utf-8
 # Copyright (c) Microsoft. All rights reserved.
+import torch
 import torch.nn as nn
-from pytorch_pretrained_bert.modeling import BertConfig, BertLayerNorm, BertModel
+from pytorch_pretrained_bert.modeling import BertConfig, BertLayerNorm, BertModel, BertEmbeddings
 
 from module.dropout_wrapper import DropoutWrapper
 from module.san import SANClassifier, MaskLmHeader
+from module.sub_layers import RnnEncoder
+from module.similarity import SelfAttnWrapper
 from data_utils.task_def import EncoderModelType, TaskType
 
 
@@ -20,19 +23,46 @@ class LinearPooler(nn.Module):
         pooled_output = self.activation(pooled_output)
         return pooled_output
 
+class SANNetwork(nn.Module):
+    def __init__(self, config: BertConfig, opt):
+        super().__init__()
+        self.embeddings = BertEmbeddings(config)
+        self.rnn = RnnEncoder(config.hidden_size, config.hidden_size, config.num_hidden_layers, True, 
+                              config.hidden_dropout_prob)
+        my_dropout = DropoutWrapper(config.hidden_dropout_prob, opt['vb_dropout'])
+        self.self_att = SelfAttnWrapper(config.hidden_size, dropout=my_dropout)
+        self.config = config
+
+    def forward(self, input_ids, token_type_ids=None, attention_mask=None):
+        if attention_mask is None:
+            attention_mask = torch.ones_like(input_ids)
+        if token_type_ids is None:
+            token_type_ids = torch.zeros_like(input_ids)
+        
+        embedding_output = self.embeddings(input_ids, token_type_ids)
+        rnn_output = self.rnn(embedding_output)[0]
+        size = rnn_output.shape
+        max_output = rnn_output.view(size[0], size[1], self.config.hidden_size, 2).max(-1)[0]
+        pooled_output = self.self_att(max_output, attention_mask == 0)
+        sequence_output = max_output
+        return sequence_output, pooled_output
+
 class SANBertNetwork(nn.Module):
     def __init__(self, opt, bert_config=None):
         super(SANBertNetwork, self).__init__()
-        self.dropout_list = nn.ModuleList()
         self.encoder_type = opt['encoder_type']
         if opt['encoder_type'] == EncoderModelType.ROBERTA:
             from fairseq.models.roberta import RobertaModel
             self.bert = RobertaModel.from_pretrained(opt['init_checkpoint'])
             hidden_size = self.bert.args.encoder_embed_dim
             self.pooler = LinearPooler(hidden_size)
-        else: 
+        elif opt['encoder_type'] == EncoderModelType.BERT:
             self.bert_config = BertConfig.from_dict(opt)
             self.bert = BertModel(self.bert_config)
+            hidden_size = self.bert_config.hidden_size
+        else:
+            self.bert_config = BertConfig.from_dict(opt)
+            self.bert = SANNetwork(self.bert_config, opt)
             hidden_size = self.bert_config.hidden_size
 
         if opt.get('dump_feature', False):
@@ -41,12 +71,15 @@ class SANBertNetwork(nn.Module):
         if opt['update_bert_opt'] > 0:
             for p in self.bert.parameters():
                 p.requires_grad = False
+
         self.decoder_opt = opt['answer_opt']
         self.task_types = opt["task_types"]
+
+        # create output header
         self.scoring_list = nn.ModuleList()
+        self.dropout_list = nn.ModuleList()
         labels = [int(ls) for ls in opt['label_size'].split(',')]
         task_dropout_p = opt['tasks_dropout_p']
-
         for task, lab in enumerate(labels):
             decoder_opt = self.decoder_opt[task]
             task_type = self.task_types[task]
@@ -100,9 +133,13 @@ class SANBertNetwork(nn.Module):
         if self.encoder_type == EncoderModelType.ROBERTA:
             sequence_output = self.bert.extract_features(input_ids)
             pooled_output = self.pooler(sequence_output)
-        else:
+        elif self.encoder_type == EncoderModelType.BERT:
             all_encoder_layers, pooled_output = self.bert(input_ids, token_type_ids, attention_mask)
             sequence_output = all_encoder_layers[-1]
+        elif self.encoder_type == EncoderModelType.SAN:
+            sequence_output, pooled_output = self.bert(input_ids, token_type_ids, attention_mask)
+        else:
+            raise NotImplemented("Unsupported encoder type %s" % self.encoder_type)
 
         decoder_opt = self.decoder_opt[task_id]
         task_type = self.task_types[task_id]
@@ -115,7 +152,7 @@ class SANBertNetwork(nn.Module):
             end_scores = end_scores.squeeze(-1)
             return start_scores, end_scores
         elif task_type == TaskType.SeqenceLabeling:
-            pooled_output = all_encoder_layers[-1]
+            pooled_output = sequence_output
             pooled_output = self.dropout_list[task_id](pooled_output)
             pooled_output = pooled_output.contiguous().view(-1, pooled_output.size(2))
             logits = self.scoring_list[task_id](pooled_output)

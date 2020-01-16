@@ -21,3 +21,4 @@ class EncoderModelType(IntEnum):
     BERT = 1
     ROBERTA = 2
     XLNET = 3
+    SAN = 4

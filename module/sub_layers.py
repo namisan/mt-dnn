@@ -59,10 +59,10 @@ class RnnEncoder(nn.Module):
         weight = next(self.parameters()).data
         hid_shape = (self.nlayers * self.ndirections, batch, self.num_hid)
         if self.rnn_type == 'LSTM':
-            return (Variable(weight.new(*hid_shape).zero_()),
-                    Variable(weight.new(*hid_shape).zero_()))
+            return (weight.new(*hid_shape).zero_(),
+                    weight.new(*hid_shape).zero_())
         else:
-            return Variable(weight.new(*hid_shape).zero_())
+            return weight.new(*hid_shape).zero_()
 
     def forward(self, x):
         # x: [batch, sequence, in_dim]
