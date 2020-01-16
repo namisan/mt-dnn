@@ -38,8 +38,8 @@ class SANNetwork(nn.Module):
             attention_mask = torch.ones_like(input_ids)
         if token_type_ids is None:
             token_type_ids = torch.zeros_like(input_ids)
-        
         embedding_output = self.embeddings(input_ids, token_type_ids)
+        # 12, 12[8 * 62 * hidden_size]
         rnn_output = self.rnn(embedding_output)[0]
         size = rnn_output.shape
         max_output = rnn_output.view(size[0], size[1], self.config.hidden_size, 2).max(-1)[0]

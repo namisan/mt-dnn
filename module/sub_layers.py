@@ -42,7 +42,12 @@ class RnnEncoder(nn.Module):
         except:
             print('invalid RNN type: {}'.format(rnn_type))
             rnn_cls = getattr(nn, 'LSTM')
-
+        # encoder = nn.ModuleList()
+        # max_out layer class
+        # 
+        # for _ in range(nlayers):
+            rnn = {}
+            
         self.rnn = rnn_cls(
             in_dim, num_hid, nlayers,
             bidirectional=bidirect,
@@ -54,6 +59,7 @@ class RnnEncoder(nn.Module):
         self.nlayers = nlayers
         self.rnn_type = rnn_type
         self.ndirections = 1 + int(bidirect)
+        self.do_max_out = self.ndirections > 1
 
     def init_hidden(self, batch):
         weight = next(self.parameters()).data
