@@ -2,13 +2,12 @@
 # Copyright (c) Microsoft. All rights reserved.
 import torch
 import torch.nn as nn
-from pytorch_pretrained_bert.modeling import BertConfig, BertLayerNorm, BertModel, BertEmbeddings
+from pytorch_pretrained_bert.modeling import BertConfig, BertLayerNorm, BertModel 
 
 from module.dropout_wrapper import DropoutWrapper
 from module.san import SANClassifier, MaskLmHeader
-from module.sub_layers import RnnEncoder
-from module.similarity import SelfAttnWrapper
 from data_utils.task_def import EncoderModelType, TaskType
+from module.sub_layers import SanNetwork
 
 
 class LinearPooler(nn.Module):
@@ -22,28 +21,6 @@ class LinearPooler(nn.Module):
         pooled_output = self.dense(first_token_tensor)
         pooled_output = self.activation(pooled_output)
         return pooled_output
-
-class SANNetwork(nn.Module):
-    def __init__(self, config: BertConfig, opt):
-        super().__init__()
-        self.embeddings = BertEmbeddings(config)
-        self.rnn = RnnEncoder(config.hidden_size, config.hidden_size, config.num_hidden_layers, True, 
-                              config.hidden_dropout_prob)
-        my_dropout = DropoutWrapper(config.hidden_dropout_prob, opt['vb_dropout'])
-        self.self_att = SelfAttnWrapper(config.hidden_size, dropout=my_dropout)
-        self.config = config
-
-    def forward(self, input_ids, token_type_ids=None, attention_mask=None):
-        if attention_mask is None:
-            attention_mask = torch.ones_like(input_ids)
-        if token_type_ids is None:
-            token_type_ids = torch.zeros_like(input_ids)
-        
-        embedding_output = self.embeddings(input_ids, token_type_ids)
-        sequence_output = self.rnn(embedding_output)
-        size = sequence_output.shape
-        pooled_output = self.self_att(sequence_output, attention_mask == 0)
-        return sequence_output, pooled_output
 
 class SANBertNetwork(nn.Module):
     def __init__(self, opt, bert_config=None):
@@ -60,7 +37,7 @@ class SANBertNetwork(nn.Module):
             hidden_size = self.bert_config.hidden_size
         else:
             self.bert_config = BertConfig.from_dict(opt)
-            self.bert = SANNetwork(self.bert_config, opt)
+            self.bert = SanNetwork(self.bert_config, opt)
             hidden_size = self.bert_config.hidden_size
 
         if opt.get('dump_feature', False):
