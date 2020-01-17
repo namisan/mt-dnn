@@ -6,8 +6,8 @@ from pytorch_pretrained_bert.modeling import BertConfig, BertLayerNorm, BertMode
 
 from module.dropout_wrapper import DropoutWrapper
 from module.san import SANClassifier, MaskLmHeader
+from module.san_model import SanModel
 from data_utils.task_def import EncoderModelType, TaskType
-from module.sub_layers import SanNetwork
 
 
 class LinearPooler(nn.Module):
@@ -37,7 +37,7 @@ class SANBertNetwork(nn.Module):
             hidden_size = self.bert_config.hidden_size
         else:
             self.bert_config = BertConfig.from_dict(opt)
-            self.bert = SanNetwork(self.bert_config, opt)
+            self.bert = SanModel(self.bert_config, opt)
             hidden_size = self.bert_config.hidden_size
 
         if opt.get('dump_feature', False):
