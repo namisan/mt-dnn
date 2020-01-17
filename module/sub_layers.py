@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.parameter import Parameter
+from pytorch_pretrained_bert.modeling import BertLayerNorm
 
 class LayerNorm(nn.Module):
     #ref: https://github.com/pytorch/pytorch/issues/1959
@@ -26,6 +27,17 @@ class LayerNorm(nn.Module):
         sigma = torch.std(x, 2, keepdim=True).expand_as(x)
         return (x - mu) / (sigma + self.eps) * self.alpha.expand_as(x) + self.beta.expand_as(x)
 
+class MaxOut(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, x):
+        # x: [batch, seq_len, hidden_size * 2]
+        size = x.shape
+        assert size[-1] % 2 == 0
+        max_output = x.view(size[0], size[1], int(size[-1]/2), 2).max(-1)[0]
+        return max_output
+
 class RnnEncoder(nn.Module):
     def __init__(self, in_dim, num_hid, nlayers, bidirect, dropout, rnn_type='LSTM'):
         """
@@ -43,11 +55,14 @@ class RnnEncoder(nn.Module):
             print('invalid RNN type: {}'.format(rnn_type))
             rnn_cls = getattr(nn, 'LSTM')
 
-        self.rnn = rnn_cls(
-            in_dim, num_hid, nlayers,
-            bidirectional=bidirect,
-            dropout=dropout,
-            batch_first=True)
+        self._rnn_modules = nn.ModuleList(
+            rnn_cls( in_dim, num_hid, 1,
+                bidirectional=bidirect,
+                dropout=dropout,
+                batch_first=True)
+            for i in range(nlayers))
+        self._max_out = MaxOut()
+        self._layer_norm = BertLayerNorm(num_hid, eps=1e-12)
 
         self.in_dim = in_dim
         self.num_hid = num_hid
@@ -57,7 +72,7 @@ class RnnEncoder(nn.Module):
 
     def init_hidden(self, batch):
         weight = next(self.parameters()).data
-        hid_shape = (self.nlayers * self.ndirections, batch, self.num_hid)
+        hid_shape = (self.ndirections, batch, self.num_hid)
         if self.rnn_type == 'LSTM':
             return (weight.new(*hid_shape).zero_(),
                     weight.new(*hid_shape).zero_())
@@ -66,15 +81,18 @@ class RnnEncoder(nn.Module):
 
     def forward(self, x):
         # x: [batch, sequence, in_dim]
+        for rnn in self._rnn_modules:
+            rnn.flatten_parameters()
+
         batch = x.size(0)
-        hidden = self.init_hidden(batch)
-        self.rnn.flatten_parameters()
-        output, hidden = self.rnn(x, hidden)
-        # last hidden state
-        if self.ndirections == 1:
-            last = output[:, -1]
-        else:
-            forward_ = output[:, -1, :self.num_hid]
-            backward = output[:, 0, self.num_hid:]
-            last = torch.cat((forward_, backward), dim=1)
-        return output, last
+        hidden0 = self.init_hidden(batch)
+
+        output = x
+        for rnn in self._rnn_modules:
+            tmp_output = rnn(output, hidden0)[0]
+            if self.ndirections > 1:
+                tmp_output = self._max_out(tmp_output)
+            output += tmp_output
+            output = self._layer_norm(output)
+
+        return output

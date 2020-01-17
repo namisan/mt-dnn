@@ -40,11 +40,9 @@ class SANNetwork(nn.Module):
             token_type_ids = torch.zeros_like(input_ids)
         
         embedding_output = self.embeddings(input_ids, token_type_ids)
-        rnn_output = self.rnn(embedding_output)[0]
-        size = rnn_output.shape
-        max_output = rnn_output.view(size[0], size[1], self.config.hidden_size, 2).max(-1)[0]
-        pooled_output = self.self_att(max_output, attention_mask == 0)
-        sequence_output = max_output
+        sequence_output = self.rnn(embedding_output)
+        size = sequence_output.shape
+        pooled_output = self.self_att(sequence_output, attention_mask == 0)
         return sequence_output, pooled_output
 
 class SANBertNetwork(nn.Module):
