@@ -128,7 +128,7 @@ class SanNetwork(nn.Module):
         self.pooler = SanPooler(config.hidden_size, config.hidden_dropout_prob, opt['vb_dropout'])
         self.config = config
 
-    def forward(self, input_ids, token_type_ids=None, attention_mask=None):
+    def forward(self, input_ids, token_type_ids=None, attention_mask=None, output_all_encoded_layers=True):
         """[summary]
         
         Arguments:
@@ -146,6 +146,9 @@ class SanNetwork(nn.Module):
             token_type_ids = torch.zeros_like(input_ids)
         
         embedding_output = self.embeddings(input_ids, token_type_ids)
-        sequence_output = self.encoder(embedding_output, attention_mask, output_all_encoded_layers=False)[-1]
+        encoded_layers = self.encoder(embedding_output, attention_mask, output_all_encoded_layers=output_all_encoded_layers)
+        sequence_output = encoded_layers[-1]
         pooled_output = self.pooler(sequence_output, attention_mask == 0)
-        return sequence_output, pooled_output
+        if not output_all_encoded_layers:
+            encoded_layers = encoded_layers[-1]
+        return encoded_layers, pooled_output

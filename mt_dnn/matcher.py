@@ -108,11 +108,9 @@ class SANBertNetwork(nn.Module):
         if self.encoder_type == EncoderModelType.ROBERTA:
             sequence_output = self.bert.extract_features(input_ids)
             pooled_output = self.pooler(sequence_output)
-        elif self.encoder_type == EncoderModelType.BERT:
+        elif self.encoder_type == EncoderModelType.BERT or self.encoder_type == EncoderModelType.SAN:
             all_encoder_layers, pooled_output = self.bert(input_ids, token_type_ids, attention_mask)
             sequence_output = all_encoder_layers[-1]
-        elif self.encoder_type == EncoderModelType.SAN:
-            sequence_output, pooled_output = self.bert(input_ids, token_type_ids, attention_mask)
         else:
             raise NotImplemented("Unsupported encoder type %s" % self.encoder_type)
 
