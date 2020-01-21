@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 from pytorch_pretrained_bert.modeling import BertLayerNorm
 from pretrained_models import MODEL_CLASSES
+from transformers import BertConfig
 
 from module.dropout_wrapper import DropoutWrapper
 from module.san import SANClassifier, MaskLmHeader
@@ -17,12 +18,13 @@ class SANBertNetwork(nn.Module):
         self.dropout_list = nn.ModuleList()
 
         if opt['encoder_type'] not in EncoderModelType:
-            raise ValueError("encoder_type of out of range")
+            raise ValueError("encoder_type is out of pre-defined types")
         self.encoder_type = opt['encoder_type']
         self.preloaded_config = None
 
         literal_encoder_type = self.encoder_type.name.lower()
         if opt['encoder_type'] == EncoderModelType.SAN:
+            # it's customized SAN instead of one in transformers family
             self.bert_config = BertConfig.from_dict(opt)
             self.bert = SanModel(self.bert_config, opt)
             hidden_size = self.bert_config.hidden_size
