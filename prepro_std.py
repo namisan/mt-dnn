@@ -28,165 +28,6 @@ logger = create_logger(
     to_disk=True,
     log_file='mt_dnn_data_proc_{}.log'.format(MAX_SEQ_LEN))
 
-# ROBERTA specific tokens
-# '<s>', '<pad>', '</s>', '<unk>'
-
-
-def load_dict(path):
-    vocab = Vocabulary(neat=True)
-    vocab.add('<s>')
-    vocab.add('<pad>')
-    vocab.add('</s>')
-    vocab.add('<unk>')
-    with open(path, 'r', encoding='utf8') as reader:
-        for line in reader:
-            idx = line.rfind(' ')
-            if idx == -1:
-                raise ValueError(
-                    "Incorrect dictionary format, expected '<token> <cnt>'")
-            word = line[:idx]
-            vocab.add(word)
-    return vocab
-
-
-class RoBERTaTokenizer(object):
-    def __init__(self, vocab, encoder):
-        self.vocab = vocab
-        self.encoder = encoder
-
-    def encode(self, text):
-        ids = self.encoder.encode(text)
-        ids = list(map(str, ids))
-        if len(ids) > MAX_SEQ_LEN - 2:
-            ids = ids[: MAX_SEQ_LEN - 2]
-        ids = [0] + [self.vocab[w] if w in self.vocab else self.vocab['<unk>']
-                     for w in ids] + [2]
-        return ids
-
-    def encode_pair(self, text1, text2):
-        ids1 = self.encoder.encode(text1)
-        ids1 = list(map(str, ids1))
-        ids1 = [self.vocab[w] if w in self.vocab else self.vocab['<unk>']
-                for w in ids1] + [2]
-
-        ids2 = self.encoder.encode(text2)
-        ids2 = list(map(str, ids2))
-        ids2 = [self.vocab[w] if w in self.vocab else self.vocab['<unk>']
-                for w in ids2] + [2]
-        _truncate_seq_pair(ids1, ids2, MAX_SEQ_LEN -2)
-        ids = [0] + ids1 + [2] + ids2
-        return ids
-
-
-def xlnet_tokenize_fn(text, sp):
-    text = preprocess_text(text)
-    return encode_ids(sp, text)
-
-
-def _truncate_seq_pair(tokens_a, tokens_b, max_length):
-    """Truncates a sequence pair in place to the maximum length.
-    Copyed from https://github.com/huggingface/pytorch-pretrained-BERT
-    """
-    # This is a simple heuristic which will always truncate the longer sequence
-    # one token at a time. This makes more sense than truncating an equal percent
-    # of tokens from each, since if one sequence is very short then each token
-    # that's truncated likely contains more information than a longer sequence.
-    while True:
-        total_length = len(tokens_a) + len(tokens_b)
-        if total_length <= max_length:
-            break
-        if len(tokens_a) > len(tokens_b):
-            tokens_a.pop()
-        else:
-            tokens_b.pop()
-
-
-def xlnet_feature_extractor(
-        text_a, text_b=None, max_seq_length=512, tokenize_fn=None):
-    tokens_a = xlnet_tokenize_fn(text_a, tokenize_fn)
-    tokens_b = None
-    if text_b:
-        tokens_b = xlnet_tokenize_fn(text_a, tokenize_fn)
-
-    if tokens_b:
-        _truncate_seq_pair(tokens_a, tokens_b, max_seq_length - 3)
-    else:
-        # Account for one [SEP] & one [CLS] with "- 2"
-        if len(tokens_a) > max_seq_length - 2:
-            tokens_a = tokens_a[:max_seq_length - 2]
-    tokens = []
-    segment_ids = []
-    for token in tokens_a:
-        tokens.append(token)
-        segment_ids.append(SEG_ID_A)
-    tokens.append(SEP_ID)
-    segment_ids.append(SEG_ID_A)
-
-    if tokens_b:
-        for token in tokens_b:
-            tokens.append(token)
-            segment_ids.append(SEG_ID_B)
-        tokens.append(SEP_ID)
-        segment_ids.append(SEG_ID_B)
-
-    tokens.append(CLS_ID)
-    segment_ids.append(SEG_ID_CLS)
-    input_ids = tokens
-
-    # The mask has 0 for real tokens and 1 for padding tokens. Only real
-    # tokens are attended to.
-    input_mask = [0] * len(input_ids)
-
-    # Zero-pad up to the sequence length.
-    if len(input_ids) < max_seq_length:
-        delta_len = max_seq_length - len(input_ids)
-        input_ids = [0] * delta_len + input_ids
-        input_mask = [1] * delta_len + input_mask
-        segment_ids = [SEG_ID_PAD] * delta_len + segment_ids
-
-    assert len(input_ids) == max_seq_length
-    assert len(input_mask) == max_seq_length
-    assert len(segment_ids) == max_seq_length
-
-    return input_ids, input_mask, segment_ids
-
-
-def bert_feature_extractor(
-        text_a, text_b=None, max_seq_length=512, tokenize_fn=None):
-    tokens_a = tokenize_fn.tokenize(text_a)
-    tokens_b = None
-    if text_b:
-        tokens_b = tokenize_fn.tokenize(text_b)
-
-    if tokens_b:
-        _truncate_seq_pair(tokens_a, tokens_b, max_seq_length - 3)
-    else:
-        # Account for one [SEP] & one [CLS] with "- 2"
-        if len(tokens_a) > max_seq_length - 2:
-            tokens_a = tokens_a[:max_seq_length - 2]
-    if tokens_b:
-        input_ids = tokenize_fn.convert_tokens_to_ids(
-            ['[CLS]'] + tokens_b + ['[SEP]'] + tokens_a + ['[SEP]'])
-        segment_ids = [0] * (len(tokens_b) + 2) + [1] * (len(tokens_a) + 1)
-    else:
-        input_ids = tokenize_fn.convert_tokens_to_ids(
-            ['[CLS]'] + tokens_a + ['[SEP]'])
-        segment_ids = [0] * len(input_ids)
-    input_mask = None
-    return input_ids, input_mask, segment_ids
-
-
-def roberta_feature_extractor(
-        text_a, text_b=None, max_seq_length=512, model=None):
-    if text_b:
-        input_ids = model.encode_pair(text_a, text_b)
-        segment_ids = [0] * len(input_ids)
-    else:
-        input_ids = model.encode(text_a)
-        segment_ids = [0] * len(input_ids)
-    input_mask = None
-    return input_ids, input_mask, segment_ids
-
 def feature_extractor(tokenizer, text_a, text_b=None, max_length=512, model_type=None, pad_on_left=False,
                                       pad_token=0,
                                       pad_token_segment_id=0,
@@ -222,7 +63,7 @@ def feature_extractor(tokenizer, text_a, text_b=None, max_length=512, model_type
         attention_mask = None
 
     if model_type.lower() not in ['distilbert','bert', 'xlnet'] :
-        token_type_ids = None
+        token_type_ids = [0] * len(token_type_ids)
 
     return input_ids,attention_mask, token_type_ids # input_ids, input_mask, segment_id
 
@@ -464,7 +305,7 @@ def parse_args():
                         help='support all BERT, XLNET and ROBERTA family supported by HuggingFace Transformers')
     parser.add_argument('--do_lower_case', action='store_true')
     parser.add_argument('--root_dir', type=str, default='data/canonical_data')
-    parser.add_argument('--task_def', type=str, default="task_def.yml")
+    parser.add_argument('--task_def', type=str, default="experiments/glue/glue_task_def.yml")
 
     args = parser.parse_args()
     return args
