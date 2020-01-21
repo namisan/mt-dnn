@@ -1,3 +1,5 @@
+# coding=utf-8
+# Copyright (c) Microsoft. All rights reserved.
 from data_utils import DataFormat
 
 

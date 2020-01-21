@@ -1,12 +1,14 @@
 # coding=utf-8
 # Copyright (c) Microsoft. All rights reserved.
 import os
+import torch
 import torch.nn as nn
 from pytorch_pretrained_bert.modeling import BertLayerNorm
 from pretrained_models import MODEL_CLASSES
 
 from module.dropout_wrapper import DropoutWrapper
-from module.san import SANClassifier
+from module.san import SANClassifier, MaskLmHeader
+from module.san_model import SanModel
 from data_utils.task_def import EncoderModelType, TaskType
 
 class SANBertNetwork(nn.Module):
@@ -20,12 +22,16 @@ class SANBertNetwork(nn.Module):
         self.preloaded_config = None
 
         literal_encoder_type = self.encoder_type.name.lower()
-
-        config_class, model_class, tokenizer_class = MODEL_CLASSES[literal_encoder_type]
-        if os.path.isfile(opt['init_checkpoint']): # if the init_checkpoint exists locally, fall back to legacy behavior. @TODO: discuss and see if we can remove legacy behaviors
-            self.preloaded_config = config_class.from_dict(opt) # load config from opt
-        self.bert = model_class.from_pretrained(opt['init_checkpoint'],config=self.preloaded_config)
-        hidden_size = self.bert.config.hidden_size
+        if opt['encoder_type'] == EncoderModelType.SAN:
+            self.bert_config = BertConfig.from_dict(opt)
+            self.bert = SanModel(self.bert_config, opt)
+            hidden_size = self.bert_config.hidden_size
+        else:
+            config_class, model_class, tokenizer_class = MODEL_CLASSES[literal_encoder_type]
+            if os.path.isfile(opt['init_checkpoint']): # if the init_checkpoint exists locally, fall back to legacy behavior. @TODO: discuss and see if we can remove legacy behaviors
+                self.preloaded_config = config_class.from_dict(opt) # load config from opt
+            self.bert = model_class.from_pretrained(opt['init_checkpoint'],config=self.preloaded_config)
+            hidden_size = self.bert.config.hidden_size
 
         if opt.get('dump_feature', False):
             self.opt = opt
@@ -33,12 +39,15 @@ class SANBertNetwork(nn.Module):
         if opt['update_bert_opt'] > 0:
             for p in self.bert.parameters():
                 p.requires_grad = False
+
         self.decoder_opt = opt['answer_opt']
         self.task_types = opt["task_types"]
+
+        # create output header
         self.scoring_list = nn.ModuleList()
+        self.dropout_list = nn.ModuleList()
         labels = [int(ls) for ls in opt['label_size'].split(',')]
         task_dropout_p = opt['tasks_dropout_p']
-
         for task, lab in enumerate(labels):
             decoder_opt = self.decoder_opt[task]
             task_type = self.task_types[task]
@@ -49,6 +58,12 @@ class SANBertNetwork(nn.Module):
                 out_proj = nn.Linear(hidden_size, 2)
             elif task_type == TaskType.SeqenceLabeling:
                 out_proj = nn.Linear(hidden_size, lab)
+            elif task_type == TaskType.MaskLM:
+                if opt['encoder_type'] == EncoderModelType.ROBERTA:
+                    # TODO: xiaodl
+                    out_proj = MaskLmHeader(self.bert.embeddings.word_embeddings.weight)
+                else:
+                    out_proj = MaskLmHeader(self.bert.embeddings.word_embeddings.weight)
             else:
                 if decoder_opt == 1:
                     out_proj = SANClassifier(hidden_size, hidden_size, lab, opt, prefix='answer', dropout=dropout)
@@ -77,7 +92,8 @@ class SANBertNetwork(nn.Module):
                     module.bias.data.zero_()
                     module.weight.data.fill_(1.0)
             if isinstance(module, nn.Linear):
-                module.bias.data.zero_()
+                if module.bias is not None:
+                    module.bias.data.zero_()
 
         self.apply(init_weights)
 
@@ -96,10 +112,14 @@ class SANBertNetwork(nn.Module):
             end_scores = end_scores.squeeze(-1)
             return start_scores, end_scores
         elif task_type == TaskType.SeqenceLabeling:
-            pooled_output = all_encoder_layers[-1]
+            pooled_output = sequence_output
             pooled_output = self.dropout_list[task_id](pooled_output)
             pooled_output = pooled_output.contiguous().view(-1, pooled_output.size(2))
             logits = self.scoring_list[task_id](pooled_output)
+            return logits
+        elif task_type == TaskType.MaskLM:
+            sequence_output = self.dropout_list[task_id](sequence_output)
+            logits = self.scoring_list[task_id](sequence_output)
             return logits
         else:
             if decoder_opt == 1:

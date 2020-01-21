@@ -49,7 +49,14 @@ def model_config(parser):
     parser.add_argument('--max_seq_len', type=int, default=512)
     parser.add_argument('--init_ratio', type=float, default=1)
     parser.add_argument('--encoder_type', type=int, default=EncoderModelType.BERT)
+    parser.add_argument('--num_hidden_layers', type=int, default=-1)
 
+    # BERT pre-training
+    parser.add_argument('--bert_model_type', type=str, default='bert-base-uncased')
+    parser.add_argument('--do_lower_case', action='store_true')
+    parser.add_argument('--masked_lm_prob', type=float, default=0.15)
+    parser.add_argument('--short_seq_prob', type=float, default=0.2)
+    parser.add_argument('--max_predictions_per_seq', type=int, default=128)
     return parser
 
 
@@ -65,6 +72,8 @@ def data_config(parser):
     parser.add_argument('--train_datasets', default='mnli')
     parser.add_argument('--test_datasets', default='mnli_mismatched,mnli_matched')
     parser.add_argument('--glue_format_on', action='store_true')
+    parser.add_argument('--mkd-opt', type=int, default=0, 
+                        help=">0 to turn on knowledge distillation, requires 'softlabel' column in input data")
     return parser
 
 
@@ -140,9 +149,7 @@ logger = create_logger(__name__, to_disk=True, log_file=log_path)
 logger.info(args.answer_opt)
 
 task_defs = TaskDefs(args.task_def)
-encoder_type = task_defs.encoderType
-args.encoder_type = encoder_type
-
+encoder_type = args.encoder_type
 
 def dump(path, data):
     with open(path, 'w') as f:
@@ -209,7 +216,7 @@ def main():
         logger.info('Loading {} as task {}'.format(train_path, task_id))
         train_data_set = SingleTaskDataset(train_path, True, maxlen=args.max_seq_len, task_id=task_id, task_type=task_type, data_type=data_type)
         train_datasets.append(train_data_set)
-    train_collater = Collater(dropout_w=args.dropout_w, encoder_type=encoder_type)
+    train_collater = Collater(dropout_w=args.dropout_w, encoder_type=encoder_type, soft_label=args.mkd_opt > 0)
     multi_task_train_dataset = MultiTaskDataset(train_datasets)
     multi_task_batch_sampler = MultiTaskBatchSampler(train_datasets, args.batch_size, args.mix_opt, args.ratio)
     multi_task_train_data = DataLoader(multi_task_train_dataset, batch_sampler=multi_task_batch_sampler, collate_fn=train_collater.collate_fn, pin_memory=args.cuda)
@@ -266,13 +273,15 @@ def main():
     bert_model_path = args.init_checkpoint
     state_dict = None
 
-    if encoder_type == EncoderModelType.BERT:
+    if encoder_type == EncoderModelType.BERT or encoder_type == EncoderModelType.SAN:
         if os.path.exists(bert_model_path):
             state_dict = torch.load(bert_model_path)
             config = state_dict['config']
             config['attention_probs_dropout_prob'] = args.bert_dropout_p
             config['hidden_dropout_prob'] = args.bert_dropout_p
             config['multi_gpu_on'] = opt["multi_gpu_on"]
+            if args.num_hidden_layers != -1:
+                config['num_hidden_layers'] = args.num_hidden_layers
             opt.update(config)
         else:
             logger.error('#' * 20)

@@ -1,6 +1,5 @@
 ner:
   data_format: Seqence
-  encoder_type: BERT
   dropout_p: 0.3
   enable_san: False
   labels:
@@ -27,7 +26,6 @@ ner:
   task_type: SeqenceLabeling
 pos:
   data_format: Seqence
-  encoder_type: BERT
   dropout_p: 0.1
   enable_san: False
   labels:
@@ -91,7 +89,6 @@ pos:
   task_type: SeqenceLabeling
 chunk:
   data_format: Seqence
-  encoder_type: BERT
   dropout_p: 0.1
   enable_san: False
   labels:

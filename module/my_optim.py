@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright (c) Microsoft. All rights reserved.
 from copy import deepcopy
 import torch

@@ -1,0 +1,8 @@
+mlm:
+  data_format: MLM
+  enable_san: false
+  metric_meta:
+  - ACC
+  n_class: 30522
+  task_type: MaskLM
+  loss: MlmCriterion

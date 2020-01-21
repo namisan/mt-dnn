@@ -7,6 +7,7 @@ class TaskType(IntEnum):
     Ranking = 3
     Span = 4
     SeqenceLabeling = 5
+    MaskLM = 6
 
 class DataFormat(IntEnum):
     PremiseOnly = 1
@@ -14,8 +15,10 @@ class DataFormat(IntEnum):
     PremiseAndMultiHypothesis = 3
     MRC = 4
     Seqence = 5
+    MLM = 6
 
 class EncoderModelType(IntEnum):
     BERT = 1
     ROBERTA = 2
     XLNET = 3
+    SAN = 4

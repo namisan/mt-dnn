@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright (c) Microsoft. All rights reserved.
 import torch
 import random
@@ -108,3 +109,19 @@ class SANClassifier(nn.Module):
             return scores, scores_list
         else:
             return scores
+
+class MaskLmHeader(nn.Module):
+    """Mask LM
+    """
+    def __init__(self, embedding_weights=None, bias=False):
+        super(MaskLmHeader, self).__init__()
+        self.decoder = nn.Linear(embedding_weights.size(1),
+                                 embedding_weights.size(0),
+                                 bias=bias)
+        self.decoder.weight = embedding_weights
+        self.nsp = nn.Linear(embedding_weights.size(1), 2)
+
+    def forward(self, hidden_states):
+        mlm_out = self.decoder(hidden_states)
+        nsp_out = self.nsp(hidden_states[:, 0, :])
+        return mlm_out, nsp_out
