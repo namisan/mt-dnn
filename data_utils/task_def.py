@@ -19,10 +19,3 @@ class EncoderModelType(IntEnum):
     BERT = 1
     ROBERTA = 2
     XLNET = 3
-
-    @classmethod
-    def from_name(cls, name):
-        for model_type, model_type_name in EncoderModelType.items():
-            if model_type_name == name:
-                return model_type
-        raise ValueError('{} is not a valid model_type name'.format(name))

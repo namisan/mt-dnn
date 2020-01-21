@@ -476,8 +476,9 @@ def main(args):
     root = args.root_dir
     assert os.path.exists(root)
 
-    literal_model_type = args.model.split('-')[0].lower()
-    encoder_model = EncoderModelType.from_name(literal_model_type)
+    literal_model_type = args.model.split('-')[0].upper()
+    encoder_model = EncoderModelType[literal_model_type]
+    literal_model_type = literal_model_type.lower()
     mt_dnn_suffix = literal_model_type
 
     config_class, model_class, tokenizer_class = MODEL_CLASSES[literal_model_type]
