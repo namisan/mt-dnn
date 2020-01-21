@@ -15,4 +15,4 @@ future
 apex
 fairseq==0.8.0
 seqeval==0.0.12
-transformers
+transformers==2.3.0

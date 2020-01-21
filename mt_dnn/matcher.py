@@ -1,32 +1,13 @@
 # coding=utf-8
 # Copyright (c) Microsoft. All rights reserved.
+import os
 import torch.nn as nn
 from pytorch_pretrained_bert.modeling import BertLayerNorm
-from transformers import *
+from pretrained_models import MODEL_CLASSES
 
 from module.dropout_wrapper import DropoutWrapper
 from module.san import SANClassifier
 from data_utils.task_def import EncoderModelType, TaskType
-
-MODEL_CLASSES = {
-    "bert": (BertConfig, BertModel, BertTokenizer),
-    "xlnet": (XLNetConfig, XLNetModel, XLNetTokenizer),
-    "roberta": (RobertaConfig, RobertaModel, RobertaTokenizer),
-    "albert": (AlbertConfig, AlbertModel, AlbertTokenizer),
-    "xlmroberta": (XLMRobertaConfig, XLMRobertaModel, XLMRobertaTokenizer),
-}
-
-class LinearPooler(nn.Module):
-    def __init__(self, hidden_size):
-        super(LinearPooler, self).__init__()
-        self.dense = nn.Linear(hidden_size, hidden_size)
-        self.activation = nn.Tanh()
-
-    def forward(self, hidden_states):
-        first_token_tensor = hidden_states[:, 0]
-        pooled_output = self.dense(first_token_tensor)
-        pooled_output = self.activation(pooled_output)
-        return pooled_output
 
 class SANBertNetwork(nn.Module):
     def __init__(self, opt, bert_config=None):
@@ -36,26 +17,15 @@ class SANBertNetwork(nn.Module):
         if opt['encoder_type'] not in EncoderModelType:
             raise ValueError("encoder_type of out of range")
         self.encoder_type = opt['encoder_type']
+        self.preloaded_config = None
 
-        literal_encoder_type = EncoderModelType[self.encoder_type].__name__
+        literal_encoder_type = self.encoder_type.name.lower()
+
         config_class, model_class, tokenizer_class = MODEL_CLASSES[literal_encoder_type]
-        self.bert_config = config_class.from_pretrained(opt['init_checkpoint'])
-        self.bert = model_class.from_pretrained(opt['init_checkpoint'])
-        self.tokenizer = tokenizer_class.from_pretrained(opt['init_checkpoint'])
-        hidden_size = self.bert_config.hidden_size
-
-        '''
-        if opt['encoder_type'] == EncoderModelType.ROBERTA:
-            from fairseq.models.roberta import RobertaModel
-            self.bert = RobertaModel.from_pretrained(opt['init_checkpoint'])
-            hidden_size = self.bert.args.encoder_embed_dim
-            self.pooler = LinearPooler(hidden_size)
-        else:
-            self.bert = BertModel.from_pretrained(opt['init_checkpoint'])
-            self.bert_config = BertConfig.from_dict(opt)
-            self.bert = BertModel(self.bert_config)
-            hidden_size = self.bert_config.hidden_size
-        '''
+        if os.path.isfile(opt['init_checkpoint']): # if the init_checkpoint exists locally, fall back to legacy behavior. @TODO: discuss and see if we can remove legacy behaviors
+            self.preloaded_config = config_class.from_dict(opt) # load config from opt
+        self.bert = model_class.from_pretrained(opt['init_checkpoint'],config=self.preloaded_config)
+        hidden_size = self.bert.config.hidden_size
 
         if opt.get('dump_feature', False):
             self.opt = opt
@@ -112,12 +82,8 @@ class SANBertNetwork(nn.Module):
         self.apply(init_weights)
 
     def forward(self, input_ids, token_type_ids, attention_mask, premise_mask=None, hyp_mask=None, task_id=0):
-        if self.encoder_type == EncoderModelType.ROBERTA:
-            sequence_output = self.bert.extract_features(input_ids)
-            pooled_output = self.pooler(sequence_output)
-        else:
-            all_encoder_layers, pooled_output = self.bert(input_ids, token_type_ids, attention_mask)
-            sequence_output = all_encoder_layers[-1]
+        all_encoder_layers, pooled_output = self.bert(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
+        sequence_output = all_encoder_layers[-1]
 
         decoder_opt = self.decoder_opt[task_id]
         task_type = self.task_types[task_id]

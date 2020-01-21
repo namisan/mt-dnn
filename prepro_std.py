@@ -14,6 +14,7 @@ from experiments.exp_def import TaskDefs, EncoderModelType
 from data_utils.xlnet_utils import preprocess_text, encode_ids
 from data_utils.xlnet_utils import CLS_ID, SEP_ID
 from experiments.squad import squad_utils
+from pretrained_models import *
 
 
 DEBUG_MODE = False
@@ -21,14 +22,6 @@ MAX_SEQ_LEN = 512
 DOC_STRIDE = 180
 MAX_QUERY_LEN = 64
 MRC_MAX_SEQ_LEN = 384
-### XLNET ###
-SEG_ID_A = 0
-SEG_ID_B = 1
-SEG_ID_CLS = 2
-SEG_ID_SEP = 3
-SEG_ID_PAD = 4
-### XLNET ###
-
 
 logger = create_logger(
     __name__,
@@ -194,11 +187,49 @@ def roberta_feature_extractor(
     input_mask = None
     return input_ids, input_mask, segment_ids
 
+def feature_extractor(tokenizer, text_a, text_b=None, max_length=512, model_type=None, pad_on_left=False,
+                                      pad_token=0,
+                                      pad_token_segment_id=0,
+                                      mask_padding_with_zero=False): # set mask_padding_with_zero default value as False to keep consistent with original setting
+    inputs = tokenizer.encode_plus(
+        text_a,
+        text_b,
+        add_special_tokens=True,
+        max_length=max_length,
+    )
+    input_ids, token_type_ids = inputs["input_ids"], inputs["token_type_ids"]
+
+    # The mask has 1 for real tokens and 0 for padding tokens. Only real
+    # tokens are attended to.
+    attention_mask = [1 if mask_padding_with_zero else 0] * len(input_ids)
+
+    # Zero-pad up to the sequence length.
+    padding_length = max_length - len(input_ids)
+    if pad_on_left:
+        input_ids = ([pad_token] * padding_length) + input_ids
+        attention_mask = ([0 if mask_padding_with_zero else 1] * padding_length) + attention_mask
+        token_type_ids = ([pad_token_segment_id] * padding_length) + token_type_ids
+    else:
+        input_ids = input_ids + ([pad_token] * padding_length)
+        attention_mask = attention_mask + ([0 if mask_padding_with_zero else 1] * padding_length)
+        token_type_ids = token_type_ids + ([pad_token_segment_id] * padding_length)
+
+    assert len(input_ids) == max_length, "Error with input length {} vs {}".format(len(input_ids), max_length)
+    assert len(attention_mask) == max_length, "Error with input length {} vs {}".format(len(attention_mask), max_length)
+    assert len(token_type_ids) == max_length, "Error with input length {} vs {}".format(len(token_type_ids), max_length)
+
+    if model_type.lower() in ['bert', 'roberta']:
+        attention_mask = None
+
+    if model_type.lower() not in ['distilbert','bert', 'xlnet'] :
+        token_type_ids = None
+
+    return input_ids,attention_mask, token_type_ids # input_ids, input_mask, segment_id
 
 def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
                max_seq_len=MAX_SEQ_LEN, encoderModelType=EncoderModelType.BERT, task_type=None, lab_dict=None):
     def build_data_premise_only(
-            data, dump_path, max_seq_len=MAX_SEQ_LEN, tokenizer=None, is_bert_model=True):
+            data, dump_path, max_seq_len=MAX_SEQ_LEN, tokenizer=None, encoderModelType=EncoderModelType.BERT):
         """Build data of single sentence tasks
         """
         with open(dump_path, 'w', encoding='utf-8') as writer:
@@ -208,32 +239,13 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
                 label = sample['label']
                 if len(premise) > max_seq_len - 2:
                     premise = premise[:max_seq_len - 2]
-                if encoderModelType == EncoderModelType.ROBERTA:
-                    input_ids, input_mask, type_ids = roberta_feature_extractor(
-                        premise, max_seq_length=max_seq_len, model=tokenizer)
-                    features = {
-                        'uid': ids,
-                        'label': label,
-                        'token_id': input_ids,
-                        'type_id': type_ids,
-                        'mask': input_mask}
-                elif encoderModelType == EncoderModelType.XLNET:
-                    input_ids, input_mask, type_ids = xlnet_feature_extractor(
-                        premise, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
-                    features = {
-                        'uid': ids,
-                        'label': label,
-                        'token_id': input_ids,
-                        'type_id': type_ids,
-                        'mask': input_mask}
-                else:
-                    input_ids, _, type_ids = bert_feature_extractor(
-                        premise, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
-                    features = {
-                        'uid': ids,
-                        'label': label,
-                        'token_id': input_ids,
-                        'type_id': type_ids}
+                input_ids, input_mask, type_ids = feature_extractor(tokenizer, premise, max_length=max_seq_len, model_type=encoderModelType.name)
+                features = {
+                    'uid': ids,
+                    'label': label,
+                    'token_id': input_ids,
+                    'type_id': type_ids,
+                    'mask': input_mask}
                 writer.write('{}\n'.format(json.dumps(features)))
 
     def build_data_premise_and_one_hypo(
@@ -246,32 +258,14 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
                 premise = sample['premise']
                 hypothesis = sample['hypothesis']
                 label = sample['label']
-                if encoderModelType == EncoderModelType.ROBERTA:
-                    input_ids, input_mask, type_ids = roberta_feature_extractor(
-                        premise, hypothesis, max_seq_length=max_seq_len, model=tokenizer)
-                    features = {
-                        'uid': ids,
-                        'label': label,
-                        'token_id': input_ids,
-                        'type_id': type_ids,
-                        'mask': input_mask}
-                elif encoderModelType == EncoderModelType.XLNET:
-                    input_ids, input_mask, type_ids = xlnet_feature_extractor(
-                        premise, hypothesis, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
-                    features = {
-                        'uid': ids,
-                        'label': label,
-                        'token_id': input_ids,
-                        'type_id': type_ids,
-                        'mask': input_mask}
-                else:
-                    input_ids, _, type_ids = bert_feature_extractor(
-                        premise, hypothesis, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
-                    features = {
-                        'uid': ids,
-                        'label': label,
-                        'token_id': input_ids,
-                        'type_id': type_ids}
+                input_ids, input_mask, type_ids = feature_extractor(tokenizer, premise, text_b=hypothesis, max_length=max_seq_len,
+                                                                    model_type=encoderModelType.name)
+                features = {
+                    'uid': ids,
+                    'label': label,
+                    'token_id': input_ids,
+                    'type_id': type_ids,
+                    'mask': input_mask}
                 writer.write('{}\n'.format(json.dumps(features)))
 
     def build_data_premise_and_multi_hypo(
@@ -286,38 +280,21 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
                 hypothesis_2 = sample['hypothesis'][1]
                 label = sample['label']
 
-                if encoderModelType == EncoderModelType.ROBERTA:
-                    input_ids_1, _, type_ids_1 = roberta_feature_extractor(
-                        premise, hypothesis_1, max_seq_length=max_seq_len, model=tokenizer)
-                    input_ids_2, _, type_ids_2 = roberta_feature_extractor(
-                        premise, hypothesis_2, max_seq_length=max_seq_len, model=tokenizer)
-                    features = {
-                        'uid': ids, 'label': label, 'token_id': [
-                            input_ids_1, input_ids_2], 'type_id': [
-                            type_ids_1, type_ids_2], 'ruid': sample['ruid'], 'olabel': sample['olabel']}
-                elif encoderModelType == EncoderModelType.XLNET:
-                    input_ids_1, mask_1, type_ids_1 = xlnet_feature_extractor(
-                        premise, hypothesis_1, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
-                    input_ids_2, mask_2, type_ids_2 = xlnet_feature_extractor(
-                        premise, hypothesis_2, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
-                    features = {
-                        'uid': ids, 'label': label, 'token_id': [
-                            input_ids_1, input_ids_2], 'type_id': [
-                            type_ids_1, type_ids_2], 'mask': [
-                            mask_1, mask_2], 'ruid': sample['ruid'], 'olabel': sample['olabel']}
-                else:
-                    input_ids_1, _, type_ids_1 = bert_feature_extractor(
-                        premise, hypothesis_1, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
-                    input_ids_2, _, type_ids_2 = bert_feature_extractor(
-                        premise, hypothesis_2, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
-                    features = {
-                        'uid': ids, 'label': label, 'token_id': [
-                            input_ids_1, input_ids_2], 'type_id': [
-                            type_ids_1, type_ids_2], 'ruid': sample['ruid'], 'olabel': sample['olabel']}
+                input_ids_1, mask_1, type_ids_1 = feature_extractor(tokenizer,
+                                                                    premise, hypothesis_1, max_length=max_seq_len,
+                                                                    model_type=encoderModelType.name)
+                input_ids_2, mask_2, type_ids_2 = feature_extractor(tokenizer,
+                                                                    premise, hypothesis_2, max_length=max_seq_len,
+                                                                    model_type=encoderModelType.name)
+                features = {
+                    'uid': ids, 'label': label, 'token_id': [
+                        input_ids_1, input_ids_2], 'type_id': [
+                        type_ids_1, type_ids_2], 'mask': [
+                        mask_1, mask_2], 'ruid': sample['ruid'], 'olabel': sample['olabel']}
 
                 writer.write('{}\n'.format(json.dumps(features)))
 
-    def build_data_sequence(data, dump_path, max_seq_len=MAX_SEQ_LEN, tokenizer=None, label_mapper=None):
+    def build_data_sequence(data, dump_path, max_seq_len=MAX_SEQ_LEN, tokenizer=None, encoderModelType=EncoderModelType.BERT, label_mapper=None):
         with open(dump_path, 'w', encoding='utf-8') as writer:
             for idx, sample in enumerate(data):
                 ids = sample['uid']
@@ -325,10 +302,7 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
                 tokens = []
                 labels = []
                 for i, word in enumerate(premise):
-                    if encoderModelType == EncoderModelType.ROBERTA:
-                        subwords = tokenizer.encoder.encode(word)
-                    else:
-                        subwords = tokenizer.tokenize(word)
+                    subwords = tokenizer.tokenize(word)
                     tokens.extend(subwords)
                     for j in range(len(subwords)):
                         if j == 0:
@@ -340,12 +314,7 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
                     labels = labels[:max_seq_len - 2]
 
                 label = [label_mapper['CLS']] + labels + [label_mapper['SEP']]
-                if encoderModelType == EncoderModelType.ROBERTA:
-                    tokens = list(map(str, tokens))
-                    input_ids = [0] + [tokenizer.vocab[w] if w in tokenizer.vocab else tokenizer.vocab['<unk>']
-                                    for w in tokens] + [2]
-                else:
-                    input_ids = tokenizer.convert_tokens_to_ids(['[CLS]'] + tokens + ['[SEP]'])
+                input_ids = tokenizer.convert_tokens_to_ids(['[CLS]'] + tokens + ['[SEP]'])
                 assert len(label) == len(input_ids)
                 type_ids = [0] * len(input_ids)
                 features = {'uid': ids, 'label': label, 'token_id': input_ids, 'type_id': type_ids}
@@ -414,7 +383,7 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
         build_data_premise_and_multi_hypo(
             data, dump_path, max_seq_len, tokenizer, encoderModelType)
     elif data_format == DataFormat.Seqence:
-        build_data_sequence(data, dump_path, max_seq_len, tokenizer, lab_dict)
+        build_data_sequence(data, dump_path, max_seq_len, tokenizer, encoderModelType, lab_dict)
     elif data_format == DataFormat.MRC:
         build_data_mrc(data, dump_path, max_seq_len, tokenizer, encoderModelType)
     else:
@@ -492,11 +461,10 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description='Preprocessing GLUE/SNLI/SciTail dataset.')
     parser.add_argument('--model', type=str, default='bert-base-uncased',
-                        help='bert-base-uncased/bert-large-uncased/xlnet-large-cased/reberta-large')
+                        help='support all BERT, XLNET and ROBERTA family supported by HuggingFace Transformers')
     parser.add_argument('--do_lower_case', action='store_true')
     parser.add_argument('--root_dir', type=str, default='data/canonical_data')
     parser.add_argument('--task_def', type=str, default="task_def.yml")
-    parser.add_argument('--roberta_path', type=str, default=None)
 
     args = parser.parse_args()
     return args
@@ -508,40 +476,14 @@ def main(args):
     root = args.root_dir
     assert os.path.exists(root)
 
-    is_uncased = False
+    literal_model_type = args.model.split('-')[0].lower()
+    encoder_model = EncoderModelType.from_name(literal_model_type)
+    mt_dnn_suffix = literal_model_type
+
+    config_class, model_class, tokenizer_class = MODEL_CLASSES[literal_model_type]
+    tokenizer = tokenizer_class.from_pretrained(args.model, do_lower_case=do_lower_case)
+
     if 'uncased' in args.model:
-        is_uncased = True
-
-    mt_dnn_suffix = 'bert'
-    encoder_model = EncoderModelType.BERT
-    if 'xlnet' in args.model:
-        encoder_model = EncoderModelType.XLNET
-        mt_dnn_suffix = 'xlnet'
-
-    if 'roberta' in args.model:
-        encoder_model = EncoderModelType.ROBERTA
-        mt_dnn_suffix = 'roberta'
-
-    if encoder_model == EncoderModelType.ROBERTA:
-        if args.roberta_path is None or (
-                not os.path.exists(args.roberta_path)):
-            print('Please specify roberta model path')
-        encoder = get_encoder('{}/encoder.json'.format(args.roberta_path),
-                              '{}/vocab.bpe'.format(args.roberta_path))
-        vocab = load_dict('{}/ict.txt'.format(args.roberta_path))
-        tokenizer = RoBERTaTokenizer(vocab, encoder)
-
-    elif encoder_model == EncoderModelType.XLNET:
-        tokenizer = spm.SentencePieceProcessor()
-        if 'large' in args.model:
-            tokenizer.load('mt_dnn_models/xlnet_large_cased_spiece.model')
-        else:
-            tokenizer.load('mt_dnn_models/xlnet_base_cased_spiece.model')
-    else:
-        tokenizer = BertTokenizer.from_pretrained(
-            args.model, do_lower_case=do_lower_case)
-
-    if is_uncased:
         mt_dnn_suffix = '{}_uncased'.format(mt_dnn_suffix)
     else:
         mt_dnn_suffix = '{}_cased'.format(mt_dnn_suffix)
