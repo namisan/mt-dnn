@@ -3,7 +3,6 @@
 import os
 import torch
 import torch.nn as nn
-from pytorch_pretrained_bert.modeling import BertLayerNorm
 from pretrained_models import MODEL_CLASSES
 from transformers import BertConfig
 
@@ -82,17 +81,7 @@ class SANBertNetwork(nn.Module):
                 # Slightly different from the TF version which uses truncated_normal for initialization
                 # cf https://github.com/pytorch/pytorch/pull/5617
                 module.weight.data.normal_(mean=0.0, std=0.02 * self.opt['init_ratio'])
-            elif isinstance(module, BertLayerNorm):
-                # Slightly different from the BERT pytorch version, which should be a bug.
-                # Note that it only affects on training from scratch. For detailed discussions, please contact xiaodl@.
-                # Layer normalization (https://arxiv.org/abs/1607.06450)
-                # support both old/latest version
-                if 'beta' in dir(module) and 'gamma' in dir(module):
-                    module.beta.data.zero_()
-                    module.gamma.data.fill_(1.0)
-                else:
-                    module.bias.data.zero_()
-                    module.weight.data.fill_(1.0)
+
             if isinstance(module, nn.Linear):
                 if module.bias is not None:
                     module.bias.data.zero_()
