@@ -206,6 +206,15 @@ class MTDNNModel(object):
         sequence_output = self.network.encode(*inputs)[0]
         return sequence_output
 
+    # TODO: similar as function extract, preserve since it is used by extractor.py
+    # will remove after migrating to transformers package
+    def extract(self, batch_meta, batch_data):
+        self.network.eval()
+        # 'token_id': 0; 'segment_id': 1; 'mask': 2
+        inputs = batch_data[:3]
+        all_encoder_layers, pooled_output = self.mnetwork.bert(*inputs)
+        return all_encoder_layers, pooled_output
+
     def predict(self, batch_meta, batch_data):
         self.network.eval()
         task_id = batch_meta['task_id']
