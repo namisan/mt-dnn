@@ -21,15 +21,15 @@ BERT_CMD = "python prepro_std.py --model bert-base-uncased --root_dir %s --task_
 ROBERTA_CMD = "python prepro_std.py --model roberta-base --roberta_path mt_dnn_models/roberta --root_dir %s --task_def %s --do_lower_case "
 
 test_prepro_std(BERT_CMD,
-                "test/glue/glue_data",
-                "test/glue/glue_task_def.yml",
-                "test/glue/glue_data/bert_uncased_lower",
-                "test/glue/expected/bert_uncased_lower"
+                "int_test_data/glue/input/prepro_std",
+                "int_test_data/glue/input/glue_task_def.yml",
+                "int_test_data/glue/input/prepro_std/bert_uncased_lower",
+                "int_test_data/glue/expected/prepro_std/bert_uncased_lower"
                 )
 
 test_prepro_std(BERT_CMD,
-                "test/glue/glue_data",
-                "test/glue/glue_task_def.yml",
-                "test/glue/glue_data/roberta_cased_lower",
-                "test/glue/expected/roberta_cased_lower"
+                "int_test_data/glue/input/prepro_std",
+                "int_test_data/glue/input/glue_task_def.yml",
+                "int_test_data/glue/input/prepro_std/roberta_cased_lower",
+                "int_test_data/glue/expected/prepro_std/roberta_cased_lower"
                 )

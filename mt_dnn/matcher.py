@@ -104,7 +104,7 @@ class SANBertNetwork(nn.Module):
 
         self.apply(init_weights)
 
-    def forward(self, input_ids, token_type_ids, attention_mask, premise_mask=None, hyp_mask=None, task_id=0):
+    def encode(self, input_ids, token_type_ids, attention_mask):
         if self.encoder_type == EncoderModelType.ROBERTA:
             sequence_output = self.bert.extract_features(input_ids)
             pooled_output = self.pooler(sequence_output)
@@ -113,6 +113,10 @@ class SANBertNetwork(nn.Module):
             sequence_output = all_encoder_layers[-1]
         else:
             raise NotImplemented("Unsupported encoder type %s" % self.encoder_type)
+        return sequence_output, pooled_output
+
+    def forward(self, input_ids, token_type_ids, attention_mask, premise_mask=None, hyp_mask=None, task_id=0):
+        sequence_output, pooled_output = self.encode(input_ids, token_type_ids, attention_mask)
 
         decoder_opt = self.decoder_opt[task_id]
         task_type = self.task_types[task_id]
