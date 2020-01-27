@@ -216,8 +216,8 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
                         'uid': ids,
                         'label': label,
                         'token_id': input_ids,
-                        'type_id': type_ids,
-                        'mask': input_mask}
+                        'type_id': type_ids
+                        }
                 elif encoderModelType == EncoderModelType.XLNET:
                     input_ids, input_mask, type_ids = xlnet_feature_extractor(
                         premise, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
@@ -225,8 +225,8 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
                         'uid': ids,
                         'label': label,
                         'token_id': input_ids,
-                        'type_id': type_ids,
-                        'mask': input_mask}
+                        'type_id': type_ids
+                        }
                 else:
                     input_ids, _, type_ids = bert_feature_extractor(
                         premise, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
@@ -254,8 +254,8 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
                         'uid': ids,
                         'label': label,
                         'token_id': input_ids,
-                        'type_id': type_ids,
-                        'mask': input_mask}
+                        'type_id': type_ids
+                        }
                 elif encoderModelType == EncoderModelType.XLNET:
                     input_ids, input_mask, type_ids = xlnet_feature_extractor(
                         premise, hypothesis, max_seq_length=max_seq_len, tokenize_fn=tokenizer)
@@ -263,8 +263,8 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
                         'uid': ids,
                         'label': label,
                         'token_id': input_ids,
-                        'type_id': type_ids,
-                        'mask': input_mask}
+                        'type_id': type_ids
+                        }
                 else:
                     input_ids, _, type_ids = bert_feature_extractor(
                         premise, hypothesis, max_seq_length=max_seq_len, tokenize_fn=tokenizer)

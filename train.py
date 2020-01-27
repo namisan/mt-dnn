@@ -13,7 +13,7 @@ from pytorch_pretrained_bert.modeling import BertConfig
 from tensorboardX import SummaryWriter
 #from torch.utils.tensorboard import SummaryWriter
 from experiments.exp_def import TaskDefs
-from mt_dnn.inference import eval_model
+from mt_dnn.inference import eval_model, extract_encoding
 from data_utils.log_wrapper import create_logger
 from data_utils.utils import set_environment
 from data_utils.task_def import TaskType, EncoderModelType
@@ -132,6 +132,8 @@ parser = argparse.ArgumentParser()
 parser = data_config(parser)
 parser = model_config(parser)
 parser = train_config(parser)
+parser.add_argument('--encode_mode', action='store_true', help="only encode test data")
+
 args = parser.parse_args()
 
 output_dir = args.output_dir
@@ -326,6 +328,15 @@ def main():
     if args.tensorboard:
         args.tensorboard_logdir = os.path.join(args.output_dir, args.tensorboard_logdir)
         tensorboard = SummaryWriter(log_dir=args.tensorboard_logdir)
+    
+    if args.encode_mode:
+        for idx, dataset in enumerate(args.test_datasets):
+            prefix = dataset.split('_')[0]
+            test_data = test_data_list[idx]
+            with torch.no_grad():
+                encoding = extract_encoding(model, test_data, use_cuda=args.cuda)
+            torch.save(encoding, os.path.join(output_dir, '{}_encoding.pt'.format(dataset)))
+        return
 
     for epoch in range(0, args.epochs):
         logger.warning('At epoch {}'.format(epoch))

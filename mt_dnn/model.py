@@ -200,6 +200,21 @@ class MTDNNModel(object):
             self.optimizer.step()
             self.optimizer.zero_grad()
 
+    def encode(self, batch_meta, batch_data):
+        self.network.eval()
+        inputs = batch_data[:3]
+        sequence_output = self.network.encode(*inputs)[0]
+        return sequence_output
+
+    # TODO: similar as function extract, preserve since it is used by extractor.py
+    # will remove after migrating to transformers package
+    def extract(self, batch_meta, batch_data):
+        self.network.eval()
+        # 'token_id': 0; 'segment_id': 1; 'mask': 2
+        inputs = batch_data[:3]
+        all_encoder_layers, pooled_output = self.mnetwork.bert(*inputs)
+        return all_encoder_layers, pooled_output
+
     def predict(self, batch_meta, batch_data):
         self.network.eval()
         task_id = batch_meta['task_id']
@@ -250,13 +265,6 @@ class MTDNNModel(object):
             predict = np.argmax(score, axis=1).tolist()
             score = score.reshape(-1).tolist()
         return score, predict, batch_meta['label']
-
-    def extract(self, batch_meta, batch_data):
-        self.network.eval()
-        # 'token_id': 0; 'segment_id': 1; 'mask': 2
-        inputs = batch_data[:3]
-        all_encoder_layers, pooled_output = self.mnetwork.bert(*inputs)
-        return all_encoder_layers, pooled_output
 
     def save(self, filename):
         network_state = dict([(k, v.cpu()) for k, v in self.network.state_dict().items()])
