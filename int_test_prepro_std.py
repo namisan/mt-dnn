@@ -14,22 +14,24 @@ def assert_dir_equal(dir0, dir1):
 def test_prepro_std(cmd, src_dir, task_def_path, target_dir, expected_dir):
     subprocess.call("rm -rf %s" % target_dir, shell=True)
     assert not os.access(target_dir, os.F_OK), "preprocessed target directory already exist"
-    subprocess.call(BERT_CMD % (src_dir, task_def_path), shell=True, stdout=subprocess.DEVNULL)
+    subprocess.call(cmd % (src_dir, task_def_path), shell=True, stdout=subprocess.DEVNULL)
     assert_dir_equal(target_dir, expected_dir)
 
 BERT_CMD = "python prepro_std.py --model bert-base-uncased --root_dir %s --task_def %s --do_lower_case "
 ROBERTA_CMD = "python prepro_std.py --model roberta-base --roberta_path mt_dnn_models/roberta --root_dir %s --task_def %s --do_lower_case "
+SRC_DIR = "int_test_data/glue/input/prepro_std"
+TASK_DEF_PATH = "int_test_data/glue/input/prepro_std/glue_task_def.yml"
 
 test_prepro_std(BERT_CMD,
-                "int_test_data/glue/input/prepro_std",
-                "int_test_data/glue/input/glue_task_def.yml",
+                SRC_DIR,
+                TASK_DEF_PATH,
                 "int_test_data/glue/input/prepro_std/bert_uncased_lower",
                 "int_test_data/glue/expected/prepro_std/bert_uncased_lower"
                 )
 
-test_prepro_std(BERT_CMD,
-                "int_test_data/glue/input/prepro_std",
-                "int_test_data/glue/input/glue_task_def.yml",
+test_prepro_std(ROBERTA_CMD,
+                SRC_DIR,
+                TASK_DEF_PATH,
                 "int_test_data/glue/input/prepro_std/roberta_cased_lower",
                 "int_test_data/glue/expected/prepro_std/roberta_cased_lower"
                 )
