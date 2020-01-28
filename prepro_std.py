@@ -29,7 +29,7 @@ logger = create_logger(
     to_disk=True,
     log_file='mt_dnn_data_proc_{}.log'.format(MAX_SEQ_LEN))
 
-def feature_extractor(tokenizer, text_a, text_b=None, max_length=512, model_type=None, pad_on_left=False,
+def feature_extractor(tokenizer, text_a, text_b=None, max_length=512, model_type=None, enable_padding=False, pad_on_left=False,
                                       pad_token=0,
                                       pad_token_segment_id=0,
                                       mask_padding_with_zero=False): # set mask_padding_with_zero default value as False to keep consistent with original setting
@@ -47,18 +47,20 @@ def feature_extractor(tokenizer, text_a, text_b=None, max_length=512, model_type
 
     # Zero-pad up to the sequence length.
     padding_length = max_length - len(input_ids)
-    if pad_on_left:
-        input_ids = ([pad_token] * padding_length) + input_ids
-        attention_mask = ([0 if mask_padding_with_zero else 1] * padding_length) + attention_mask
-        token_type_ids = ([pad_token_segment_id] * padding_length) + token_type_ids
-    else:
-        input_ids = input_ids + ([pad_token] * padding_length)
-        attention_mask = attention_mask + ([0 if mask_padding_with_zero else 1] * padding_length)
-        token_type_ids = token_type_ids + ([pad_token_segment_id] * padding_length)
 
-    assert len(input_ids) == max_length, "Error with input length {} vs {}".format(len(input_ids), max_length)
-    assert len(attention_mask) == max_length, "Error with input length {} vs {}".format(len(attention_mask), max_length)
-    assert len(token_type_ids) == max_length, "Error with input length {} vs {}".format(len(token_type_ids), max_length)
+    if enable_padding:
+        if pad_on_left:
+            input_ids = ([pad_token] * padding_length) + input_ids
+            attention_mask = ([0 if mask_padding_with_zero else 1] * padding_length) + attention_mask
+            token_type_ids = ([pad_token_segment_id] * padding_length) + token_type_ids
+        else:
+            input_ids = input_ids + ([pad_token] * padding_length)
+            attention_mask = attention_mask + ([0 if mask_padding_with_zero else 1] * padding_length)
+            token_type_ids = token_type_ids + ([pad_token_segment_id] * padding_length)
+
+        assert len(input_ids) == max_length, "Error with input length {} vs {}".format(len(input_ids), max_length)
+        assert len(attention_mask) == max_length, "Error with input length {} vs {}".format(len(attention_mask), max_length)
+        assert len(token_type_ids) == max_length, "Error with input length {} vs {}".format(len(token_type_ids), max_length)
 
     if model_type.lower() in ['bert', 'roberta']:
         attention_mask = None
@@ -86,8 +88,7 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
                     'uid': ids,
                     'label': label,
                     'token_id': input_ids,
-                    'type_id': type_ids,
-                    'mask': input_mask}
+                    'type_id': type_ids}
                 writer.write('{}\n'.format(json.dumps(features)))
 
     def build_data_premise_and_one_hypo(
@@ -106,8 +107,7 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
                     'uid': ids,
                     'label': label,
                     'token_id': input_ids,
-                    'type_id': type_ids,
-                    'mask': input_mask}
+                    'type_id': type_ids}
                 writer.write('{}\n'.format(json.dumps(features)))
 
     def build_data_premise_and_multi_hypo(
@@ -131,8 +131,7 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
                 features = {
                     'uid': ids, 'label': label, 'token_id': [
                         input_ids_1, input_ids_2], 'type_id': [
-                        type_ids_1, type_ids_2], 'mask': [
-                        mask_1, mask_2], 'ruid': sample['ruid'], 'olabel': sample['olabel']}
+                        type_ids_1, type_ids_2], 'ruid': sample['ruid'], 'olabel': sample['olabel']}
 
                 writer.write('{}\n'.format(json.dumps(features)))
 
