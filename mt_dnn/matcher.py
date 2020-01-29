@@ -97,7 +97,6 @@ class SANBertNetwork(nn.Module):
                 # Slightly different from the TF version which uses truncated_normal for initialization
                 # cf https://github.com/pytorch/pytorch/pull/5617
                 module.weight.data.normal_(mean=0.0, std=0.02 * self.opt['init_ratio'])
-
             if isinstance(module, nn.Linear):
                 if module.bias is not None:
                     module.bias.data.zero_()
@@ -105,7 +104,6 @@ class SANBertNetwork(nn.Module):
         self.apply(init_weights)
 
     def encode(self, input_ids, token_type_ids, attention_mask):
-
         if self.encoder_type == EncoderModelType.ROBERTA:
             sequence_output = self.bert.extract_features(input_ids)
             pooled_output = self.pooler(sequence_output)
@@ -116,7 +114,6 @@ class SANBertNetwork(nn.Module):
             pooled_output = outputs[1]
         else:
             raise NotImplemented("Unsupported encoder type %s" % self.encoder_type)
-
         return sequence_output, pooled_output
 
     def forward(self, input_ids, token_type_ids, attention_mask, premise_mask=None, hyp_mask=None, task_id=0):
