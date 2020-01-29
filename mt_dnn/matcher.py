@@ -16,12 +16,12 @@ class SANBertNetwork(nn.Module):
         super(SANBertNetwork, self).__init__()
         self.dropout_list = nn.ModuleList()
 
-        if opt['encoder_type'] not in EncoderModelType:
+        if opt['encoder_type'] not in EncoderModelType._value2member_map_:
             raise ValueError("encoder_type is out of pre-defined types")
         self.encoder_type = opt['encoder_type']
         self.preloaded_config = None
 
-        literal_encoder_type = self.encoder_type.name.lower()
+        literal_encoder_type = EncoderModelType(self.encoder_type).name.lower()
         if opt['encoder_type'] == EncoderModelType.SAN:
             # it's customized SAN instead of one in transformers family
             self.bert_config = BertConfig.from_dict(opt)
