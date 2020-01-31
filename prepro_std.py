@@ -7,6 +7,7 @@ import argparse
 import json
 from pytorch_pretrained_bert.tokenization import BertTokenizer
 import sentencepiece as spm
+from data_utils import load_data
 from data_utils.task_def import TaskType, DataFormat
 from data_utils.log_wrapper import create_logger
 from data_utils.vocab import Vocabulary
@@ -197,7 +198,7 @@ def roberta_feature_extractor(
 
 
 def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
-               max_seq_len=MAX_SEQ_LEN, encoderModelType=EncoderModelType.BERT, task_type=None, lab_dict=None):
+               max_seq_len=MAX_SEQ_LEN, encoderModelType=EncoderModelType.BERT, lab_dict=None):
     def build_data_premise_only(
             data, dump_path, max_seq_len=MAX_SEQ_LEN, tokenizer=None, is_bert_model=True):
         """Build data of single sentence tasks
@@ -422,73 +423,6 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
         raise ValueError(data_format)
 
 
-def load_data(file_path, data_format, task_type, label_dict=None):
-    """
-    :param file_path:
-    :param data_format:
-    :param task_type:
-    :param label_dict: map string label to numbers.
-        only valid for Classification task or ranking task.
-        For ranking task, better label should have large number
-    :return:
-    """
-    if task_type == TaskType.Ranking:
-        assert data_format == DataFormat.PremiseAndMultiHypothesis
-
-    rows = []
-    for line in open(file_path, encoding="utf-8"):
-        fields = line.strip("\n").split("\t")
-        if data_format == DataFormat.PremiseOnly:
-            assert len(fields) == 3
-            row = {"uid": fields[0], "label": fields[1], "premise": fields[2]}
-        elif data_format == DataFormat.PremiseAndOneHypothesis:
-            assert len(fields) == 4
-            row = {
-                "uid": fields[0],
-                "label": fields[1],
-                "premise": fields[2],
-                "hypothesis": fields[3]}
-        elif data_format == DataFormat.PremiseAndMultiHypothesis:
-            assert len(fields) > 5
-            row = {"uid": fields[0], "ruid": fields[1].split(","), "label": fields[2], "premise": fields[3],
-                   "hypothesis": fields[4:]}
-        elif data_format == DataFormat.Seqence:
-            row = {"uid": fields[0], "label": eval(fields[1]),  "premise": eval(fields[2])}
-
-        elif data_format == DataFormat.MRC:
-            row = {
-                "uid": fields[0],
-                "label": fields[1],
-                "premise": fields[2],
-                "hypothesis": fields[3]}
-        else:
-            raise ValueError(data_format)
-
-        if task_type == TaskType.Classification:
-            if label_dict is not None:
-                row["label"] = label_dict[row["label"]]
-            else:
-                row["label"] = int(row["label"])
-        elif task_type == TaskType.Regression:
-            row["label"] = float(row["label"])
-        elif task_type == TaskType.Ranking:
-            labels = row["label"].split(",")
-            if label_dict is not None:
-                labels = [label_dict[label] for label in labels]
-            else:
-                labels = [float(label) for label in labels]
-            row["label"] = int(np.argmax(labels))
-            row["olabel"] = labels
-        elif task_type == TaskType.Span:
-            pass  # don't process row label
-        elif task_type == TaskType.SeqenceLabeling:
-            assert type(row["label"]) is list
-            row["label"] = [label_dict[label] for label in row["label"]]
-
-        rows.append(row)
-    return rows
-
-
 def parse_args():
     parser = argparse.ArgumentParser(
         description='Preprocessing GLUE/SNLI/SciTail dataset.')
@@ -522,6 +456,11 @@ def main(args):
     if 'roberta' in args.model:
         encoder_model = EncoderModelType.ROBERTA
         mt_dnn_suffix = 'roberta'
+
+    if 'base' in args.model:
+        mt_dnn_suffix += "_base"
+    elif 'large' in args.model:
+        mt_dnn_suffix += "_large"
 
     if encoder_model == EncoderModelType.ROBERTA:
         if args.roberta_path is None or (
@@ -578,7 +517,6 @@ def main(args):
                 tokenizer,
                 data_format,
                 encoderModelType=encoder_model,
-                task_type=task_type,
                 lab_dict=label_mapper)
 
 

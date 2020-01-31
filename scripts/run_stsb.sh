@@ -15,7 +15,7 @@ train_datasets="stsb"
 test_datasets="stsb"
 MODEL_ROOT="checkpoints"
 BERT_PATH="../mt_dnn_models/mt_dnn_large_uncased.pt"
-DATA_DIR="../data/canonical_data/bert_uncased_lower"
+DATA_DIR="../data/canonical_data/bert_large_uncased_lower"
 
 answer_opt=0
 optim="adamax"

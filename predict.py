@@ -3,7 +3,6 @@ import json
 import os
 import torch
 
-from data_utils.task_def import TaskType
 from experiments.exp_def import TaskDefs, EncoderModelType
 #from experiments.glue.glue_utils import eval_model
 

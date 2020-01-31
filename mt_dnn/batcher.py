@@ -8,6 +8,7 @@ import numpy as np
 from shutil import copyfile
 from data_utils.task_def import TaskType, DataFormat
 from data_utils.task_def import EncoderModelType
+import tasks
 from torch.utils.data import Dataset, DataLoader, BatchSampler
 from experiments.mlm.mlm_utils import truncate_seq_pair, load_loose_json
 from experiments.mlm.mlm_utils import create_instances_from_document, create_masked_lm_predictions
@@ -153,6 +154,9 @@ class SingleTaskDataset(Dataset):
                 sample['factor'] = factor
                 cnt += 1
                 if is_train:
+                    task_obj = tasks.get_task_by_task_type(task_type)
+                    if task_obj is not None and not task_obj.input_is_valid_sample(sample, maxlen):
+                        continue
                     if (task_type == TaskType.Ranking) and (len(sample['token_id'][0]) > maxlen or len(sample['token_id'][1]) > maxlen):
                         continue
                     if (task_type != TaskType.Ranking) and (len(sample['token_id']) > maxlen):
@@ -271,10 +275,11 @@ class Collater:
 
         # add label
         labels = [sample['label'] for sample in batch]
+        task_obj = tasks.get_task_by_task_type(task_type)
         if self.is_train:
             # in training model, label is used by Pytorch, so would be tensor
-            if task_type == TaskType.Regression:
-                batch_data.append(torch.FloatTensor(labels))
+            if task_obj is not None:
+                batch_data.append(task_obj.train_prepare_label(labels))
                 batch_info['label'] = len(batch_data) - 1
             elif task_type in (TaskType.Classification, TaskType.Ranking):
                 batch_data.append(torch.LongTensor(labels))
@@ -310,20 +315,26 @@ class Collater:
             if self.soft_label_on and 'softlabel' in batch[0]:
                 assert task_type in (TaskType.Classification, TaskType.Regression)
                 sortlabels = [sample['softlabel'] for sample in batch]
-                sortlabels = torch.FloatTensor(sortlabels)
+                if task_obj is not None:
+                    sortlabels = task_obj.train_prepare_soft_labels(sortlabels)
+                else:
+                    sortlabels = torch.FloatTensor(sortlabels)
                 batch_info['soft_label'] = sortlabels
         else:
             # in test model, label would be used for evaluation
-            batch_info['label'] = labels
-            if task_type == TaskType.Ranking:
-                batch_info['true_label'] = [sample['true_label'] for sample in batch]
-            if task_type == TaskType.Span:
-                batch_info['token_to_orig_map'] = [sample['token_to_orig_map'] for sample in batch]
-                batch_info['token_is_max_context'] = [sample['token_is_max_context'] for sample in batch]
-                batch_info['doc_offset'] = [sample['doc_offset'] for sample in batch]
-                batch_info['doc'] = [sample['doc'] for sample in batch]
-                batch_info['tokens'] = [sample['tokens'] for sample in batch]
-                batch_info['answer'] = [sample['answer'] for sample in batch]
+            if task_obj is not None:
+                task_obj.test_prepare_label(batch_info, labels)
+            else:
+                batch_info['label'] = labels
+                if task_type == TaskType.Ranking:
+                    batch_info['true_label'] = [sample['true_label'] for sample in batch]
+                if task_type == TaskType.Span:
+                    batch_info['token_to_orig_map'] = [sample['token_to_orig_map'] for sample in batch]
+                    batch_info['token_is_max_context'] = [sample['token_is_max_context'] for sample in batch]
+                    batch_info['doc_offset'] = [sample['doc_offset'] for sample in batch]
+                    batch_info['doc'] = [sample['doc'] for sample in batch]
+                    batch_info['tokens'] = [sample['tokens'] for sample in batch]
+                    batch_info['answer'] = [sample['answer'] for sample in batch]
 
         batch_info['uids'] = [sample['uid'] for sample in batch]  # used in scoring
         return batch_info, batch_data

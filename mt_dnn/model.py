@@ -15,6 +15,7 @@ from mt_dnn.loss import LOSS_REGISTRY
 from .matcher import SANBertNetwork
 
 from data_utils.task_def import TaskType, EncoderModelType
+import tasks
 
 logger = logging.getLogger(__name__)
 
@@ -219,13 +220,16 @@ class MTDNNModel(object):
         self.network.eval()
         task_id = batch_meta['task_id']
         task_type = batch_meta['task_type']
+        task_obj = tasks.get_task_by_task_type(task_type)
         inputs = batch_data[:batch_meta['input_len']]
         if len(inputs) == 3:
             inputs.append(None)
             inputs.append(None)
         inputs.append(task_id)
         score = self.mnetwork(*inputs)
-        if task_type == TaskType.Ranking:
+        if task_obj is not None:
+            score, predict = task_obj.test_predict(score)
+        elif task_type == TaskType.Ranking:
             score = score.contiguous().view(-1, batch_meta['pairwise_size'])
             assert task_type == TaskType.Ranking
             score = F.softmax(score, dim=1)

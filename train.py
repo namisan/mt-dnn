@@ -15,8 +15,8 @@ from tensorboardX import SummaryWriter
 from experiments.exp_def import TaskDefs
 from mt_dnn.inference import eval_model, extract_encoding
 from data_utils.log_wrapper import create_logger
+from data_utils.task_def import EncoderModelType
 from data_utils.utils import set_environment
-from data_utils.task_def import TaskType, EncoderModelType
 from mt_dnn.batcher import SingleTaskDataset, MultiTaskDataset, Collater, MultiTaskBatchSampler
 from mt_dnn.model import MTDNNModel
 
@@ -238,10 +238,6 @@ def main():
         prefix = dataset.split('_')[0]
         task_id = tasks_class[task_defs.n_class_map[prefix]] if args.mtl_opt > 0 else tasks[prefix]
         task_type = task_defs.task_type_map[prefix]
-
-        pw_task = False
-        if task_type == TaskType.Ranking:
-            pw_task = True
 
         assert prefix in task_defs.data_type_map
         data_type = task_defs.data_type_map[prefix]

@@ -8,6 +8,7 @@ from module.dropout_wrapper import DropoutWrapper
 from module.san import SANClassifier, MaskLmHeader
 from module.san_model import SanModel
 from data_utils.task_def import EncoderModelType, TaskType
+import tasks
 
 
 class LinearPooler(nn.Module):
@@ -60,7 +61,10 @@ class SANBertNetwork(nn.Module):
             task_type = self.task_types[task]
             dropout = DropoutWrapper(task_dropout_p[task], opt['vb_dropout'])
             self.dropout_list.append(dropout)
-            if task_type == TaskType.Span:
+            task_obj = tasks.get_task_by_task_type(task_type)
+            if task_obj is not None:
+                out_proj = task_obj.train_build_task_layer(decoder_opt, hidden_size, lab, opt, prefix='answer', dropout=dropout)
+            elif task_type == TaskType.Span:
                 assert decoder_opt != 1
                 out_proj = nn.Linear(hidden_size, 2)
             elif task_type == TaskType.SeqenceLabeling:
@@ -120,7 +124,11 @@ class SANBertNetwork(nn.Module):
 
         decoder_opt = self.decoder_opt[task_id]
         task_type = self.task_types[task_id]
-        if task_type == TaskType.Span:
+        task_obj = tasks.get_task_by_task_type(task_type)
+        if task_obj is not None:
+            logits = task_obj.train_forward(sequence_output, pooled_output, premise_mask, hyp_mask, decoder_opt, self.dropout_list[task_id], self.scoring_list[task_id])
+            return logits
+        elif task_type == TaskType.Span:
             assert decoder_opt != 1
             sequence_output = self.dropout_list[task_id](sequence_output)
             logits = self.scoring_list[task_id](sequence_output)
