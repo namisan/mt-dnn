@@ -5,15 +5,10 @@ import os
 import numpy as np
 import argparse
 import json
-from pytorch_pretrained_bert.tokenization import BertTokenizer
-import sentencepiece as spm
+
 from data_utils.task_def import TaskType, DataFormat
 from data_utils.log_wrapper import create_logger
-from data_utils.vocab import Vocabulary
-from data_utils.gpt2_bpe import get_encoder
 from experiments.exp_def import TaskDefs, EncoderModelType
-from data_utils.xlnet_utils import preprocess_text, encode_ids
-from data_utils.xlnet_utils import CLS_ID, SEP_ID
 from experiments.squad import squad_utils
 from pretrained_models import *
 
