@@ -157,11 +157,6 @@ def dump(path, data):
         json.dump(data, f)
 
 
-def generate_decoder_opt(enable_san, max_opt):
-    opt_v = 0
-    if enable_san and max_opt < 3:
-        opt_v = max_opt
-    return opt_v
 
 
 def main():
@@ -172,12 +167,8 @@ def main():
     batch_size = args.batch_size
 
     tasks = {}
-    nclass_list = []
-    decoder_opts = []
-    task_types = []
+    task_def_list = []
     dropout_list = []
-    loss_types = []
-    kd_loss_types = []
 
     train_datasets = []
     for dataset in args.train_datasets:
@@ -187,13 +178,8 @@ def main():
         task_id = len(tasks)
         tasks[prefix] = task_id
         task_def = task_defs.get_task_def(prefix)
+        task_def_list.append(task_def)
 
-        nclass_list.append(task_def.n_class)
-        decoder_opts.append(generate_decoder_opt(task_def.enable_san, opt['answer_opt']))
-        task_types.append(task_def.task_type)
-        dropout_list.append(args.dropout_p if task_def.dropout_p is None else task_def.dropout_p)
-        loss_types.append(task_def.loss)
-        kd_loss_types.append(task_def.kd_loss)
 
         train_path = os.path.join(data_dir, '{}_train.json'.format(dataset))
         logger.info('Loading {} as task {}'.format(train_path, task_id))
@@ -204,12 +190,8 @@ def main():
     multi_task_batch_sampler = MultiTaskBatchSampler(train_datasets, args.batch_size, args.mix_opt, args.ratio)
     multi_task_train_data = DataLoader(multi_task_train_dataset, batch_sampler=multi_task_batch_sampler, collate_fn=train_collater.collate_fn, pin_memory=args.cuda)
 
-    opt['nclass_list'] = nclass_list
-    opt['answer_opt'] = decoder_opts
-    opt['task_types'] = task_types
-    opt['tasks_dropout_p'] = dropout_list
-    opt['loss_types'] = loss_types
-    opt['kd_loss_types'] = kd_loss_types
+    opt['task_def_list'] = task_def_list
+    json.dumps(task_def_list[0])
 
     dev_data_list = []
     test_data_list = []

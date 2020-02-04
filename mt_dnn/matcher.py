@@ -9,6 +9,7 @@ from module.san import SANClassifier, MaskLmHeader
 from module.san_model import SanModel
 from data_utils.task_def import EncoderModelType, TaskType
 import tasks
+from experiments.exp_def import TaskDef
 
 
 class LinearPooler(nn.Module):
@@ -23,6 +24,11 @@ class LinearPooler(nn.Module):
         pooled_output = self.activation(pooled_output)
         return pooled_output
 
+def generate_decoder_opt(enable_san, max_opt):
+    opt_v = 0
+    if enable_san and max_opt < 3:
+        opt_v = max_opt
+    return opt_v
 class SANBertNetwork(nn.Module):
     def __init__(self, opt, bert_config=None):
         super(SANBertNetwork, self).__init__()
@@ -48,18 +54,24 @@ class SANBertNetwork(nn.Module):
             for p in self.bert.parameters():
                 p.requires_grad = False
 
-        self.decoder_opt = opt['answer_opt']
-        self.task_types = opt["task_types"]
+        task_def_list = opt['task_def_list']
+        self.task_def_list = task_def_list
+        self.decoder_opt = []
+        self.task_types = []
+        for task_id, task_def in enumerate(task_def_list):
+            self.decoder_opt.append(generate_decoder_opt(task_def.enable_san, opt['answer_opt']))
+            self.task_types.append(task_def.task_type)
 
         # create output header
         self.scoring_list = nn.ModuleList()
         self.dropout_list = nn.ModuleList()
-        labels = opt['nclass_list']
-        task_dropout_p = opt['tasks_dropout_p']
-        for task, lab in enumerate(labels):
-            decoder_opt = self.decoder_opt[task]
-            task_type = self.task_types[task]
-            dropout = DropoutWrapper(task_dropout_p[task], opt['vb_dropout'])
+        for task_id in range(len(task_def_list)):
+            task_def: TaskDef = task_def_list[task_id]
+            lab = task_def.n_class
+            decoder_opt = self.decoder_opt[task_id]
+            task_type = self.task_types[task_id]
+            task_dropout_p = opt['dropout_p'] if task_def.dropout_p is None else task_def.dropout_p
+            dropout = DropoutWrapper(task_dropout_p, opt['vb_dropout'])
             self.dropout_list.append(dropout)
             task_obj = tasks.get_task_by_task_type(task_type)
             if task_obj is not None:

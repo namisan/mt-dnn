@@ -16,6 +16,7 @@ from .matcher import SANBertNetwork
 
 from data_utils.task_def import TaskType, EncoderModelType
 import tasks
+from experiments.exp_def import TaskDef
 
 logger = logging.getLogger(__name__)
 
@@ -113,18 +114,19 @@ class MTDNNModel(object):
             self.scheduler = None
 
     def _setup_lossmap(self, config):
-        loss_types = config['loss_types']
+        task_def_list: List[TaskDef] = config['task_def_list']
         self.task_loss_criterion = []
-        for idx, cs in enumerate(loss_types):
-            assert cs is not None
+        for idx, task_def in enumerate(task_def_list):
+            cs = task_def.loss
             lc = LOSS_REGISTRY[cs](name='Loss func of task {}: {}'.format(idx, cs))
             self.task_loss_criterion.append(lc)
 
     def _setup_kd_lossmap(self, config):
-        loss_types = config['kd_loss_types']
+        task_def_list: List[TaskDef] = config['task_def_list']
         self.kd_task_loss_criterion = []
         if config.get('mkd_opt', 0) > 0:
-            for idx, cs in enumerate(loss_types):
+            for idx, task_def in enumerate(task_def_list):
+                cs = task_def.kd_loss
                 assert cs is not None
                 lc = LOSS_REGISTRY[cs](name='Loss func of task {}: {}'.format(idx, cs))
                 self.kd_task_loss_criterion.append(lc)

@@ -6,13 +6,15 @@ from data_utils.task_def import TaskType, DataFormat, EncoderModelType
 from data_utils.metrics import Metric
 from mt_dnn.loss import LossCriterion
 
-class TaskDef:
+class TaskDef(dict):
     def __init__(self, label_vocab, n_class, data_type, task_type, metric_meta, split_names, enable_san, dropout_p, loss, kd_loss):
         """
             :param label_vocab: map string label to numbers.
                 only valid for Classification task or ranking task.
                 For ranking task, better label should have large number
         """
+        
+        super().__init__(**{k: repr(v) for k, v in locals().items()}) # ensure the class is JSON serializable
         self.label_vocab = label_vocab
         self.n_class = n_class
         self.data_type = data_type
