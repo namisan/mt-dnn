@@ -494,30 +494,25 @@ def main(args):
         os.mkdir(mt_dnn_root)
 
     task_defs = TaskDefs(args.task_def)
-    task_def_dic = yaml.safe_load(open(args.task_def))
 
-    for task, task_def in task_def_dic.items():
+    for task in task_defs.get_task_names():
+        task_def = task_defs.get_task_def(task)
         logger.info("Task %s" % task)
-        data_format = DataFormat[task_def["data_format"]]
-        task_type = TaskType[task_def["task_type"]]
-        label_mapper = task_defs.global_map.get(task, None)
-
-        split_names = task_def.get("split_names", ["train", "dev", "test"])
-        for split_name in split_names:
+        for split_name in task_def.split_names:
             rows = load_data(
                 os.path.join(root, "%s_%s.tsv" % (task, split_name)),
-                data_format,
-                task_type,
-                label_mapper)
+                task_def.data_type,
+                task_def.task_type,
+                task_def.label_vocab)
             dump_path = os.path.join(mt_dnn_root, "%s_%s.json" % (task, split_name))
             logger.info(dump_path)
             build_data(
                 rows,
                 dump_path,
                 tokenizer,
-                data_format,
+                task_def.data_type,
                 encoderModelType=encoder_model,
-                lab_dict=label_mapper)
+                lab_dict=task_def.label_vocab)
 
 
 if __name__ == '__main__':

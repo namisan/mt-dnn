@@ -36,12 +36,10 @@ args = parser.parse_args()
 
 # load task info
 task_defs = TaskDefs(args.task_def)
-assert args.task in task_defs.task_type_map
-assert args.task in task_defs.data_type_map
-assert args.task in task_defs.metric_meta_map
-data_type = task_defs.data_type_map[args.task]
-task_type = task_defs.task_type_map[args.task]
-metric_meta = task_defs.metric_meta_map[args.task]
+task_def = task_defs.get_task_def(args.task)
+data_type = task_def.data_type
+task_type = task_def.task_type
+metric_meta = task_def.metric_meta
 
 # load model
 checkpoint_path = args.checkpoint

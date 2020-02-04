@@ -184,24 +184,22 @@ def main():
     for dataset in args.train_datasets:
         prefix = dataset.split('_')[0]
         if prefix in tasks: continue
-        assert prefix in task_defs.n_class_map
-        assert prefix in task_defs.data_type_map
-        data_type = task_defs.data_type_map[prefix]
-        nclass = task_defs.n_class_map[prefix]
+        task_def = task_defs.get_task_def(prefix)
+        nclass = task_def.n_class
         task_id = len(tasks)
         if args.mtl_opt > 0:
             task_id = tasks_class[nclass] if nclass in tasks_class else len(tasks_class)
 
-        task_type = task_defs.task_type_map[prefix]
+        task_type = task_def.task_type
 
-        dopt = generate_decoder_opt(task_defs.enable_san_map[prefix], opt['answer_opt'])
+        dopt = generate_decoder_opt(task_def.enable_san, opt['answer_opt'])
         if task_id < len(decoder_opts):
             decoder_opts[task_id] = min(decoder_opts[task_id], dopt)
         else:
             decoder_opts.append(dopt)
         task_types.append(task_type)
-        loss_types.append(task_defs.loss_map[prefix])
-        kd_loss_types.append(task_defs.kd_loss_map[prefix])
+        loss_types.append(task_def.loss)
+        kd_loss_types.append(task_def.kd_loss)
 
         if prefix not in tasks:
             tasks[prefix] = len(tasks)
@@ -211,12 +209,12 @@ def main():
             tasks_class[nclass] = len(tasks_class)
             if args.mtl_opt > 0: nclass_list.append(nclass)
 
-        dropout_p = task_defs.dropout_p_map.get(prefix, args.dropout_p)
+        dropout_p = args.dropout_p if task_def.dropout_p is None else task_def.dropout_p
         dropout_list.append(dropout_p)
 
         train_path = os.path.join(data_dir, '{}_train.json'.format(dataset))
         logger.info('Loading {} as task {}'.format(train_path, task_id))
-        train_data_set = SingleTaskDataset(train_path, True, maxlen=args.max_seq_len, task_id=task_id, task_type=task_type, data_type=data_type)
+        train_data_set = SingleTaskDataset(train_path, True, maxlen=args.max_seq_len, task_id=task_id, task_type=task_type, data_type=task_def.data_type)
         train_datasets.append(train_data_set)
     train_collater = Collater(dropout_w=args.dropout_w, encoder_type=encoder_type, soft_label=args.mkd_opt > 0)
     multi_task_train_dataset = MultiTaskDataset(train_datasets)
@@ -236,11 +234,10 @@ def main():
     test_collater = Collater(is_train=False, encoder_type=encoder_type)
     for dataset in args.test_datasets:
         prefix = dataset.split('_')[0]
-        task_id = tasks_class[task_defs.n_class_map[prefix]] if args.mtl_opt > 0 else tasks[prefix]
-        task_type = task_defs.task_type_map[prefix]
-
-        assert prefix in task_defs.data_type_map
-        data_type = task_defs.data_type_map[prefix]
+        task_def = task_defs.get_task_def(prefix)
+        task_id = tasks_class[task_def.n_class] if args.mtl_opt > 0 else tasks[prefix]
+        task_type = task_def.task_type
+        data_type = task_def.data_type
 
         dev_path = os.path.join(data_dir, '{}_dev.json'.format(dataset))
         dev_data = None
@@ -359,16 +356,17 @@ def main():
 
         for idx, dataset in enumerate(args.test_datasets):
             prefix = dataset.split('_')[0]
-            label_dict = task_defs.global_map.get(prefix, None)
+            task_def = task_defs.get_task_def(prefix)
+            label_dict = task_def.label_vocab
             dev_data = dev_data_list[idx]
             if dev_data is not None:
                 with torch.no_grad():
                     dev_metrics, dev_predictions, scores, golds, dev_ids= eval_model(model,
                                                                                     dev_data,
-                                                                                    metric_meta=task_defs.metric_meta_map[prefix],
+                                                                                    metric_meta=task_def.metric_meta,
                                                                                     use_cuda=args.cuda,
                                                                                     label_mapper=label_dict,
-                                                                                    task_type=task_defs.task_type_map[prefix])
+                                                                                    task_type=task_def.task_type)
                 for key, val in dev_metrics.items():
                     if args.tensorboard:
                         tensorboard.add_scalar('dev/{}/{}'.format(dataset, key), val, global_step=epoch)
@@ -389,10 +387,10 @@ def main():
             if test_data is not None:
                 with torch.no_grad():
                     test_metrics, test_predictions, scores, golds, test_ids= eval_model(model, test_data,
-                                                                                        metric_meta=task_defs.metric_meta_map[prefix],
+                                                                                        metric_meta=task_def.metric_meta,
                                                                                         use_cuda=args.cuda, with_label=False,
                                                                                         label_mapper=label_dict,
-                                                                                        task_type=task_defs.task_type_map[prefix])
+                                                                                        task_type=task_def.task_type)
                 score_file = os.path.join(output_dir, '{}_test_scores_{}.json'.format(dataset, epoch))
                 results = {'metrics': test_metrics, 'predictions': test_predictions, 'uids': test_ids, 'scores': scores}
                 dump(score_file, results)
