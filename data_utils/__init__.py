@@ -43,11 +43,6 @@ def load_data(file_path, task_def):
         task_obj = tasks.get_task_obj(task_def)
         if task_obj is not None:
             row["label"] = task_obj.input_parse_label(row["label"])
-        elif task_type == TaskType.Classification:
-            if label_dict is not None:
-                row["label"] = label_dict[row["label"]]
-            else:
-                row["label"] = int(row["label"])
         elif task_type == TaskType.Ranking:
             labels = row["label"].split(",")
             if label_dict is not None:

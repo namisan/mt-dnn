@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import numpy as np
 from data_utils.task_def import TaskType
 from module.san import SANClassifier
@@ -9,15 +10,15 @@ TASK_CLASS_NAMES = set()
 
 class MTDNNTask:
     def __init__(self, task_def):
-        pass
+        self._task_def = task_def
+
+    def input_parse_label(self, label: str):
+        raise NotImplementedError()
 
     @staticmethod
     def input_is_valid_sample(sample, max_len):
          return len(sample['token_id']) <= max_len 
         
-    @staticmethod
-    def input_parse_label(label: str):
-        raise NotImplementedError()
 
     @staticmethod
     def train_prepare_label(labels):
@@ -98,10 +99,9 @@ def get_task_obj(task_def):
 @register_task('Regression')            
 class RegressionTask(MTDNNTask):
     def __init__(self, task_def):
-        pass
+        super().__init__(task_def)
 
-    @staticmethod
-    def input_parse_label(label: str):
+    def input_parse_label(self, label: str):
         return float(label)
 
     @staticmethod
@@ -120,10 +120,17 @@ class RegressionTask(MTDNNTask):
         score = score.reshape(-1).tolist()
         return score, predict
 
-#@register_task('Classification')
+@register_task('Classification')
 class ClassificationTask(MTDNNTask):
     def __init__(self, task_def):
-        pass
+        super().__init__(task_def)
+
+    def input_parse_label(self, label: str):
+        label_dict = self._task_def.label_vocab
+        if label_dict is not None:
+            return label_dict[label]
+        else:
+            return int(label)
 
     @staticmethod
     def train_prepare_label(labels):
