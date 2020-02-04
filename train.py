@@ -191,7 +191,6 @@ def main():
     multi_task_train_data = DataLoader(multi_task_train_dataset, batch_sampler=multi_task_batch_sampler, collate_fn=train_collater.collate_fn, pin_memory=args.cuda)
 
     opt['task_def_list'] = task_def_list
-    json.dumps(task_def_list[0])
 
     dev_data_list = []
     test_data_list = []

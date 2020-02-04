@@ -13,7 +13,6 @@ class TaskDef(dict):
                 only valid for Classification task or ranking task.
                 For ranking task, better label should have large number
         """
-        
         super().__init__(**{k: repr(v) for k, v in locals().items()}) # ensure the class is JSON serializable
         self.label_vocab = label_vocab
         self.n_class = n_class
@@ -25,6 +24,12 @@ class TaskDef(dict):
         self.dropout_p = dropout_p
         self.loss = loss
         self.kd_loss = kd_loss
+
+    @classmethod
+    def from_dict(cls, dict_rep):
+        return cls(**dict_rep)
+
+    
 
 class TaskDefs:
     def __init__(self, task_def_path):

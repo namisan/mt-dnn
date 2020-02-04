@@ -73,7 +73,7 @@ class SANBertNetwork(nn.Module):
             task_dropout_p = opt['dropout_p'] if task_def.dropout_p is None else task_def.dropout_p
             dropout = DropoutWrapper(task_dropout_p, opt['vb_dropout'])
             self.dropout_list.append(dropout)
-            task_obj = tasks.get_task_by_task_type(task_type)
+            task_obj = tasks.get_task_obj(task_def)
             if task_obj is not None:
                 out_proj = task_obj.train_build_task_layer(decoder_opt, hidden_size, lab, opt, prefix='answer', dropout=dropout)
             elif task_type == TaskType.Span:
@@ -136,7 +136,7 @@ class SANBertNetwork(nn.Module):
 
         decoder_opt = self.decoder_opt[task_id]
         task_type = self.task_types[task_id]
-        task_obj = tasks.get_task_by_task_type(task_type)
+        task_obj = tasks.get_task_obj(self.task_def_list[task_id])
         if task_obj is not None:
             logits = task_obj.train_forward(sequence_output, pooled_output, premise_mask, hyp_mask, decoder_opt, self.dropout_list[task_id], self.scoring_list[task_id])
             return logits

@@ -105,7 +105,7 @@ class SingleTaskDataset(Dataset):
                  short_seq_prob=0.1,
                  max_seq_length=512,
                  max_predictions_per_seq=80):
-        data, tokenizer = self.load(path, is_train, maxlen, factor, task_def.task_type, bert_model, do_lower_case)
+        data, tokenizer = self.load(path, is_train, maxlen, factor, task_def, bert_model, do_lower_case)
         self._data = data
         self._tokenizer = tokenizer
         self._task_id = task_id
@@ -126,7 +126,8 @@ class SingleTaskDataset(Dataset):
         return self._task_id
 
     @staticmethod
-    def load(path, is_train=True, maxlen=512, factor=1.0, task_type=None, bert_model='bert-base-uncased', do_lower_case=True):
+    def load(path, is_train=True, maxlen=512, factor=1.0, task_def=None, bert_model='bert-base-uncased', do_lower_case=True):
+        task_type = task_def.task_type
         assert task_type is not None
 
         if task_type == TaskType.MaskLM:
@@ -153,7 +154,7 @@ class SingleTaskDataset(Dataset):
                 sample['factor'] = factor
                 cnt += 1
                 if is_train:
-                    task_obj = tasks.get_task_by_task_type(task_type)
+                    task_obj = tasks.get_task_obj(task_def)
                     if task_obj is not None and not task_obj.input_is_valid_sample(sample, maxlen):
                         continue
                     if (task_type == TaskType.Ranking) and (len(sample['token_id'][0]) > maxlen or len(sample['token_id'][1]) > maxlen):
@@ -190,10 +191,10 @@ class SingleTaskDataset(Dataset):
                       'position': instance.masked_lm_positions,
                       'label': labels,
                       'uid': idx}
-            return {"task": {"task_id": self._task_id, "task_type": self._task_def.task_type, "data_type": self._task_def.data_type},
+            return {"task": {"task_id": self._task_id, "task_def": self._task_def},
                     "sample": sample}
         else:
-            return {"task": {"task_id": self._task_id, "task_type": self._task_def.task_type, "data_type": self._task_def.data_type}, 
+            return {"task": {"task_id": self._task_id, "task_def": self._task_def}, 
                     "sample": self._data[idx]}
 
 class Collater:
@@ -251,14 +252,14 @@ class Collater:
 
     def collate_fn(self, batch):
         task_id = batch[0]["task"]["task_id"]
-        task_type = batch[0]["task"]["task_type"]
-        data_type = batch[0]["task"]["data_type"]
+        task_def = batch[0]["task"]["task_def"]
         new_batch = []
         for sample in batch:
             assert sample["task"]["task_id"] == task_id
-            assert sample["task"]["task_type"] == task_type
-            assert sample["task"]["data_type"] == data_type
+            assert sample["task"]["task_def"] == task_def
             new_batch.append(sample["sample"])
+        task_type = task_def.task_type
+        data_type = task_def.data_type
         batch = new_batch
 
         if task_type == TaskType.Ranking:
@@ -269,12 +270,15 @@ class Collater:
         batch_info['task_id'] = task_id  # used for select correct decoding head
         batch_info['input_len'] = len(batch_data)  # used to select model inputs
         # select different loss function and other difference in training and testing
-        batch_info['task_type'] = task_type
+        # DataLoader will convert any unknown type objects to dict, 
+        # the conversion logic also convert Enum to repr(Enum), which is a string and undesirable
+        # If we convert object to dict in advance, DataLoader will do nothing
+        batch_info['task_def'] = task_def.__dict__ 
         batch_info['pairwise_size'] = self.pairwise_size  # need for ranking task
 
         # add label
         labels = [sample['label'] for sample in batch]
-        task_obj = tasks.get_task_by_task_type(task_type)
+        task_obj = tasks.get_task_obj(task_def)
         if self.is_train:
             # in training model, label is used by Pytorch, so would be tensor
             if task_obj is not None:

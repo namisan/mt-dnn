@@ -8,6 +8,9 @@ TASK_REGISTRY = {}
 TASK_CLASS_NAMES = set()
 
 class MTDNNTask:
+    def __init__(self, task_def):
+        pass
+
     @staticmethod
     def input_is_valid_sample(sample, max_len):
          return len(sample['token_id']) <= max_len 
@@ -84,14 +87,19 @@ def register_task(name):
 
     return register_task_cls
 
-def get_task(name) -> MTDNNTask:
-    return TASK_REGISTRY.get(name, None)
-
-def get_task_by_task_type(task_type: TaskType):
-    return get_task(task_type.name)
+def get_task_obj(task_def):
+    task_name = task_def.task_type.name
+    task_cls = TASK_REGISTRY.get(task_name, None)
+    if task_cls is None:
+        return None
+    
+    return task_cls(task_def)
 
 @register_task('Regression')            
 class RegressionTask(MTDNNTask):
+    def __init__(self, task_def):
+        pass
+
     @staticmethod
     def input_parse_label(label: str):
         return float(label)
@@ -114,6 +122,9 @@ class RegressionTask(MTDNNTask):
 
 #@register_task('Classification')
 class ClassificationTask(MTDNNTask):
+    def __init__(self, task_def):
+        pass
+
     @staticmethod
     def train_prepare_label(labels):
         return torch.LongTensor(labels)

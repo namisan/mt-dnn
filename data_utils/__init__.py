@@ -40,7 +40,7 @@ def load_data(file_path, task_def):
         else:
             raise ValueError(data_format)
 
-        task_obj = tasks.get_task_by_task_type(task_type)
+        task_obj = tasks.get_task_obj(task_def)
         if task_obj is not None:
             row["label"] = task_obj.input_parse_label(row["label"])
         elif task_type == TaskType.Classification:

@@ -150,8 +150,6 @@ class MTDNNModel(object):
     def update(self, batch_meta, batch_data):
         self.network.train()
         y = batch_data[batch_meta['label']]
-
-        task_type = batch_meta['task_type']
         y = self._to_cuda(y) if self.config['cuda'] else y
 
         task_id = batch_meta['task_id']
@@ -221,8 +219,9 @@ class MTDNNModel(object):
     def predict(self, batch_meta, batch_data):
         self.network.eval()
         task_id = batch_meta['task_id']
-        task_type = batch_meta['task_type']
-        task_obj = tasks.get_task_by_task_type(task_type)
+        task_def = TaskDef.from_dict(batch_meta['task_def'])
+        task_type = task_def.task_type
+        task_obj = tasks.get_task_obj(task_def)
         inputs = batch_data[:batch_meta['input_len']]
         if len(inputs) == 3:
             inputs.append(None)
