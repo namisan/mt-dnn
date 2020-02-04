@@ -501,9 +501,7 @@ def main(args):
         for split_name in task_def.split_names:
             rows = load_data(
                 os.path.join(root, "%s_%s.tsv" % (task, split_name)),
-                task_def.data_type,
-                task_def.task_type,
-                task_def.label_vocab)
+                task_def)
             dump_path = os.path.join(mt_dnn_root, "%s_%s.json" % (task, split_name))
             logger.info(dump_path)
             build_data(

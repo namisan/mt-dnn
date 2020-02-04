@@ -42,7 +42,6 @@ def model_config(parser):
     parser.add_argument('--answer_weight_norm_on', action='store_true')
     parser.add_argument('--dump_state_on', action='store_true')
     parser.add_argument('--answer_opt', type=int, default=0, help='0,1')
-    parser.add_argument('--label_size', type=str, default='3')
     parser.add_argument('--mtl_opt', type=int, default=0)
     parser.add_argument('--ratio', type=float, default=0)
     parser.add_argument('--mix_opt', type=int, default=0)
@@ -171,8 +170,8 @@ def main():
     # update data dir
     opt['data_dir'] = data_dir
     batch_size = args.batch_size
+
     tasks = {}
-    tasks_class = {}
     nclass_list = []
     decoder_opts = []
     task_types = []
@@ -183,73 +182,56 @@ def main():
     train_datasets = []
     for dataset in args.train_datasets:
         prefix = dataset.split('_')[0]
-        if prefix in tasks: continue
-        task_def = task_defs.get_task_def(prefix)
-        nclass = task_def.n_class
+        if prefix in tasks: 
+            continue
         task_id = len(tasks)
-        if args.mtl_opt > 0:
-            task_id = tasks_class[nclass] if nclass in tasks_class else len(tasks_class)
+        tasks[prefix] = task_id
+        task_def = task_defs.get_task_def(prefix)
 
-        task_type = task_def.task_type
-
-        dopt = generate_decoder_opt(task_def.enable_san, opt['answer_opt'])
-        if task_id < len(decoder_opts):
-            decoder_opts[task_id] = min(decoder_opts[task_id], dopt)
-        else:
-            decoder_opts.append(dopt)
-        task_types.append(task_type)
+        nclass_list.append(task_def.n_class)
+        decoder_opts.append(generate_decoder_opt(task_def.enable_san, opt['answer_opt']))
+        task_types.append(task_def.task_type)
+        dropout_list.append(args.dropout_p if task_def.dropout_p is None else task_def.dropout_p)
         loss_types.append(task_def.loss)
         kd_loss_types.append(task_def.kd_loss)
 
-        if prefix not in tasks:
-            tasks[prefix] = len(tasks)
-            if args.mtl_opt < 1: nclass_list.append(nclass)
-
-        if (nclass not in tasks_class):
-            tasks_class[nclass] = len(tasks_class)
-            if args.mtl_opt > 0: nclass_list.append(nclass)
-
-        dropout_p = args.dropout_p if task_def.dropout_p is None else task_def.dropout_p
-        dropout_list.append(dropout_p)
-
         train_path = os.path.join(data_dir, '{}_train.json'.format(dataset))
         logger.info('Loading {} as task {}'.format(train_path, task_id))
-        train_data_set = SingleTaskDataset(train_path, True, maxlen=args.max_seq_len, task_id=task_id, task_type=task_type, data_type=task_def.data_type)
+        train_data_set = SingleTaskDataset(train_path, True, maxlen=args.max_seq_len, task_id=task_id, task_def=task_def)
         train_datasets.append(train_data_set)
     train_collater = Collater(dropout_w=args.dropout_w, encoder_type=encoder_type, soft_label=args.mkd_opt > 0)
     multi_task_train_dataset = MultiTaskDataset(train_datasets)
     multi_task_batch_sampler = MultiTaskBatchSampler(train_datasets, args.batch_size, args.mix_opt, args.ratio)
     multi_task_train_data = DataLoader(multi_task_train_dataset, batch_sampler=multi_task_batch_sampler, collate_fn=train_collater.collate_fn, pin_memory=args.cuda)
 
+    opt['nclass_list'] = nclass_list
     opt['answer_opt'] = decoder_opts
     opt['task_types'] = task_types
     opt['tasks_dropout_p'] = dropout_list
     opt['loss_types'] = loss_types
     opt['kd_loss_types'] = kd_loss_types
 
-    args.label_size = ','.join([str(l) for l in nclass_list])
-    logger.info(args.label_size)
     dev_data_list = []
     test_data_list = []
     test_collater = Collater(is_train=False, encoder_type=encoder_type)
     for dataset in args.test_datasets:
         prefix = dataset.split('_')[0]
         task_def = task_defs.get_task_def(prefix)
-        task_id = tasks_class[task_def.n_class] if args.mtl_opt > 0 else tasks[prefix]
+        task_id = tasks[prefix]
         task_type = task_def.task_type
         data_type = task_def.data_type
 
         dev_path = os.path.join(data_dir, '{}_dev.json'.format(dataset))
         dev_data = None
         if os.path.exists(dev_path):
-            dev_data_set = SingleTaskDataset(dev_path, False, maxlen=args.max_seq_len, task_id=task_id, task_type=task_type, data_type=data_type)
+            dev_data_set = SingleTaskDataset(dev_path, False, maxlen=args.max_seq_len, task_id=task_id, task_def=task_def)
             dev_data = DataLoader(dev_data_set, batch_size=args.batch_size_eval, collate_fn=test_collater.collate_fn, pin_memory=args.cuda)
         dev_data_list.append(dev_data)
 
         test_path = os.path.join(data_dir, '{}_test.json'.format(dataset))
         test_data = None
         if os.path.exists(test_path):
-            test_data_set = SingleTaskDataset(test_path, False, maxlen=args.max_seq_len, task_id=task_id, task_type=task_type, data_type=data_type)
+            test_data_set = SingleTaskDataset(test_path, False, maxlen=args.max_seq_len, task_id=task_id, task_def=task_def)
             test_data = DataLoader(test_data_set, batch_size=args.batch_size_eval, collate_fn=test_collater.collate_fn, pin_memory=args.cuda)
         test_data_list.append(test_data)
 

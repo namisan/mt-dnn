@@ -262,12 +262,7 @@ class MTDNNModel(object):
                 scores, predictions = mrc_utils.extract_answer(batch_meta, batch_data,start, end, self.config.get('max_answer_len', 5))
             return scores, predictions, batch_meta['answer']
         else:
-            if task_type == TaskType.Classification:
-                score = F.softmax(score, dim=1)
-            score = score.data.cpu()
-            score = score.numpy()
-            predict = np.argmax(score, axis=1).tolist()
-            score = score.reshape(-1).tolist()
+            raise ValueError("Unknown task_type: %s" % task_type)
         return score, predict, batch_meta['label']
 
     def save(self, filename):

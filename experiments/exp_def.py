@@ -8,6 +8,11 @@ from mt_dnn.loss import LossCriterion
 
 class TaskDef:
     def __init__(self, label_vocab, n_class, data_type, task_type, metric_meta, split_names, enable_san, dropout_p, loss, kd_loss):
+        """
+            :param label_vocab: map string label to numbers.
+                only valid for Classification task or ranking task.
+                For ranking task, better label should have large number
+        """
         self.label_vocab = label_vocab
         self.n_class = n_class
         self.data_type = data_type
@@ -77,20 +82,24 @@ class TaskDefs:
         self._loss_map = loss_map
         self._kd_loss_map = kd_loss_map
 
+        self._task_def_dic = {}
+
     def get_task_names(self):
         return list(self._task_type_map.keys())
 
     def get_task_def(self, task_name):
-        assert task_name in self._task_type_map
-        return TaskDef(
-            self._global_map.get(task_name, None),
-            self._n_class_map[task_name],
-            self._data_type_map[task_name],
-            self._task_type_map[task_name],
-            self._metric_meta_map[task_name],
-            self._split_names_map[task_name],
-            self._enable_san_map[task_name],
-            self._dropout_p_map.get(task_name, None),
-            self._loss_map[task_name],
-            self._kd_loss_map[task_name]
-        )
+        if task_name not in self._task_def_dic:
+            assert task_name in self._task_type_map
+            self._task_def_dic[task_name] = TaskDef(
+                self._global_map.get(task_name, None),
+                self._n_class_map[task_name],
+                self._data_type_map[task_name],
+                self._task_type_map[task_name],
+                self._metric_meta_map[task_name],
+                self._split_names_map[task_name],
+                self._enable_san_map[task_name],
+                self._dropout_p_map.get(task_name, None),
+                self._loss_map[task_name],
+                self._kd_loss_map[task_name]
+            )
+        return self._task_def_dic[task_name]

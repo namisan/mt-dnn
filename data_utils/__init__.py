@@ -4,16 +4,10 @@ import numpy as np
 from data_utils.task_def import TaskType, DataFormat
 import tasks
 
-def load_data(file_path, data_format, task_type, label_dict=None):
-    """
-    :param file_path:
-    :param data_format:
-    :param task_type:
-    :param label_dict: map string label to numbers.
-        only valid for Classification task or ranking task.
-        For ranking task, better label should have large number
-    :return:
-    """
+def load_data(file_path, task_def):
+    data_format = task_def.data_type
+    task_type = task_def.task_type
+    label_dict = task_def.label_vocab
     if task_type == TaskType.Ranking:
         assert data_format == DataFormat.PremiseAndMultiHypothesis
 

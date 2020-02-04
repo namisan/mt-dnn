@@ -53,11 +53,8 @@ class MTDNNTask:
     
     @staticmethod
     def test_predict(score):
-        score = score.data.cpu()
-        score = score.numpy()
-        predict = np.argmax(score, axis=1).tolist()
-        score = score.reshape(-1).tolist()
-        return score, predict
+        raise NotImplementedError()
+
 
 def register_task(name):
     """
@@ -106,3 +103,30 @@ class RegressionTask(MTDNNTask):
     @staticmethod
     def train_prepare_soft_label(softlabels):
         return torch.FloatTensor(softlabels)
+
+    @staticmethod
+    def test_predict(score):
+        score = score.data.cpu()
+        score = score.numpy()
+        predict = np.argmax(score, axis=1).tolist()
+        score = score.reshape(-1).tolist()
+        return score, predict
+
+#@register_task('Classification')
+class ClassificationTask(MTDNNTask):
+    @staticmethod
+    def train_prepare_label(labels):
+        return torch.LongTensor(labels)
+
+    @staticmethod
+    def train_prepare_soft_label(softlabels):
+        return torch.FloatTensor(softlabels)
+
+    @staticmethod
+    def test_predict(score):
+        score = F.softmax(score, dim=1)
+        score = score.data.cpu()
+        score = score.numpy()
+        predict = np.argmax(score, axis=1).tolist()
+        score = score.reshape(-1).tolist()
+        return score, predict

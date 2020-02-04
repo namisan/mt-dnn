@@ -54,7 +54,7 @@ class SANBertNetwork(nn.Module):
         # create output header
         self.scoring_list = nn.ModuleList()
         self.dropout_list = nn.ModuleList()
-        labels = [int(ls) for ls in opt['label_size'].split(',')]
+        labels = opt['nclass_list']
         task_dropout_p = opt['tasks_dropout_p']
         for task, lab in enumerate(labels):
             decoder_opt = self.decoder_opt[task]
