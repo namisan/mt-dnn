@@ -18,7 +18,7 @@ def test_prepro_std(cmd, src_dir, task_def_path, target_dir, expected_dir):
     assert_dir_equal(target_dir, expected_dir)
 
 BERT_CMD = "python prepro_std.py --model bert-base-uncased --root_dir %s --task_def %s --do_lower_case "
-ROBERTA_CMD = "python prepro_std.py --model roberta-base --roberta_path mt_dnn_models/roberta --root_dir %s --task_def %s --do_lower_case "
+ROBERTA_CMD = "python prepro_std.py --model roberta-base --root_dir %s --task_def %s"
 SRC_DIR = "int_test_data/glue/input/prepro_std"
 TASK_DEF_PATH = "int_test_data/glue/input/prepro_std/glue_task_def.yml"
 
@@ -32,6 +32,6 @@ test_prepro_std(BERT_CMD,
 test_prepro_std(ROBERTA_CMD,
                 SRC_DIR,
                 TASK_DEF_PATH,
-                "int_test_data/glue/input/prepro_std/roberta_cased_lower",
+                "int_test_data/glue/input/prepro_std/roberta_cased",
                 "int_test_data/glue/expected/prepro_std/roberta_cased_lower"
                 )

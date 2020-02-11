@@ -339,7 +339,7 @@ class Collater:
         batch_size = self._get_batch_size(batch)
         tok_len = self._get_max_len(batch, key='token_id')
         #tok_len = max(len(x['token_id']) for x in batch)
-        hypothesis_len = max(len(x['type_id']) - sum(x['type_id']) for x in batch)
+        premise_len = max(len(x['type_id']) - sum(x['type_id']) for x in batch)
         if self.encoder_type == EncoderModelType.ROBERTA:
             token_ids = torch.LongTensor(batch_size, tok_len).fill_(1)
             type_ids = torch.LongTensor(batch_size, tok_len).fill_(0)
@@ -349,8 +349,8 @@ class Collater:
             type_ids = torch.LongTensor(batch_size, tok_len).fill_(0)
             masks = torch.LongTensor(batch_size, tok_len).fill_(0)
         if self.__if_pair__(data_type):
-            premise_masks = torch.ByteTensor(batch_size, tok_len).fill_(1)
-            hypothesis_masks = torch.ByteTensor(batch_size, hypothesis_len).fill_(1)
+            hypothesis_masks = torch.ByteTensor(batch_size, tok_len).fill_(1)
+            premise_masks = torch.ByteTensor(batch_size, premise_len).fill_(1)
         for i, sample in enumerate(batch):
             select_len = min(len(sample['token_id']), tok_len)
             tok = sample['token_id']
@@ -360,10 +360,10 @@ class Collater:
             type_ids[i, :select_len] = torch.LongTensor(sample['type_id'][:select_len])
             masks[i, : select_len] = torch.LongTensor([1] * select_len)
             if self.__if_pair__(data_type):
-                hlen = len(sample['type_id']) - sum(sample['type_id'])
-                hypothesis_masks[i, :hlen] = torch.LongTensor([0] * hlen)
-                for j in range(hlen, select_len):
-                    premise_masks[i, j] = 0
+                plen = len(sample['type_id']) - sum(sample['type_id'])
+                premise_masks[i, :plen] = torch.LongTensor([0] * plen)
+                for j in range(plen, select_len):
+                    hypothesis_masks[i, j] = 0
         if self.__if_pair__(data_type):
             batch_info = {
                 'token_id': 0,
