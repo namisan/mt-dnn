@@ -24,7 +24,7 @@ class LinearPooler(nn.Module):
         return pooled_output
 
 class SANBertNetwork(nn.Module):
-    def __init__(self, opt, bert_config=None):
+    def __init__(self, opt, bert_config=None, initial_from_local=False):
         super(SANBertNetwork, self).__init__()
         self.dropout_list = nn.ModuleList()
 
@@ -41,9 +41,9 @@ class SANBertNetwork(nn.Module):
             self.pooler = LinearPooler(hidden_size)
         elif opt['encoder_type'] == EncoderModelType.BERT:
             config_class, model_class, tokenizer_class = MODEL_CLASSES[literal_encoder_type]
-            if os.path.isfile(opt['init_checkpoint']):
-                self.preloaded_config = config_class.from_dict(opt)  # load config from opt
-            self.bert = model_class.from_pretrained(opt['init_checkpoint'], config=self.preloaded_config)
+
+            self.preloaded_config = config_class.from_dict(opt)  # load config from opt
+            self.bert = model_class(self.preloaded_config)
             hidden_size = self.bert.config.hidden_size
         else:
             self.bert_config = BertConfig.from_dict(opt)
@@ -90,6 +90,11 @@ class SANBertNetwork(nn.Module):
 
         self.opt = opt
         self._my_init()
+
+        # if not loading from local, loading model weights from pre-trained model, after initialization
+        if opt['encoder_type'] == EncoderModelType.BERT and not initial_from_local:
+            config_class, model_class, tokenizer_class = MODEL_CLASSES[literal_encoder_type]
+            self.bert = model_class.from_pretrained(opt['init_checkpoint'], config=self.preloaded_config)
 
     def _my_init(self):
         def init_weights(module):

@@ -27,7 +27,7 @@ def test_encoder(src_dir, checkpoint_path, encoder_type, target_dir, expected_di
     assert (abs_diff/abs_avg).mean() < 1e-4, "relative diff: %s" % (abs_diff/abs_avg).mean()
 
 src_dir = "int_test_data/glue/input/encoder/bert_uncased_lower"
-checkpoint_path = "mt_dnn_models/bert_model_base_uncased.pt"
+checkpoint_path = "bert-base-uncased"
 encoder_type = 1
 target_dir = "int_test_data/glue/test_output"
 expected_dir = "int_test_data/glue/expected/encoder/bert_uncased_lower"
