@@ -150,7 +150,7 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
                     labels = labels[:max_seq_len - 2]
 
                 label = [label_mapper['CLS']] + labels + [label_mapper['SEP']]
-                input_ids = tokenizer.convert_tokens_to_ids(['[CLS]'] + tokens + ['[SEP]'])
+                input_ids = tokenizer.convert_tokens_to_ids([tokenizer.cls_token] + tokens + [tokenizer.sep_token])
                 assert len(label) == len(input_ids)
                 type_ids = [0] * len(input_ids)
                 features = {'uid': ids, 'label': label, 'token_id': input_ids, 'type_id': type_ids}
