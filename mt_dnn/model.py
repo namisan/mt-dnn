@@ -27,7 +27,8 @@ class MTDNNModel(object):
         self.updates = state_dict['updates'] if state_dict and 'updates' in state_dict else 0
         self.local_updates = 0
         self.train_loss = AverageMeter()
-        self.network = SANBertNetwork(opt)
+        self.initial_from_local = True if state_dict else False
+        self.network = SANBertNetwork(opt, initial_from_local=self.initial_from_local)
         if state_dict:
             missing_keys, unexpected_keys = self.network.load_state_dict(state_dict['state'], strict=False)
         self.mnetwork = nn.DataParallel(self.network) if opt['multi_gpu_on'] else self.network
