@@ -46,16 +46,12 @@ class SANBertNetwork(nn.Module):
             self.bert = RobertaModel.from_pretrained(opt['init_checkpoint'])
             hidden_size = self.bert.args.encoder_embed_dim
             self.pooler = LinearPooler(hidden_size)
-        elif opt['encoder_type'] == EncoderModelType.BERT:
+        elif opt['encoder_type'] in (EncoderModelType.BERT, EncoderModelType.SAN):
             config_class, model_class, tokenizer_class = MODEL_CLASSES[literal_encoder_type]
 
             self.preloaded_config = config_class.from_dict(opt)  # load config from opt
             self.bert = model_class(self.preloaded_config)
             hidden_size = self.bert.config.hidden_size
-        else:
-            self.bert_config = BertConfig.from_dict(opt)
-            self.bert = SanModel(self.bert_config, opt)
-            hidden_size = self.bert_config.hidden_size
 
         if opt.get('dump_feature', False):
             self.opt = opt
