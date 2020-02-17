@@ -64,9 +64,9 @@ class SanEncoder(nn.Module):
         return all_encoder_layers
 
 class SanPooler(nn.Module):
-    def __init__(self, hidden_size, dropout_p, enable_vbp):
+    def __init__(self, hidden_size, dropout_p):
         super().__init__()
-        my_dropout = DropoutWrapper(dropout_p, enable_vbp)
+        my_dropout = DropoutWrapper(dropout_p, False)
         self.self_att = SelfAttnWrapper(hidden_size, dropout=my_dropout)
         self.dense = nn.Linear(hidden_size, hidden_size)
         self.activation = nn.Tanh()
@@ -84,12 +84,12 @@ class SanPooler(nn.Module):
         return pooled_output
 
 class SanModel(nn.Module):
-    def __init__(self, config: BertConfig, opt):
+    def __init__(self, config: BertConfig):
         super().__init__()
         self.embeddings = BertEmbeddings(config)
         self.encoder = SanEncoder(config.hidden_size, config.num_hidden_layers, True, 
                                   config.hidden_dropout_prob)
-        self.pooler = SanPooler(config.hidden_size, config.hidden_dropout_prob, opt['vb_dropout'])
+        self.pooler = SanPooler(config.hidden_size, config.hidden_dropout_prob)
         self.config = config
 
     def forward(self, input_ids, token_type_ids=None, attention_mask=None, output_all_encoded_layers=True):

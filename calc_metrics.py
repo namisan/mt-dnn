@@ -33,18 +33,17 @@ def generate_golds_predictions_scores(sample_id_2_pred_score_seg_dic, sample_obj
 args = parser.parse_args()
 
 task_def_path = args.task_def
-task = args.task
 task_defs = TaskDefs(task_def_path)
-
-n_class = task_defs.n_class_map[task]
+task_def = task_defs.get_task_def(args.task)
+n_class = task_def.n_class
 sample_id_2_pred_score_seg_dic = load_score_file(args.score, n_class)
 
-data_type = task_defs.data_type_map[task]
-task_type = task_defs.task_type_map[task]
-label_mapper = task_defs.global_map.get(task, None)
+data_type = task_def.data_type
+task_type = task_def.task_type
+label_mapper = task_def.label_vocab
 sample_objs = load_data(args.std_input, data_type, task_type, label_mapper)
 
 golds, predictions, scores = generate_golds_predictions_scores(sample_id_2_pred_score_seg_dic, sample_objs)
 
-metrics = calc_metrics(task_defs.metric_meta_map[task], golds, predictions, scores)
+metrics = calc_metrics(task_def.metric_meta, golds, predictions, scores)
 print(metrics)
