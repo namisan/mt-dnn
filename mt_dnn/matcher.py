@@ -35,10 +35,10 @@ class SANBertNetwork(nn.Module):
 
         literal_encoder_type = EncoderModelType(self.encoder_type).name.lower()
         if opt['encoder_type'] == EncoderModelType.ROBERTA:
-            from fairseq.models.roberta import RobertaModel
-            self.bert = RobertaModel.from_pretrained(opt['init_checkpoint'])
-            hidden_size = self.bert.args.encoder_embed_dim
-            self.pooler = LinearPooler(hidden_size)
+            config_class, model_class, tokenizer_class = MODEL_CLASSES[literal_encoder_type]
+
+            self.bert = model_class.from_pretrained(opt['init_checkpoint'])
+            hidden_size = self.bert.config.hidden_size
         elif opt['encoder_type'] == EncoderModelType.BERT:
             config_class, model_class, tokenizer_class = MODEL_CLASSES[literal_encoder_type]
 
@@ -92,9 +92,9 @@ class SANBertNetwork(nn.Module):
         self._my_init()
 
         # if not loading from local, loading model weights from pre-trained model, after initialization
-        if opt['encoder_type'] == EncoderModelType.BERT and not initial_from_local:
+        if not initial_from_local:
             config_class, model_class, tokenizer_class = MODEL_CLASSES[literal_encoder_type]
-            self.bert = model_class.from_pretrained(opt['init_checkpoint'], config=self.preloaded_config)
+            self.bert = model_class.from_pretrained(opt['init_checkpoint'])
 
     def _my_init(self):
         def init_weights(module):
@@ -109,16 +109,10 @@ class SANBertNetwork(nn.Module):
         self.apply(init_weights)
 
     def encode(self, input_ids, token_type_ids, attention_mask):
-        if self.encoder_type == EncoderModelType.ROBERTA:
-            sequence_output = self.bert.extract_features(input_ids)
-            pooled_output = self.pooler(sequence_output)
-        elif self.encoder_type == EncoderModelType.BERT or self.encoder_type == EncoderModelType.SAN:
-            outputs = self.bert(input_ids=input_ids, token_type_ids=token_type_ids,
+        outputs = self.bert(input_ids=input_ids, token_type_ids=token_type_ids,
                                                           attention_mask=attention_mask)
-            sequence_output = outputs[0]
-            pooled_output = outputs[1]
-        else:
-            raise NotImplemented("Unsupported encoder type %s" % self.encoder_type)
+        sequence_output = outputs[0]
+        pooled_output = outputs[1]
         return sequence_output, pooled_output
 
     def forward(self, input_ids, token_type_ids, attention_mask, premise_mask=None, hyp_mask=None, task_id=0):
