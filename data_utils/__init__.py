@@ -1,20 +1,13 @@
 import json
-
 import numpy as np
 
 from data_utils.task_def import TaskType, DataFormat
+import tasks
 
-
-def load_data(file_path, data_format, task_type, label_dict=None):
-    """
-    :param file_path:
-    :param data_format:
-    :param task_type:
-    :param label_dict: map string label to numbers.
-        only valid for Classification task or ranking task.
-        For ranking task, better label should have large number
-    :return:
-    """
+def load_data(file_path, task_def):
+    data_format = task_def.data_type
+    task_type = task_def.task_type
+    label_dict = task_def.label_vocab
     if task_type == TaskType.Ranking:
         assert data_format == DataFormat.PremiseAndMultiHypothesis
 
@@ -26,21 +19,30 @@ def load_data(file_path, data_format, task_type, label_dict=None):
             row = {"uid": fields[0], "label": fields[1], "premise": fields[2]}
         elif data_format == DataFormat.PremiseAndOneHypothesis:
             assert len(fields) == 4
-            row = {"uid": fields[0], "label": fields[1], "premise": fields[2], "hypothesis": fields[3]}
+            row = {
+                "uid": fields[0],
+                "label": fields[1],
+                "premise": fields[2],
+                "hypothesis": fields[3]}
         elif data_format == DataFormat.PremiseAndMultiHypothesis:
             assert len(fields) > 5
             row = {"uid": fields[0], "ruid": fields[1].split(","), "label": fields[2], "premise": fields[3],
                    "hypothesis": fields[4:]}
+        elif data_format == DataFormat.Seqence:
+            row = {"uid": fields[0], "label": eval(fields[1]),  "premise": eval(fields[2])}
+
+        elif data_format == DataFormat.MRC:
+            row = {
+                "uid": fields[0],
+                "label": fields[1],
+                "premise": fields[2],
+                "hypothesis": fields[3]}
         else:
             raise ValueError(data_format)
 
-        if task_type == TaskType.Classification:
-            if label_dict is not None:
-                row["label"] = label_dict[row["label"]]
-            else:
-                row["label"] = int(row["label"])
-        elif task_type == TaskType.Regression:
-            row["label"] = float(row["label"])
+        task_obj = tasks.get_task_obj(task_def)
+        if task_obj is not None:
+            row["label"] = task_obj.input_parse_label(row["label"])
         elif task_type == TaskType.Ranking:
             labels = row["label"].split(",")
             if label_dict is not None:
@@ -49,10 +51,14 @@ def load_data(file_path, data_format, task_type, label_dict=None):
                 labels = [float(label) for label in labels]
             row["label"] = int(np.argmax(labels))
             row["olabel"] = labels
+        elif task_type == TaskType.Span:
+            pass  # don't process row label
+        elif task_type == TaskType.SeqenceLabeling:
+            assert type(row["label"]) is list
+            row["label"] = [label_dict[label] for label in row["label"]]
 
         rows.append(row)
     return rows
-
 
 def load_score_file(score_path, n_class):
     sample_id_2_pred_score_seg_dic = {}

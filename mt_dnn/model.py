@@ -15,6 +15,8 @@ from mt_dnn.loss import LOSS_REGISTRY
 from .matcher import SANBertNetwork
 
 from data_utils.task_def import TaskType, EncoderModelType
+import tasks
+from experiments.exp_def import TaskDef
 
 logger = logging.getLogger(__name__)
 
@@ -113,18 +115,19 @@ class MTDNNModel(object):
             self.scheduler = None
 
     def _setup_lossmap(self, config):
-        loss_types = config['loss_types']
+        task_def_list: List[TaskDef] = config['task_def_list']
         self.task_loss_criterion = []
-        for idx, cs in enumerate(loss_types):
-            assert cs is not None
+        for idx, task_def in enumerate(task_def_list):
+            cs = task_def.loss
             lc = LOSS_REGISTRY[cs](name='Loss func of task {}: {}'.format(idx, cs))
             self.task_loss_criterion.append(lc)
 
     def _setup_kd_lossmap(self, config):
-        loss_types = config['kd_loss_types']
+        task_def_list: List[TaskDef] = config['task_def_list']
         self.kd_task_loss_criterion = []
         if config.get('mkd_opt', 0) > 0:
-            for idx, cs in enumerate(loss_types):
+            for idx, task_def in enumerate(task_def_list):
+                cs = task_def.kd_loss
                 assert cs is not None
                 lc = LOSS_REGISTRY[cs](name='Loss func of task {}: {}'.format(idx, cs))
                 self.kd_task_loss_criterion.append(lc)
@@ -148,8 +151,6 @@ class MTDNNModel(object):
     def update(self, batch_meta, batch_data):
         self.network.train()
         y = batch_data[batch_meta['label']]
-
-        task_type = batch_meta['task_type']
         y = self._to_cuda(y) if self.config['cuda'] else y
 
         task_id = batch_meta['task_id']
@@ -219,14 +220,18 @@ class MTDNNModel(object):
     def predict(self, batch_meta, batch_data):
         self.network.eval()
         task_id = batch_meta['task_id']
-        task_type = batch_meta['task_type']
+        task_def = TaskDef.from_dict(batch_meta['task_def'])
+        task_type = task_def.task_type
+        task_obj = tasks.get_task_obj(task_def)
         inputs = batch_data[:batch_meta['input_len']]
         if len(inputs) == 3:
             inputs.append(None)
             inputs.append(None)
         inputs.append(task_id)
         score = self.mnetwork(*inputs)
-        if task_type == TaskType.Ranking:
+        if task_obj is not None:
+            score, predict = task_obj.test_predict(score)
+        elif task_type == TaskType.Ranking:
             score = score.contiguous().view(-1, batch_meta['pairwise_size'])
             assert task_type == TaskType.Ranking
             score = F.softmax(score, dim=1)
@@ -259,12 +264,7 @@ class MTDNNModel(object):
                 scores, predictions = mrc_utils.extract_answer(batch_meta, batch_data,start, end, self.config.get('max_answer_len', 5))
             return scores, predictions, batch_meta['answer']
         else:
-            if task_type == TaskType.Classification:
-                score = F.softmax(score, dim=1)
-            score = score.data.cpu()
-            score = score.numpy()
-            predict = np.argmax(score, axis=1).tolist()
-            score = score.reshape(-1).tolist()
+            raise ValueError("Unknown task_type: %s" % task_type)
         return score, predict, batch_meta['label']
 
     def save(self, filename):

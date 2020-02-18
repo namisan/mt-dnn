@@ -8,7 +8,9 @@ import numpy as np
 from shutil import copyfile
 from data_utils.task_def import TaskType, DataFormat
 from data_utils.task_def import EncoderModelType
+import tasks
 from torch.utils.data import Dataset, DataLoader, BatchSampler
+from experiments.exp_def import TaskDef
 from experiments.mlm.mlm_utils import truncate_seq_pair, load_loose_json
 from experiments.mlm.mlm_utils import create_instances_from_document, create_masked_lm_predictions
 
@@ -95,8 +97,7 @@ class SingleTaskDataset(Dataset):
                  maxlen=512,
                  factor=1.0,
                  task_id=0,
-                 task_type=TaskType.Classification,
-                 data_type=DataFormat.PremiseOnly,
+                 task_def: TaskDef =None,
                  bert_model='bert-base-uncased',
                  do_lower_case=True,
                  masked_lm_prob=0.15,
@@ -104,14 +105,13 @@ class SingleTaskDataset(Dataset):
                  short_seq_prob=0.1,
                  max_seq_length=512,
                  max_predictions_per_seq=80):
-        data, tokenizer = self.load(path, is_train, maxlen, factor, task_type, bert_model, do_lower_case)
+        data, tokenizer = self.load(path, is_train, maxlen, factor, task_def, bert_model, do_lower_case)
         self._data = data
         self._tokenizer = tokenizer
         self._task_id = task_id
-        self._task_type = task_type
-        self._data_type = data_type
+        self._task_def = task_def
         # below is for MLM
-        if task_type is TaskType.MaskLM:
+        if self._task_def.task_type is TaskType.MaskLM:
             assert tokenizer is not None
         # init vocab words
         self._vocab_words = None if tokenizer is None else list(self._tokenizer.vocab.keys())
@@ -126,7 +126,8 @@ class SingleTaskDataset(Dataset):
         return self._task_id
 
     @staticmethod
-    def load(path, is_train=True, maxlen=512, factor=1.0, task_type=None, bert_model='bert-base-uncased', do_lower_case=True):
+    def load(path, is_train=True, maxlen=512, factor=1.0, task_def=None, bert_model='bert-base-uncased', do_lower_case=True):
+        task_type = task_def.task_type
         assert task_type is not None
 
         if task_type == TaskType.MaskLM:
@@ -153,6 +154,9 @@ class SingleTaskDataset(Dataset):
                 sample['factor'] = factor
                 cnt += 1
                 if is_train:
+                    task_obj = tasks.get_task_obj(task_def)
+                    if task_obj is not None and not task_obj.input_is_valid_sample(sample, maxlen):
+                        continue
                     if (task_type == TaskType.Ranking) and (len(sample['token_id'][0]) > maxlen or len(sample['token_id'][1]) > maxlen):
                         continue
                     if (task_type != TaskType.Ranking) and (len(sample['token_id']) > maxlen):
@@ -165,7 +169,7 @@ class SingleTaskDataset(Dataset):
         return len(self._data)
 
     def __getitem__(self, idx):
-        if self._task_type == TaskType.MaskLM:
+        if self._task_def.task_type == TaskType.MaskLM:
             # create a MLM instance
             instances = create_instances_from_document(self._data,
                                                        idx,
@@ -187,10 +191,10 @@ class SingleTaskDataset(Dataset):
                       'position': instance.masked_lm_positions,
                       'label': labels,
                       'uid': idx}
-            return {"task": {"task_id": self._task_id, "task_type": self._task_type, "data_type": self._data_type},
+            return {"task": {"task_id": self._task_id, "task_def": self._task_def},
                     "sample": sample}
         else:
-            return {"task": {"task_id": self._task_id, "task_type": self._task_type, "data_type": self._data_type}, 
+            return {"task": {"task_id": self._task_id, "task_def": self._task_def}, 
                     "sample": self._data[idx]}
 
 class Collater:
@@ -248,14 +252,14 @@ class Collater:
 
     def collate_fn(self, batch):
         task_id = batch[0]["task"]["task_id"]
-        task_type = batch[0]["task"]["task_type"]
-        data_type = batch[0]["task"]["data_type"]
+        task_def = batch[0]["task"]["task_def"]
         new_batch = []
         for sample in batch:
             assert sample["task"]["task_id"] == task_id
-            assert sample["task"]["task_type"] == task_type
-            assert sample["task"]["data_type"] == data_type
+            assert sample["task"]["task_def"] == task_def
             new_batch.append(sample["sample"])
+        task_type = task_def.task_type
+        data_type = task_def.data_type
         batch = new_batch
 
         if task_type == TaskType.Ranking:
@@ -266,17 +270,21 @@ class Collater:
         batch_info['task_id'] = task_id  # used for select correct decoding head
         batch_info['input_len'] = len(batch_data)  # used to select model inputs
         # select different loss function and other difference in training and testing
-        batch_info['task_type'] = task_type
+        # DataLoader will convert any unknown type objects to dict, 
+        # the conversion logic also convert Enum to repr(Enum), which is a string and undesirable
+        # If we convert object to dict in advance, DataLoader will do nothing
+        batch_info['task_def'] = task_def.__dict__ 
         batch_info['pairwise_size'] = self.pairwise_size  # need for ranking task
 
         # add label
         labels = [sample['label'] for sample in batch]
+        task_obj = tasks.get_task_obj(task_def)
         if self.is_train:
             # in training model, label is used by Pytorch, so would be tensor
-            if task_type == TaskType.Regression:
-                batch_data.append(torch.FloatTensor(labels))
+            if task_obj is not None:
+                batch_data.append(task_obj.train_prepare_label(labels))
                 batch_info['label'] = len(batch_data) - 1
-            elif task_type in (TaskType.Classification, TaskType.Ranking):
+            elif task_type == TaskType.Ranking:
                 batch_data.append(torch.LongTensor(labels))
                 batch_info['label'] = len(batch_data) - 1
             elif task_type == TaskType.Span:
@@ -308,22 +316,24 @@ class Collater:
 
             # soft label generated by ensemble models for knowledge distillation
             if self.soft_label_on and 'softlabel' in batch[0]:
-                assert task_type in (TaskType.Classification, TaskType.Regression)
                 sortlabels = [sample['softlabel'] for sample in batch]
-                sortlabels = torch.FloatTensor(sortlabels)
+                sortlabels = task_obj.train_prepare_soft_labels(sortlabels)
                 batch_info['soft_label'] = sortlabels
         else:
             # in test model, label would be used for evaluation
-            batch_info['label'] = labels
-            if task_type == TaskType.Ranking:
-                batch_info['true_label'] = [sample['true_label'] for sample in batch]
-            if task_type == TaskType.Span:
-                batch_info['token_to_orig_map'] = [sample['token_to_orig_map'] for sample in batch]
-                batch_info['token_is_max_context'] = [sample['token_is_max_context'] for sample in batch]
-                batch_info['doc_offset'] = [sample['doc_offset'] for sample in batch]
-                batch_info['doc'] = [sample['doc'] for sample in batch]
-                batch_info['tokens'] = [sample['tokens'] for sample in batch]
-                batch_info['answer'] = [sample['answer'] for sample in batch]
+            if task_obj is not None:
+                task_obj.test_prepare_label(batch_info, labels)
+            else:
+                batch_info['label'] = labels
+                if task_type == TaskType.Ranking:
+                    batch_info['true_label'] = [sample['true_label'] for sample in batch]
+                if task_type == TaskType.Span:
+                    batch_info['token_to_orig_map'] = [sample['token_to_orig_map'] for sample in batch]
+                    batch_info['token_is_max_context'] = [sample['token_is_max_context'] for sample in batch]
+                    batch_info['doc_offset'] = [sample['doc_offset'] for sample in batch]
+                    batch_info['doc'] = [sample['doc'] for sample in batch]
+                    batch_info['tokens'] = [sample['tokens'] for sample in batch]
+                    batch_info['answer'] = [sample['answer'] for sample in batch]
 
         batch_info['uids'] = [sample['uid'] for sample in batch]  # used in scoring
         return batch_info, batch_data

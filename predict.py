@@ -3,7 +3,6 @@ import json
 import os
 import torch
 
-from data_utils.task_def import TaskType
 from experiments.exp_def import TaskDefs, EncoderModelType
 #from experiments.glue.glue_utils import eval_model
 
@@ -37,12 +36,10 @@ args = parser.parse_args()
 
 # load task info
 task_defs = TaskDefs(args.task_def)
-assert args.task in task_defs.task_type_map
-assert args.task in task_defs.data_type_map
-assert args.task in task_defs.metric_meta_map
-data_type = task_defs.data_type_map[args.task]
-task_type = task_defs.task_type_map[args.task]
-metric_meta = task_defs.metric_meta_map[args.task]
+task_def = task_defs.get_task_def(args.task)
+data_type = task_def.data_type
+task_type = task_def.task_type
+metric_meta = task_def.metric_meta
 
 # load model
 checkpoint_path = args.checkpoint
@@ -57,7 +54,7 @@ model = MTDNNModel(config, state_dict=state_dict)
 model.load(checkpoint_path)
 encoder_type = config.get('encoder_type', EncoderModelType.BERT)
 # load data
-test_data_set = SingleTaskDataset(args.prep_input, False, task_type=task_type, maxlen=args.max_seq_len)
+test_data_set = SingleTaskDataset(args.prep_input, False, task_def=task_def, maxlen=args.max_seq_len)
 collater = Collater(gpu=args.cuda, is_train=False, task_id=args.task_id, task_type=task_type,
                     data_type=data_type, encoder_type=encoder_type)
 test_data = DataLoader(test_data_set, batch_size=args.batch_size_eval, collate_fn=collater.collate_fn, pin_memory=args.cuda)

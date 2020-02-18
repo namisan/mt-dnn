@@ -25,13 +25,13 @@ TASK_DEF_PATH = "int_test_data/glue/input/prepro_std/glue_task_def.yml"
 test_prepro_std(BERT_CMD,
                 SRC_DIR,
                 TASK_DEF_PATH,
-                "int_test_data/glue/input/prepro_std/bert_uncased_lower",
-                "int_test_data/glue/expected/prepro_std/bert_uncased_lower"
+                "int_test_data/glue/input/prepro_std/bert_base_uncased_lower",
+                "int_test_data/glue/expected/prepro_std/bert_base_uncased_lower"
                 )
 
 test_prepro_std(ROBERTA_CMD,
                 SRC_DIR,
                 TASK_DEF_PATH,
-                "int_test_data/glue/input/prepro_std/roberta_cased",
-                "int_test_data/glue/expected/prepro_std/roberta_cased_lower"
+                "int_test_data/glue/input/prepro_std/roberta_base_cased",
+                "int_test_data/glue/expected/prepro_std/roberta_base_cased"
                 )
