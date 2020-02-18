@@ -240,7 +240,7 @@ class MTDNNModel(object):
             predictions = []
             if self.config['encoder_type'] == EncoderModelType.BERT:
                 import experiments.squad.squad_utils as mrc_utils
-                scores, predictions = mrc_utils.extract_answer(batch_meta, batch_data,start, end, self.config.get('max_answer_len', 5))
+                scores, predictions = mrc_utils.extract_answer(batch_meta, batch_data, start, end, self.config.get('max_answer_len', 5))
             return scores, predictions, batch_meta['answer']
         else:
             if task_type == TaskType.Classification:
@@ -277,4 +277,3 @@ class MTDNNModel(object):
     def cuda(self):
         self.network.cuda()
 
-        
