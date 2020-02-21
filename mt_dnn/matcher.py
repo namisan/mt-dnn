@@ -41,21 +41,11 @@ class SANBertNetwork(nn.Module):
         self.preloaded_config = None
 
         literal_encoder_type = EncoderModelType(self.encoder_type).name.lower()
-        if opt['encoder_type'] == EncoderModelType.ROBERTA:
-            config_class, model_class, tokenizer_class = MODEL_CLASSES[literal_encoder_type]
+        config_class, model_class, tokenizer_class = MODEL_CLASSES[literal_encoder_type]
 
-            self.bert = model_class.from_pretrained(opt['init_checkpoint'])
-            hidden_size = self.bert.config.hidden_size
-        elif opt['encoder_type'] == EncoderModelType.BERT:
-            config_class, model_class, tokenizer_class = MODEL_CLASSES[literal_encoder_type]
-
-            self.preloaded_config = config_class.from_dict(opt)  # load config from opt
-            self.bert = model_class(self.preloaded_config)
-            hidden_size = self.bert.config.hidden_size
-        else:
-            self.bert_config = BertConfig.from_dict(opt)
-            self.bert = SanModel(self.bert_config, opt)
-            hidden_size = self.bert_config.hidden_size
+        self.preloaded_config = config_class.from_dict(opt)  # load config from opt
+        self.bert = model_class(self.preloaded_config)
+        hidden_size = self.bert.config.hidden_size
 
         if opt.get('dump_feature', False):
             self.opt = opt

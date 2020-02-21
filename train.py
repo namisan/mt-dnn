@@ -9,7 +9,7 @@ from pprint import pprint
 import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader, BatchSampler
-from pytorch_pretrained_bert.modeling import BertConfig
+from pretrained_models import *
 from tensorboardX import SummaryWriter
 #from torch.utils.tensorboard import SummaryWriter
 from experiments.exp_def import TaskDefs
@@ -228,39 +228,25 @@ def main():
     logger.info('adjusted number of step: {}'.format(num_all_batches))
     logger.info('############# Gradient Accumulation Info #############')
 
-    bert_model_path = args.init_checkpoint
+    init_model = args.init_checkpoint
     state_dict = None
 
-    if encoder_type == EncoderModelType.BERT or encoder_type == EncoderModelType.SAN:
-        if os.path.exists(bert_model_path):
-            state_dict = torch.load(bert_model_path)
-            config = state_dict['config']
-            config['attention_probs_dropout_prob'] = args.bert_dropout_p
-            config['hidden_dropout_prob'] = args.bert_dropout_p
-            config['multi_gpu_on'] = opt["multi_gpu_on"]
-            if args.num_hidden_layers != -1:
-                config['num_hidden_layers'] = args.num_hidden_layers
-            opt.update(config)
-        else:
-            logger.error('#' * 20)
-            logger.error('Could not find the init model!\n The parameters will be initialized randomly!')
-            logger.error('#' * 20)
-            config = BertConfig(vocab_size_or_config_json_file=30522).to_dict()
-            config['multi_gpu_on'] = opt["multi_gpu_on"]
-            opt.update(config)
-    elif encoder_type == EncoderModelType.ROBERTA:
-        bert_model_path = '{}/model.pt'.format(bert_model_path)
-        if os.path.exists(bert_model_path):
-            new_state_dict = {}
-            state_dict = torch.load(bert_model_path)
-            for key, val in state_dict['model'].items():
-                if key.startswith('decoder.sentence_encoder'):
-                    key = 'bert.model.{}'.format(key)
-                    new_state_dict[key] = val
-                elif key.startswith('classification_heads'):
-                    key = 'bert.model.{}'.format(key)
-                    new_state_dict[key] = val
-            state_dict = {'state': new_state_dict}
+    if os.path.exists(init_model):
+        state_dict = torch.load(init_model)
+        config = state_dict['config']
+    else:
+        if opt['encoder_type'] not in EncoderModelType._value2member_map_:
+            raise ValueError("encoder_type is out of pre-defined types")
+        literal_encoder_type = EncoderModelType(opt['encoder_type']).name.lower()
+        config_class, model_class, tokenizer_class = MODEL_CLASSES[literal_encoder_type]
+        config = config_class.from_pretrained(init_model).to_dict()
+
+    config['attention_probs_dropout_prob'] = args.bert_dropout_p
+    config['hidden_dropout_prob'] = args.bert_dropout_p
+    config['multi_gpu_on'] = opt["multi_gpu_on"]
+    if args.num_hidden_layers != -1:
+        config['num_hidden_layers'] = args.num_hidden_layers
+    opt.update(config)
 
     model = MTDNNModel(opt, state_dict=state_dict, num_train_step=num_all_batches)
     if args.resume and args.model_ckpt:
