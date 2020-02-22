@@ -111,7 +111,7 @@ class MTDNNModel(object):
             self.scheduler = None
 
     def _setup_lossmap(self, config):
-        loss_types = config['loss_types']
+        loss_types = config.get('loss_types', [])
         self.task_loss_criterion = []
         for idx, cs in enumerate(loss_types):
             assert cs is not None

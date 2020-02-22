@@ -7,9 +7,10 @@ import argparse
 import torch
 import json
 from pytorch_pretrained_bert.tokenization import BertTokenizer
+from torch.utils.data import DataLoader
 from data_utils.log_wrapper import create_logger
 from data_utils.utils import set_environment
-from mt_dnn.batcher import Collater
+from mt_dnn.batcher import Collater, SingleTaskDataset
 from mt_dnn.model import MTDNNModel
 from prepro_std import _truncate_seq_pair
 from data_utils.task_def import DataFormat, EncoderModelType, TaskType
@@ -183,6 +184,10 @@ def process_data(args):
             tokenizer=tokenizer)
     return tokened_data, is_single_sentence
 
+def dump_data(data, path):
+    with open(path, 'w', encoding='utf-8') as writer:
+        for sample in data:
+            writer.write('{}\n'.format(json.dumps(sample)))
 
 def main():
     parser = argparse.ArgumentParser()
@@ -190,13 +195,17 @@ def main():
     set_config(parser)
     train_config(parser)
     args = parser.parse_args()
+    encoder_type = args.encoder_type
     layer_indexes = [int(x) for x in args.layers.split(",")]
     set_environment(args.seed)
     # process data
     data, is_single_sentence = process_data(args)
     data_type = DataFormat.PremiseOnly if is_single_sentence else DataFormat.PremiseAndOneHypothesis
-    collater = Collater(gpu=args.cuda, is_train=False, data_type=data_type)
-    batcher = DataLoader(data, batch_size=args.batch_size, collate_fn=collater.collate_fn, pin_memory=args.cuda)
+    fout_temp = '{}.tmp'.format(args.finput)
+    dump_data(data, fout_temp)
+    collater = Collater(is_train=False, encoder_type=encoder_type)
+    dataset = SingleTaskDataset(fout_temp, False, maxlen=args.max_seq_length, data_type=data_type)
+    batcher = DataLoader(dataset, batch_size=args.batch_size, collate_fn=collater.collate_fn, pin_memory=args.cuda)
     opt = vars(args)
     # load model
     if os.path.exists(args.checkpoint):
@@ -224,6 +233,8 @@ def main():
         all_encoder_layers, _ = model.extract(batch_meta, batch_data)
         embeddings = [all_encoder_layers[idx].detach().cpu().numpy()
                       for idx in layer_indexes]
+
+        #import pdb; pdb.set_trace()
         uids = batch_meta['uids']
         masks = batch_data[batch_meta['mask']].detach().cpu().numpy().tolist()
         for idx, uid in enumerate(uids):
