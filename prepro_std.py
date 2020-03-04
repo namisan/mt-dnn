@@ -5,6 +5,7 @@ import os
 import numpy as np
 import argparse
 import json
+import sys
 from data_utils import load_data
 from data_utils.task_def import TaskType, DataFormat
 from data_utils.log_wrapper import create_logger
@@ -113,21 +114,23 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
             for idx, sample in enumerate(data):
                 ids = sample['uid']
                 premise = sample['premise']
-                hypothesis_1 = sample['hypothesis'][0]
-                hypothesis_2 = sample['hypothesis'][1]
+                hypothesis_list = sample['hypothesis']
                 label = sample['label']
-
-                input_ids_1, mask_1, type_ids_1 = feature_extractor(tokenizer,
-                                                                    premise, hypothesis_1, max_length=max_seq_len,
-                                                                    model_type=encoderModelType.name)
-                input_ids_2, mask_2, type_ids_2 = feature_extractor(tokenizer,
-                                                                    premise, hypothesis_2, max_length=max_seq_len,
-                                                                    model_type=encoderModelType.name)
+                input_ids_list = []
+                type_ids_list = []
+                for hypothesis in hypothesis_list:
+                    input_ids, mask, type_ids = feature_extractor(tokenizer,
+                                                                        premise, hypothesis, max_length=max_seq_len,
+                                                                        model_type=encoderModelType.name)
+                    input_ids_list.append(input_ids)
+                    type_ids_list.append(type_ids)
                 features = {
-                    'uid': ids, 'label': label, 'token_id': [
-                        input_ids_1, input_ids_2], 'type_id': [
-                        type_ids_1, type_ids_2], 'ruid': sample['ruid'], 'olabel': sample['olabel']}
-
+                    'uid': ids,
+                    'label': label,
+                    'token_id': input_ids_list,
+                    'type_id': type_ids_list,
+                    'ruid': sample['ruid'],
+                    'olabel': sample['olabel']}
                 writer.write('{}\n'.format(json.dumps(features)))
 
     def build_data_sequence(data, dump_path, max_seq_len=MAX_SEQ_LEN, tokenizer=None, encoderModelType=EncoderModelType.BERT, label_mapper=None):
@@ -275,9 +278,11 @@ def main(args):
         task_def = task_defs.get_task_def(task)
         logger.info("Task %s" % task)
         for split_name in task_def.split_names:
-            rows = load_data(
-                os.path.join(root, "%s_%s.tsv" % (task, split_name)),
-                task_def)
+            file_path = os.path.join(root, "%s_%s.tsv" % (task, split_name))
+            if not os.path.exists(file_path):
+                logger.warning("File %s doesnot exit")
+                sys.exit(1)
+            rows = load_data(file_path, task_def)
             dump_path = os.path.join(mt_dnn_root, "%s_%s.json" % (task, split_name))
             logger.info(dump_path)
             build_data(
