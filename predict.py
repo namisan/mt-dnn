@@ -2,6 +2,7 @@ import argparse
 import json
 import os
 import torch
+from torch.utils.data import DataLoader
 
 from data_utils.task_def import TaskType
 from experiments.exp_def import TaskDefs, EncoderModelType
@@ -63,8 +64,7 @@ def main(args):
     
     # load data
     test_data_set = SingleTaskDataset(args.prep_input, False, task_type=task_type, maxlen=args.max_seq_len)
-    collater = Collater(gpu=args.cuda, is_train=False, task_id=args.task_id, task_type=task_type,
-                        data_type=data_type, encoder_type=encoder_type)
+    collater = Collater(is_train=False, encoder_type=encoder_type)
     test_data = DataLoader(test_data_set, batch_size=args.batch_size_eval, collate_fn=collater.collate_fn, pin_memory=args.cuda)
 
     with torch.no_grad():
