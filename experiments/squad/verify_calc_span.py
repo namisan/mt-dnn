@@ -1,4 +1,4 @@
-from pytorch_pretrained_bert import BertTokenizer
+from transformers import BertTokenizer
 from data_utils.task_def import EncoderModelType
 from experiments.squad.squad_utils import calc_tokenized_span_range, parse_squad_label
 

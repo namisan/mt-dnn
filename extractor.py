@@ -6,7 +6,7 @@ import os
 import argparse
 import torch
 import json
-from pytorch_pretrained_bert.tokenization import BertTokenizer
+from transformers import BertTokenizer
 from torch.utils.data import DataLoader
 from data_utils.log_wrapper import create_logger
 from data_utils.utils import set_environment

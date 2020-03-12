@@ -131,7 +131,7 @@ class SingleTaskDataset(Dataset):
 
         if task_type == TaskType.MaskLM:
             def load_mlm_data(path):
-                from pytorch_pretrained_bert.tokenization import BertTokenizer
+                from transformers import BertTokenizer
                 tokenizer = BertTokenizer.from_pretrained(bert_model,
                                                           do_lower_case=do_lower_case)
                 vocab_words = list(tokenizer.vocab.keys())

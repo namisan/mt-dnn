@@ -5,7 +5,7 @@ import os
 import numpy as np
 import argparse
 import json
-from pytorch_pretrained_bert.tokenization import BertTokenizer
+from transformers import BertTokenizer
 import sentencepiece as spm
 from data_utils.task_def import TaskType, DataFormat
 from data_utils.log_wrapper import create_logger
@@ -15,7 +15,6 @@ from experiments.exp_def import TaskDefs, EncoderModelType
 from data_utils.xlnet_utils import preprocess_text, encode_ids
 from data_utils.xlnet_utils import CLS_ID, SEP_ID
 from experiments.squad import squad_utils
-
 
 DEBUG_MODE = False
 MAX_SEQ_LEN = 512
@@ -35,6 +34,7 @@ logger = create_logger(
     __name__,
     to_disk=True,
     log_file='mt_dnn_data_proc_{}.log'.format(MAX_SEQ_LEN))
+
 
 # ROBERTA specific tokens
 # '<s>', '<pad>', '</s>', '<unk>'
@@ -81,7 +81,7 @@ class RoBERTaTokenizer(object):
         ids2 = list(map(str, ids2))
         ids2 = [self.vocab[w] if w in self.vocab else self.vocab['<unk>']
                 for w in ids2] + [2]
-        _truncate_seq_pair(ids1, ids2, MAX_SEQ_LEN -2)
+        _truncate_seq_pair(ids1, ids2, MAX_SEQ_LEN - 2)
         ids = [0] + ids1 + [2] + ids2
         return ids
 
@@ -109,8 +109,7 @@ def _truncate_seq_pair(tokens_a, tokens_b, max_length):
             tokens_b.pop()
 
 
-def xlnet_feature_extractor(
-        text_a, text_b=None, max_seq_length=512, tokenize_fn=None):
+def xlnet_feature_extractor(text_a, text_b=None, max_seq_length=512, tokenize_fn=None):
     tokens_a = xlnet_tokenize_fn(text_a, tokenize_fn)
     tokens_b = None
     if text_b:
@@ -159,8 +158,7 @@ def xlnet_feature_extractor(
     return input_ids, input_mask, segment_ids
 
 
-def bert_feature_extractor(
-        text_a, text_b=None, max_seq_length=512, tokenize_fn=None):
+def bert_feature_extractor(text_a, text_b=None, max_seq_length=512, tokenize_fn=None):
     tokens_a = tokenize_fn.tokenize(text_a)
     tokens_b = None
     if text_b:
@@ -184,8 +182,7 @@ def bert_feature_extractor(
     return input_ids, input_mask, segment_ids
 
 
-def roberta_feature_extractor(
-        text_a, text_b=None, max_seq_length=512, model=None):
+def roberta_feature_extractor(text_a, text_b=None, max_seq_length=512, model=None):
     if text_b:
         input_ids = model.encode_pair(text_a, text_b)
         segment_ids = [0] * len(input_ids)
@@ -196,8 +193,8 @@ def roberta_feature_extractor(
     return input_ids, input_mask, segment_ids
 
 
-def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
-               max_seq_len=MAX_SEQ_LEN, encoderModelType=EncoderModelType.BERT, task_type=None, lab_dict=None):
+def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly, max_seq_len=MAX_SEQ_LEN,
+               encoderModelType=EncoderModelType.BERT, task_type=None, lab_dict=None):
     def build_data_premise_only(
             data, dump_path, max_seq_len=MAX_SEQ_LEN, tokenizer=None, is_bert_model=True):
         """Build data of single sentence tasks
@@ -336,7 +333,7 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
                             labels.append(sample['label'][i])
                         else:
                             labels.append(label_mapper['X'])
-                if len(premise) >  max_seq_len - 2:
+                if len(premise) > max_seq_len - 2:
                     tokens = tokens[:max_seq_len - 2]
                     labels = labels[:max_seq_len - 2]
 
@@ -344,7 +341,7 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
                 if encoderModelType == EncoderModelType.ROBERTA:
                     tokens = list(map(str, tokens))
                     input_ids = [0] + [tokenizer.vocab[w] if w in tokenizer.vocab else tokenizer.vocab['<unk>']
-                                    for w in tokens] + [2]
+                                       for w in tokens] + [2]
                 else:
                     input_ids = tokenizer.convert_tokens_to_ids(['[CLS]'] + tokens + ['[SEP]'])
                 assert len(label) == len(input_ids)
@@ -352,9 +349,10 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
                 features = {'uid': ids, 'label': label, 'token_id': input_ids, 'type_id': type_ids}
                 writer.write('{}\n'.format(json.dumps(features)))
 
-    def build_data_mrc(data, dump_path, max_seq_len=MRC_MAX_SEQ_LEN, tokenizer=None, label_mapper=None, is_training=True):
+    def build_data_mrc(data, dump_path, max_seq_len=MRC_MAX_SEQ_LEN, tokenizer=None, label_mapper=None,
+                       is_training=True):
         with open(dump_path, 'w', encoding='utf-8') as writer:
-            unique_id = 1000000000 # TODO: this is from BERT, needed to remove it...
+            unique_id = 1000000000  # TODO: this is from BERT, needed to remove it...
             for example_index, sample in enumerate(data):
                 ids = sample['uid']
                 doc = sample['premise']
@@ -369,37 +367,36 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
                 TODO --xiaodl: support RoBERTa
                 """
                 feature_list = squad_utils.mrc_feature(tokenizer,
-                                        unique_id,
-                                        example_index,
-                                        query,
-                                        doc_tokens,
-                                        answer_start_adjusted,
-                                        answer_end_adjusted,
-                                        is_impossible,
-                                        max_seq_len,
-                                        MAX_QUERY_LEN,
-                                        DOC_STRIDE,
-                                        answer_text=answer,
-                                        is_training=True)
+                                                       unique_id,
+                                                       example_index,
+                                                       query,
+                                                       doc_tokens,
+                                                       answer_start_adjusted,
+                                                       answer_end_adjusted,
+                                                       is_impossible,
+                                                       max_seq_len,
+                                                       MAX_QUERY_LEN,
+                                                       DOC_STRIDE,
+                                                       answer_text=answer,
+                                                       is_training=True)
                 unique_id += len(feature_list)
                 for feature in feature_list:
                     so = json.dumps({'uid': ids,
-                                'token_id' : feature.input_ids,
-                                'mask': feature.input_mask,
-                                'type_id': feature.segment_ids,
-                                'example_index': feature.example_index,
-                                'doc_span_index':feature.doc_span_index,
-                                'tokens': feature.tokens,
-                                'token_to_orig_map': feature.token_to_orig_map,
-                                'token_is_max_context': feature.token_is_max_context,
-                                'start_position': feature.start_position,
-                                'end_position': feature.end_position,
-                                'label': feature.is_impossible,
-                                'doc': doc,
-                                'doc_offset': feature.doc_offset,
-                                'answer': [answer]})
+                                     'token_id': feature.input_ids,
+                                     'mask': feature.input_mask,
+                                     'type_id': feature.segment_ids,
+                                     'example_index': feature.example_index,
+                                     'doc_span_index': feature.doc_span_index,
+                                     'tokens': feature.tokens,
+                                     'token_to_orig_map': feature.token_to_orig_map,
+                                     'token_is_max_context': feature.token_is_max_context,
+                                     'start_position': feature.start_position,
+                                     'end_position': feature.end_position,
+                                     'label': feature.is_impossible,
+                                     'doc': doc,
+                                     'doc_offset': feature.doc_offset,
+                                     'answer': [answer]})
                     writer.write('{}\n'.format(so))
-
 
     if data_format == DataFormat.PremiseOnly:
         build_data_premise_only(
@@ -453,7 +450,7 @@ def load_data(file_path, data_format, task_type, label_dict=None):
             row = {"uid": fields[0], "ruid": fields[1].split(","), "label": fields[2], "premise": fields[3],
                    "hypothesis": fields[4:]}
         elif data_format == DataFormat.Seqence:
-            row = {"uid": fields[0], "label": eval(fields[1]),  "premise": eval(fields[2])}
+            row = {"uid": fields[0], "label": eval(fields[1]), "premise": eval(fields[2])}
 
         elif data_format == DataFormat.MRC:
             row = {

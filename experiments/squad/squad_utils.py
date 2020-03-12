@@ -8,7 +8,7 @@ import numpy as np
 import torch
 import math
 from data_utils.task_def import EncoderModelType
-from pytorch_pretrained_bert.tokenization import BertTokenizer
+from transformers import BertTokenizer
 
 LARGE_NEG_NUM = -1.0e5
 tokenizer = None

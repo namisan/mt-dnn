@@ -9,12 +9,16 @@ from data_utils import DataFormat
 
 logger = create_logger(__name__, to_disk=True, log_file='squad_prepro.log')
 
+
 def normalize_qa_field(s: str, replacement_list):
     for replacement in replacement_list:
         s = s.replace(replacement, " " * len(replacement))  # ensure answer_start and answer_end still valid
     return s
 
-#END = 'EOSEOS'
+
+END = 'EOSEOS'
+
+
 def load_data(path, is_train=True, v2_on=False):
     rows = []
     with open(path, encoding="utf8") as f:
@@ -55,11 +59,13 @@ def load_data(path, is_train=True, v2_on=False):
                 rows.append(sample)
     return rows
 
+
 def parse_args():
     parser = argparse.ArgumentParser(description='Preprocessing SQUAD data.')
     parser.add_argument('--root_dir', type=str, default='data')
     args = parser.parse_args()
     return args
+
 
 def main(args):
     root = args.root_dir
@@ -96,7 +102,6 @@ def main(args):
     dump_rows(squad_v2_train_data, squad_v2_train_fout, DataFormat.PremiseAndOneHypothesis)
     dump_rows(squad_v2_dev_data, squad_v2_dev_fout, DataFormat.PremiseAndOneHypothesis)
     logger.info('done with squad_v2')
-
 
 
 if __name__ == '__main__':
