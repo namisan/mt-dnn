@@ -19,7 +19,7 @@ task_def_path = args.task_def
 task = args.task
 task_defs = TaskDefs(task_def_path)
 
-n_class = task_defs.n_class_map[task]
+n_class = task_defs.get_task_def(task).n_class
 sample_id_2_pred_score_seg_dic = load_score_file(args.score, n_class)
 
 with open(args.std_output, "w", encoding="utf-8") as out_f:

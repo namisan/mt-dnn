@@ -1,0 +1,44 @@
+cola:
+  # PremiseOnly + Classification
+  data_format: PremiseOnly
+  dropout_p: 0.05
+  enable_san: false
+  metric_meta:
+  - ACC
+  - MCC
+  loss: CeCriterion
+  kd_loss: MseCriterion
+  n_class: 2
+  split_names:
+  - train
+  task_type: Classification
+mnli:
+  # PremiseAndOneHypothesis + Classification
+  data_format: PremiseAndOneHypothesis
+  dropout_p: 0.3
+  enable_san: true
+  labels:
+  - contradiction
+  - neutral
+  - entailment
+  metric_meta:
+  - ACC
+  loss: CeCriterion
+  kd_loss: MseCriterion
+  n_class: 3
+  split_names:
+  - train
+  task_type: Classification
+stsb:
+  # PremiseAndOneHypotheise + Regression
+  data_format: PremiseAndOneHypothesis
+  enable_san: false
+  metric_meta:
+  - Pearson
+  - Spearman
+  n_class: 1
+  split_names:
+  - train
+  loss: MseCriterion
+  kd_loss: MseCriterion
+  task_type: Regression

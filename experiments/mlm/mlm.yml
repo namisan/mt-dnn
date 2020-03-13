@@ -1,6 +1,5 @@
 mlm:
   data_format: MLM
-  encoder_type: BERT
   enable_san: false
   metric_meta:
   - ACC

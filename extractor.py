@@ -13,7 +13,7 @@ from data_utils.utils import set_environment
 from mt_dnn.batcher import Collater, SingleTaskDataset
 from mt_dnn.model import MTDNNModel
 from prepro_std import _truncate_seq_pair
-from data_utils.task_def import DataFormat, EncoderModelType, TaskType
+from data_utils.task_def import DataFormat, EncoderModelType
 
 logger = create_logger(
     __name__,

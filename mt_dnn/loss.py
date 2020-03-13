@@ -58,11 +58,44 @@ class MseCriterion(Criterion):
         """weight: sample weight
         """
         if weight:
-            loss = torch.mean(F.mse_loss(input.squeeze(), target, reduce=False) * weight)
+            loss = torch.mean(F.mse_loss(input.squeeze(), target, reduce=False) * 
+                              weight.reshape((target.shape[0], 1)))
         else:
             loss = F.mse_loss(input.squeeze(), target)
         loss = loss * self.alpha
         return loss
+
+class KlCriterion(Criterion):
+    def __init__(self, alpha=1.0, name='KL Div Criterion'):
+        super().__init__()
+        self.alpha = alpha
+        self.name = name
+
+    def forward(self, input, target, weight=None, ignore_index=-1):
+        """input/target: logits
+        """
+        input = input.float()
+        target = target.float()
+        loss = F.kl_div(F.log_softmax(input, dim=-1), F.softmax(target, dim=-1))
+        loss = loss * self.alpha
+        return loss
+
+class SymKlCriterion(Criterion):
+    def __init__(self, alpha=1.0, name='KL Div Criterion'):
+        super().__init__()
+        self.alpha = alpha
+        self.name = name
+
+    def forward(self, input, target, weight=None, ignore_index=-1):
+        """input/target: logits
+        """
+        input = input.float()
+        target = target.float()
+        loss = F.kl_div(F.log_softmax(input, dim=-1), F.softmax(target.detach(), dim=-1)) + \
+            F.kl_div(F.log_softmax(target, dim=-1), F.softmax(input.detach(), dim=-1))
+        loss = loss * self.alpha
+        return loss
+
 
 class RankCeCriterion(Criterion):
     def __init__(self, alpha=1.0, name='Cross Entropy Criterion'):
@@ -130,6 +163,8 @@ class LossCriterion(IntEnum):
     SpanCeCriterion = 3
     SeqCeCriterion = 4
     MlmCriterion = 5
+    KlCriterion = 6
+    SymKlCriterion = 7
 
 LOSS_REGISTRY = {
      LossCriterion.CeCriterion: CeCriterion,
@@ -137,5 +172,7 @@ LOSS_REGISTRY = {
      LossCriterion.RankCeCriterion: RankCeCriterion,
      LossCriterion.SpanCeCriterion: SpanCeCriterion,
      LossCriterion.SeqCeCriterion: SeqCeCriterion,
-     LossCriterion.MlmCriterion: MlmCriterion
+     LossCriterion.MlmCriterion: MlmCriterion,
+     LossCriterion.KlCriterion: KlCriterion,
+     LossCriterion.SymKlCriterion: SymKlCriterion
 }

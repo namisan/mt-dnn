@@ -9,14 +9,14 @@ from pprint import pprint
 import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader, BatchSampler
-from pytorch_pretrained_bert.modeling import BertConfig
+from pretrained_models import *
 from tensorboardX import SummaryWriter
 #from torch.utils.tensorboard import SummaryWriter
 from experiments.exp_def import TaskDefs
-from mt_dnn.inference import eval_model
+from mt_dnn.inference import eval_model, extract_encoding
 from data_utils.log_wrapper import create_logger
+from data_utils.task_def import EncoderModelType
 from data_utils.utils import set_environment
-from data_utils.task_def import TaskType, EncoderModelType
 from mt_dnn.batcher import SingleTaskDataset, MultiTaskDataset, Collater, MultiTaskBatchSampler
 from mt_dnn.model import MTDNNModel
 
@@ -42,13 +42,13 @@ def model_config(parser):
     parser.add_argument('--answer_weight_norm_on', action='store_true')
     parser.add_argument('--dump_state_on', action='store_true')
     parser.add_argument('--answer_opt', type=int, default=0, help='0,1')
-    parser.add_argument('--label_size', type=str, default='3')
     parser.add_argument('--mtl_opt', type=int, default=0)
     parser.add_argument('--ratio', type=float, default=0)
     parser.add_argument('--mix_opt', type=int, default=0)
     parser.add_argument('--max_seq_len', type=int, default=512)
     parser.add_argument('--init_ratio', type=float, default=1)
     parser.add_argument('--encoder_type', type=int, default=EncoderModelType.BERT)
+    parser.add_argument('--num_hidden_layers', type=int, default=-1)
 
     # BERT pre-training
     parser.add_argument('--bert_model_type', type=str, default='bert-base-uncased')
@@ -63,7 +63,7 @@ def data_config(parser):
     parser.add_argument('--log_file', default='mt-dnn-train.log', help='path for log file.')
     parser.add_argument('--tensorboard', action='store_true')
     parser.add_argument('--tensorboard_logdir', default='tensorboard_logdir')
-    parser.add_argument("--init_checkpoint", default='mt_dnn_models/bert_model_base.pt', type=str)
+    parser.add_argument("--init_checkpoint", default='mt_dnn_models/bert_model_base_uncased.pt', type=str)
     parser.add_argument('--data_dir', default='data/canonical_data/bert_uncased_lower')
     parser.add_argument('--data_sort_on', action='store_true')
     parser.add_argument('--name', default='farmer')
@@ -71,6 +71,8 @@ def data_config(parser):
     parser.add_argument('--train_datasets', default='mnli')
     parser.add_argument('--test_datasets', default='mnli_mismatched,mnli_matched')
     parser.add_argument('--glue_format_on', action='store_true')
+    parser.add_argument('--mkd-opt', type=int, default=0, 
+                        help=">0 to turn on knowledge distillation, requires 'softlabel' column in input data")
     return parser
 
 
@@ -129,6 +131,8 @@ parser = argparse.ArgumentParser()
 parser = data_config(parser)
 parser = model_config(parser)
 parser = train_config(parser)
+parser.add_argument('--encode_mode', action='store_true', help="only encode test data")
+
 args = parser.parse_args()
 
 output_dir = args.output_dir
@@ -146,20 +150,13 @@ logger = create_logger(__name__, to_disk=True, log_file=log_path)
 logger.info(args.answer_opt)
 
 task_defs = TaskDefs(args.task_def)
-encoder_type = task_defs.encoderType
-args.encoder_type = encoder_type
-
+encoder_type = args.encoder_type
 
 def dump(path, data):
     with open(path, 'w') as f:
         json.dump(data, f)
 
 
-def generate_decoder_opt(enable_san, max_opt):
-    opt_v = 0
-    if enable_san and max_opt < 3:
-        opt_v = max_opt
-    return opt_v
 
 
 def main():
@@ -168,92 +165,54 @@ def main():
     # update data dir
     opt['data_dir'] = data_dir
     batch_size = args.batch_size
+
     tasks = {}
-    tasks_class = {}
-    nclass_list = []
-    decoder_opts = []
-    task_types = []
+    task_def_list = []
     dropout_list = []
-    loss_types = []
-    kd_loss_types = []
 
     train_datasets = []
     for dataset in args.train_datasets:
         prefix = dataset.split('_')[0]
-        if prefix in tasks: continue
-        assert prefix in task_defs.n_class_map
-        assert prefix in task_defs.data_type_map
-        data_type = task_defs.data_type_map[prefix]
-        nclass = task_defs.n_class_map[prefix]
+        if prefix in tasks: 
+            continue
         task_id = len(tasks)
-        if args.mtl_opt > 0:
-            task_id = tasks_class[nclass] if nclass in tasks_class else len(tasks_class)
+        tasks[prefix] = task_id
+        task_def = task_defs.get_task_def(prefix)
+        task_def_list.append(task_def)
 
-        task_type = task_defs.task_type_map[prefix]
-
-        dopt = generate_decoder_opt(task_defs.enable_san_map[prefix], opt['answer_opt'])
-        if task_id < len(decoder_opts):
-            decoder_opts[task_id] = min(decoder_opts[task_id], dopt)
-        else:
-            decoder_opts.append(dopt)
-        task_types.append(task_type)
-        loss_types.append(task_defs.loss_map[prefix])
-        kd_loss_types.append(task_defs.kd_loss_map[prefix])
-
-        if prefix not in tasks:
-            tasks[prefix] = len(tasks)
-            if args.mtl_opt < 1: nclass_list.append(nclass)
-
-        if (nclass not in tasks_class):
-            tasks_class[nclass] = len(tasks_class)
-            if args.mtl_opt > 0: nclass_list.append(nclass)
-
-        dropout_p = task_defs.dropout_p_map.get(prefix, args.dropout_p)
-        dropout_list.append(dropout_p)
 
         train_path = os.path.join(data_dir, '{}_train.json'.format(dataset))
         logger.info('Loading {} as task {}'.format(train_path, task_id))
-        train_data_set = SingleTaskDataset(train_path, True, maxlen=args.max_seq_len, task_id=task_id, task_type=task_type, data_type=data_type)
+        train_data_set = SingleTaskDataset(train_path, True, maxlen=args.max_seq_len, task_id=task_id, task_def=task_def)
         train_datasets.append(train_data_set)
-    train_collater = Collater(dropout_w=args.dropout_w, encoder_type=encoder_type)
+    train_collater = Collater(dropout_w=args.dropout_w, encoder_type=encoder_type, soft_label=args.mkd_opt > 0)
     multi_task_train_dataset = MultiTaskDataset(train_datasets)
     multi_task_batch_sampler = MultiTaskBatchSampler(train_datasets, args.batch_size, args.mix_opt, args.ratio)
     multi_task_train_data = DataLoader(multi_task_train_dataset, batch_sampler=multi_task_batch_sampler, collate_fn=train_collater.collate_fn, pin_memory=args.cuda)
 
-    opt['answer_opt'] = decoder_opts
-    opt['task_types'] = task_types
-    opt['tasks_dropout_p'] = dropout_list
-    opt['loss_types'] = loss_types
-    opt['kd_loss_types'] = kd_loss_types
+    opt['task_def_list'] = task_def_list
 
-    args.label_size = ','.join([str(l) for l in nclass_list])
-    logger.info(args.label_size)
     dev_data_list = []
     test_data_list = []
     test_collater = Collater(is_train=False, encoder_type=encoder_type)
     for dataset in args.test_datasets:
         prefix = dataset.split('_')[0]
-        task_id = tasks_class[task_defs.n_class_map[prefix]] if args.mtl_opt > 0 else tasks[prefix]
-        task_type = task_defs.task_type_map[prefix]
-
-        pw_task = False
-        if task_type == TaskType.Ranking:
-            pw_task = True
-
-        assert prefix in task_defs.data_type_map
-        data_type = task_defs.data_type_map[prefix]
+        task_def = task_defs.get_task_def(prefix)
+        task_id = tasks[prefix]
+        task_type = task_def.task_type
+        data_type = task_def.data_type
 
         dev_path = os.path.join(data_dir, '{}_dev.json'.format(dataset))
         dev_data = None
         if os.path.exists(dev_path):
-            dev_data_set = SingleTaskDataset(dev_path, False, maxlen=args.max_seq_len, task_id=task_id, task_type=task_type, data_type=data_type)
+            dev_data_set = SingleTaskDataset(dev_path, False, maxlen=args.max_seq_len, task_id=task_id, task_def=task_def)
             dev_data = DataLoader(dev_data_set, batch_size=args.batch_size_eval, collate_fn=test_collater.collate_fn, pin_memory=args.cuda)
         dev_data_list.append(dev_data)
 
         test_path = os.path.join(data_dir, '{}_test.json'.format(dataset))
         test_data = None
         if os.path.exists(test_path):
-            test_data_set = SingleTaskDataset(test_path, False, maxlen=args.max_seq_len, task_id=task_id, task_type=task_type, data_type=data_type)
+            test_data_set = SingleTaskDataset(test_path, False, maxlen=args.max_seq_len, task_id=task_id, task_def=task_def)
             test_data = DataLoader(test_data_set, batch_size=args.batch_size_eval, collate_fn=test_collater.collate_fn, pin_memory=args.cuda)
         test_data_list.append(test_data)
 
@@ -269,37 +228,25 @@ def main():
     logger.info('adjusted number of step: {}'.format(num_all_batches))
     logger.info('############# Gradient Accumulation Info #############')
 
-    bert_model_path = args.init_checkpoint
+    init_model = args.init_checkpoint
     state_dict = None
 
-    if encoder_type == EncoderModelType.BERT:
-        if os.path.exists(bert_model_path):
-            state_dict = torch.load(bert_model_path)
-            config = state_dict['config']
-            config['attention_probs_dropout_prob'] = args.bert_dropout_p
-            config['hidden_dropout_prob'] = args.bert_dropout_p
-            config['multi_gpu_on'] = opt["multi_gpu_on"]
-            opt.update(config)
-        else:
-            logger.error('#' * 20)
-            logger.error('Could not find the init model!\n The parameters will be initialized randomly!')
-            logger.error('#' * 20)
-            config = BertConfig(vocab_size_or_config_json_file=30522).to_dict()
-            config['multi_gpu_on'] = opt["multi_gpu_on"]
-            opt.update(config)
-    elif encoder_type == EncoderModelType.ROBERTA:
-        bert_model_path = '{}/model.pt'.format(bert_model_path)
-        if os.path.exists(bert_model_path):
-            new_state_dict = {}
-            state_dict = torch.load(bert_model_path)
-            for key, val in state_dict['model'].items():
-                if key.startswith('decoder.sentence_encoder'):
-                    key = 'bert.model.{}'.format(key)
-                    new_state_dict[key] = val
-                elif key.startswith('classification_heads'):
-                    key = 'bert.model.{}'.format(key)
-                    new_state_dict[key] = val
-            state_dict = {'state': new_state_dict}
+    if os.path.exists(init_model):
+        state_dict = torch.load(init_model)
+        config = state_dict['config']
+    else:
+        if opt['encoder_type'] not in EncoderModelType._value2member_map_:
+            raise ValueError("encoder_type is out of pre-defined types")
+        literal_encoder_type = EncoderModelType(opt['encoder_type']).name.lower()
+        config_class, model_class, tokenizer_class = MODEL_CLASSES[literal_encoder_type]
+        config = config_class.from_pretrained(init_model).to_dict()
+
+    config['attention_probs_dropout_prob'] = args.bert_dropout_p
+    config['hidden_dropout_prob'] = args.bert_dropout_p
+    config['multi_gpu_on'] = opt["multi_gpu_on"]
+    if args.num_hidden_layers != -1:
+        config['num_hidden_layers'] = args.num_hidden_layers
+    opt.update(config)
 
     model = MTDNNModel(opt, state_dict=state_dict, num_train_step=num_all_batches)
     if args.resume and args.model_ckpt:
@@ -323,6 +270,15 @@ def main():
     if args.tensorboard:
         args.tensorboard_logdir = os.path.join(args.output_dir, args.tensorboard_logdir)
         tensorboard = SummaryWriter(log_dir=args.tensorboard_logdir)
+    
+    if args.encode_mode:
+        for idx, dataset in enumerate(args.test_datasets):
+            prefix = dataset.split('_')[0]
+            test_data = test_data_list[idx]
+            with torch.no_grad():
+                encoding = extract_encoding(model, test_data, use_cuda=args.cuda)
+            torch.save(encoding, os.path.join(output_dir, '{}_encoding.pt'.format(dataset)))
+        return
 
     for epoch in range(0, args.epochs):
         logger.warning('At epoch {}'.format(epoch))
@@ -349,16 +305,17 @@ def main():
 
         for idx, dataset in enumerate(args.test_datasets):
             prefix = dataset.split('_')[0]
-            label_dict = task_defs.global_map.get(prefix, None)
+            task_def = task_defs.get_task_def(prefix)
+            label_dict = task_def.label_vocab
             dev_data = dev_data_list[idx]
             if dev_data is not None:
                 with torch.no_grad():
                     dev_metrics, dev_predictions, scores, golds, dev_ids= eval_model(model,
                                                                                     dev_data,
-                                                                                    metric_meta=task_defs.metric_meta_map[prefix],
+                                                                                    metric_meta=task_def.metric_meta,
                                                                                     use_cuda=args.cuda,
                                                                                     label_mapper=label_dict,
-                                                                                    task_type=task_defs.task_type_map[prefix])
+                                                                                    task_type=task_def.task_type)
                 for key, val in dev_metrics.items():
                     if args.tensorboard:
                         tensorboard.add_scalar('dev/{}/{}'.format(dataset, key), val, global_step=epoch)
@@ -379,10 +336,10 @@ def main():
             if test_data is not None:
                 with torch.no_grad():
                     test_metrics, test_predictions, scores, golds, test_ids= eval_model(model, test_data,
-                                                                                        metric_meta=task_defs.metric_meta_map[prefix],
+                                                                                        metric_meta=task_def.metric_meta,
                                                                                         use_cuda=args.cuda, with_label=False,
                                                                                         label_mapper=label_dict,
-                                                                                        task_type=task_defs.task_type_map[prefix])
+                                                                                        task_type=task_def.task_type)
                 score_file = os.path.join(output_dir, '{}_test_scores_{}.json'.format(dataset, epoch))
                 results = {'metrics': test_metrics, 'predictions': test_predictions, 'uids': test_ids, 'scores': scores}
                 dump(score_file, results)
