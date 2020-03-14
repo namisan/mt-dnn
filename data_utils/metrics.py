@@ -14,6 +14,12 @@ def compute_acc(predicts, labels):
 def compute_f1(predicts, labels):
     return 100.0 * f1_score(labels, predicts)
 
+def compute_f1mac(predicts, labels):
+    return 100.0 * f1_score(labels, predicts, average='macro')
+
+def compute_f1mic(predicts, labels):
+    return 100.0 * f1_score(labels, predicts, average='micro')
+
 def compute_mcc(predicts, labels):
     return 100.0 * matthews_corrcoef(labels, predicts)
 
@@ -62,18 +68,22 @@ class Metric(Enum):
     AUC = 5
     SeqEval = 7
     EmF1 = 8
+    F1MAC = 9
+    F1MIC = 10
 
 
 
 METRIC_FUNC = {
- Metric.ACC: compute_acc,
- Metric.F1: compute_f1,
- Metric.MCC: compute_mcc,
- Metric.Pearson: compute_pearson,
- Metric.Spearman: compute_spearman,
- Metric.AUC: compute_auc,
- Metric.SeqEval: compute_seqacc,
- Metric.EmF1: compute_emf1
+    Metric.ACC: compute_acc,
+    Metric.F1: compute_f1,
+    Metric.MCC: compute_mcc,
+    Metric.Pearson: compute_pearson,
+    Metric.Spearman: compute_spearman,
+    Metric.AUC: compute_auc,
+    Metric.SeqEval: compute_seqacc,
+    Metric.EmF1: compute_emf1,
+    Metric.F1MAC: compute_f1mac,
+    Metric.F1MIC: compute_f1mic,
 }
 
 
@@ -85,7 +95,7 @@ def calc_metrics(metric_meta, golds, predictions, scores, label_mapper=None):
     for mm in metric_meta:
         metric_name = mm.name
         metric_func = METRIC_FUNC[mm]
-        if mm in (Metric.ACC, Metric.F1, Metric.MCC):
+        if mm in (Metric.ACC, Metric.F1, Metric.MCC, Metric.F1MAC, Metric.F1MIC):
             metric = metric_func(predictions, golds)
         elif mm == Metric.SeqEval:
             metric = metric_func(predictions, golds, label_mapper)
