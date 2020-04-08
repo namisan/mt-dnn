@@ -39,7 +39,7 @@ SMART: Robust and Efficient Fine-Tuning for Pre-trained Natural Language Models 
 
 Xiaodong Liu, Yu Wang, Jianshu Ji, Hao Cheng, Xueyun Zhu, Emmanuel Awa, Pengcheng He, Weizhu Chen, Hoifung Poon, Guihong Cao, Jianfeng Gao<br/>
 The Microsoft Toolkit of Multi-Task Deep Neural Networks for Natural Language Understanding <br/>
-[arXiv version](https://arxiv.org/abs/2002.12804) <br/>
+[arXiv version](https://arxiv.org/abs/2002.07972) <br/>
 
 
 ## Quickstart
