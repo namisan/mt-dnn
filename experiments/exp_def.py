@@ -44,6 +44,7 @@ class TaskDefs:
         dropout_p_map = {}
         loss_map = {}
         kd_loss_map = {}
+        adv_loss_map = {}
 
         for task, task_def in self._task_def_dic.items():
             assert "_" not in task, "task name should not contain '_', current task name: %s" % task
@@ -77,6 +78,13 @@ class TaskDefs:
             else:
                 kd_loss_map[task] = None
 
+            if "adv_loss" in task_def:
+                t_loss = task_def["adv_loss"]
+                loss_crt = LossCriterion[t_loss]
+                adv_loss_map[task] = loss_crt
+            else:
+                adv_loss_map[task] = None
+
 
         self._global_map = global_map
         self._n_class_map = n_class_map
@@ -88,6 +96,7 @@ class TaskDefs:
         self._dropout_p_map = dropout_p_map
         self._loss_map = loss_map
         self._kd_loss_map = kd_loss_map
+        self._adv_loss_map = adv_loss_map
 
         self._task_def_dic = {}
 
