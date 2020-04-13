@@ -76,7 +76,7 @@ class KlCriterion(Criterion):
         """
         input = input.float()
         target = target.float()
-        loss = F.kl_div(F.log_softmax(input, dim=-1), F.softmax(target, dim=-1))
+        loss = F.kl_div(F.log_softmax(input, dim=-1, dtype=torch.float32), F.softmax(target, dim=-1, dtype=torch.float32), reduction='batchmean')
         loss = loss * self.alpha
         return loss
 
@@ -91,8 +91,8 @@ class SymKlCriterion(Criterion):
         """
         input = input.float()
         target = target.float()
-        loss = F.kl_div(F.log_softmax(input, dim=-1), F.softmax(target.detach(), dim=-1)) + \
-            F.kl_div(F.log_softmax(target, dim=-1), F.softmax(input.detach(), dim=-1))
+        loss = F.kl_div(F.log_softmax(input, dim=-1, dtype=torch.float32), F.softmax(target.detach(), dim=-1, dtype=torch.float32), reduction='batchmean') + \
+            F.kl_div(F.log_softmax(target, dim=-1, dtype=torch.float32), F.softmax(input.detach(), dim=-1, dtype=torch.float32), reduction='batchmean')
         loss = loss * self.alpha
         return loss
 
@@ -145,7 +145,6 @@ class MlmCriterion(Criterion):
     def forward(self, input, target, weight=None, ignore_index=-1):
         """TODO: support sample weight, xiaodl
         """
-        #import pdb; pdb.set_trace()
         mlm_y, y = target
         mlm_p, nsp_p = input
         mlm_p = mlm_p.view(-1, mlm_p.size(-1))
