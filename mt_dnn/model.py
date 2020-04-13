@@ -14,6 +14,7 @@ from module.bert_optim import Adamax, RAdam
 from mt_dnn.loss import LOSS_REGISTRY
 from .matcher import SANBertNetwork
 from .perturbation import SmartPerturbation
+from .loss import *
 
 from data_utils.task_def import TaskType, EncoderModelType
 import tasks
