@@ -124,6 +124,16 @@ def train_config(parser):
     parser.add_argument('--fp16_opt_level', type=str, default='O1',
                         help="For fp16: Apex AMP optimization level selected in ['O0', 'O1', 'O2', and 'O3']."
                              "See details at https://nvidia.github.io/apex/amp.html")
+
+    # adv training
+    parser.add_argument('--adv_train', action='store_true')
+    # the current release only includes smart perturbation
+    parser.add_argument('--adv_opt', default=0, type=int)
+    parser.add_argument('--adv_p_norm', default='inf', type=str)
+    parser.add_argument('--adv_alpha', default=1, type=float)
+    parser.add_argument('--adv_step_size', default=1e-3, type=float)
+    parser.add_argument('--adv_noise_var', default=1e-3, type=float)
+    parser.add_argument('--adv_epsilon', default=1e-5, type=float)
     return parser
 
 

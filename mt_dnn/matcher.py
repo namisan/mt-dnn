@@ -30,6 +30,7 @@ def generate_decoder_opt(enable_san, max_opt):
     if enable_san and max_opt < 3:
         opt_v = max_opt
     return opt_v
+
 class SANBertNetwork(nn.Module):
     def __init__(self, opt, bert_config=None, initial_from_local=False):
         super(SANBertNetwork, self).__init__()
@@ -100,7 +101,7 @@ class SANBertNetwork(nn.Module):
         # if not loading from local, loading model weights from pre-trained model, after initialization
         if not initial_from_local:
             config_class, model_class, tokenizer_class = MODEL_CLASSES[literal_encoder_type]
-            self.bert = model_class.from_pretrained(opt['init_checkpoint'],config=self.preloaded_config)
+            self.bert = model_class.from_pretrained(opt['init_checkpoint'], config=self.preloaded_config)
 
     def _my_init(self):
         def init_weights(module):
@@ -114,6 +115,21 @@ class SANBertNetwork(nn.Module):
 
         self.apply(init_weights)
 
+
+    def embed_encode(self, input_ids, token_type_ids=None, attention_mask=None):
+        # support BERT now
+        if token_type_ids is None:
+            token_type_ids = torch.zeros_like(input_ids)
+        embedding_output = self.bert.embeddings(input_ids, token_type_ids)
+        embedding_mask = attention_mask.unsqueeze(2)
+        if self.opt['fp16']:
+            embedding_mask = embedding_mask.to(dtype=torch.half)
+        else:
+            embedding_mask = embedding_mask.to(dtype=torch.float)
+        embedding_output = embedding_output * embedding_mask
+        return embedding_output
+
+
     def encode(self, input_ids, token_type_ids, attention_mask):
         outputs = self.bert(input_ids=input_ids, token_type_ids=token_type_ids,
                                                           attention_mask=attention_mask)
@@ -121,9 +137,34 @@ class SANBertNetwork(nn.Module):
         pooled_output = outputs[1]
         return sequence_output, pooled_output
 
-    def forward(self, input_ids, token_type_ids, attention_mask, premise_mask=None, hyp_mask=None, task_id=0):
-        sequence_output, pooled_output = self.encode(input_ids, token_type_ids, attention_mask)
+    def embed_forward(self, embed, attention_mask=None, output_all_encoded_layers=True):
+        extended_attention_mask = attention_mask.unsqueeze(1).unsqueeze(2)
+        if self.opt['fp16']:
+            extended_attention_mask = extended_attention_mask.to(dtype=torch.half)
+        else:
+            extended_attention_mask =  extended_attention_mask.to(dtype=torch.float)
+        extended_attention_mask = (1.0 - extended_attention_mask) * -10000.0
+        transformer_layers = self.bert.encoder.layer
+        encoded_layers = ()
+        embedding_output = embed
+        for idx, layer in enumerate(transformer_layers):
+            encoded_layers = encoded_layers + (embedding_output,)
+            layer_output = layer(embedding_output, extended_attention_mask)
+            # layer_output is a tuple
+            embedding_output = layer_output[0]
+        pooled_output = self.bert.pooler(embedding_output)
+        if not output_all_encoded_layers:
+            encoded_layers = encoded_layers[-1]
+        return encoded_layers, pooled_output
 
+    def forward(self, input_ids, token_type_ids, attention_mask, premise_mask=None, hyp_mask=None, task_id=0, fwd_type=0, embed=None):
+        if fwd_type == 2:
+            assert embed is not None
+            sequence_output, pooled_output = self.embed_forward(embed, attention_mask) 
+        elif fwd_type == 1:
+            return self.embed_encode(input_ids, token_type_ids, attention_mask)
+        else:
+            sequence_output, pooled_output = self.encode(input_ids, token_type_ids, attention_mask)
         decoder_opt = self.decoder_opt[task_id]
         task_type = self.task_types[task_id]
         task_obj = tasks.get_task_obj(self.task_def_list[task_id])
