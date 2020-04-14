@@ -44,6 +44,7 @@ class SANBertNetwork(nn.Module):
         config_class, model_class, tokenizer_class = MODEL_CLASSES[literal_encoder_type]
 
         self.preloaded_config = config_class.from_dict(opt)  # load config from opt
+        self.preloaded_config.output_hidden_states = True
         self.bert = model_class(self.preloaded_config)
         hidden_size = self.bert.config.hidden_size
 
@@ -119,10 +120,11 @@ class SANBertNetwork(nn.Module):
                                                           attention_mask=attention_mask)
         sequence_output = outputs[0]
         pooled_output = outputs[1]
-        return sequence_output, pooled_output
+        all_hidden_states = outputs[2]
+        return sequence_output, pooled_output, all_hidden_states
 
     def forward(self, input_ids, token_type_ids, attention_mask, premise_mask=None, hyp_mask=None, task_id=0):
-        sequence_output, pooled_output = self.encode(input_ids, token_type_ids, attention_mask)
+        sequence_output, pooled_output, all_hidden_states = self.encode(input_ids, token_type_ids, attention_mask)
 
         decoder_opt = self.decoder_opt[task_id]
         task_type = self.task_types[task_id]
