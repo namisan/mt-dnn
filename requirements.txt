@@ -1,5 +1,5 @@
 numpy
-torch==1.1.0
+torch==1.4.0
 tqdm
 colorlog
 boto3

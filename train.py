@@ -132,8 +132,8 @@ def train_config(parser):
     parser.add_argument('--adv_p_norm', default='inf', type=str)
     parser.add_argument('--adv_alpha', default=1, type=float)
     parser.add_argument('--adv_step_size', default=1e-3, type=float)
-    parser.add_argument('--adv_noise_var', default=1e-3, type=float)
-    parser.add_argument('--adv_epsilon', default=1e-5, type=float)
+    parser.add_argument('--adv_noise_var', default=1e-4, type=float)
+    parser.add_argument('--adv_epsilon', default=1e-6, type=float)
     return parser
 
 
@@ -242,8 +242,23 @@ def main():
     state_dict = None
 
     if os.path.exists(init_model):
-        state_dict = torch.load(init_model)
-        config = state_dict['config']
+        if encoder_type == EncoderModelType.BERT:
+            state_dict = torch.load(init_model)
+            config = state_dict['config']
+        elif encoder_type == EncoderModelType.ROBERTA:
+            model_path = '{}/model.pt'.format(init_model)
+            state_dict = torch.load(model_path)
+            arch = state_dict['args'].arch
+            arch = arch.replace('_', '-')
+            # convert model arch
+            from data_utils.roberta_utils import update_roberta_keys
+            from data_utils.roberta_utils import patch_name_dict 
+            state = update_roberta_keys(state_dict['model'], nlayer=state_dict['args'].encoder_layers)
+            state = patch_name_dict(state)
+            literal_encoder_type = EncoderModelType(opt['encoder_type']).name.lower()
+            config_class, model_class, tokenizer_class = MODEL_CLASSES[literal_encoder_type]
+            config = config_class.from_pretrained(arch).to_dict()
+            state_dict = {'state': state}
     else:
         if opt['encoder_type'] not in EncoderModelType._value2member_map_:
             raise ValueError("encoder_type is out of pre-defined types")

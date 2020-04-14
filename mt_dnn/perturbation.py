@@ -39,9 +39,11 @@ class SmartPerturbation():
                  loss_map=[]):
         super(SmartPerturbation, self).__init__()
         self.epsilon = epsilon 
+        # eta
         self.step_size = step_size
         self.multi_gpu_on = multi_gpu_on
         self.fp16 = fp16
+        # sigma
         self.noise_var = noise_var 
         self.norm_p = norm_p
         self.encoder_type = encoder_type 
@@ -49,10 +51,10 @@ class SmartPerturbation():
         assert len(loss_map) > 0
 
 
-    def _norm_grad(self, grad, norm_type='inf'):
-        if norm_type == 'l2':
+    def _norm_grad(self, grad):
+        if self.norm_p == 'l2':
             direction = grad / (torch.norm(grad, dim=-1, keepdim=True) + self.epsilon)
-        elif norm_type == 'l1':
+        elif self.norm_p == 'l1':
             direction = grad.sign()
         else:
             direction = grad / (grad.abs().max(-1, keepdim=True)[0] + self.epsilon)
@@ -72,8 +74,8 @@ class SmartPerturbation():
         assert task_type in set([TaskType.Classification, TaskType.Ranking, TaskType.Regression]), 'Donot support {} yet'.format(task_type)
         vat_args = [input_ids, token_type_ids, attention_mask, premise_mask, hyp_mask, task_id, 1]
         embed = model(*vat_args)
-        embed, noise = generate_noise(embed, attention_mask, epsilon=self.noise_var, encoder_type=self.encoder_type)
-        vat_args = [input_ids, token_type_ids, attention_mask, premise_mask, hyp_mask, task_id, 2, embed + noise]
+        embed, delta = generate_noise(embed, attention_mask, epsilon=self.noise_var, encoder_type=self.encoder_type)
+        vat_args = [input_ids, token_type_ids, attention_mask, premise_mask, hyp_mask, task_id, 2, embed + delta]
         adv_logits = model(*vat_args)
         if task_type == TaskType.Regression:
             adv_loss = F.mse_loss(adv_logits, logits)
@@ -81,12 +83,12 @@ class SmartPerturbation():
             if task_type == TaskType.Ranking:
                 adv_logits = adv_logits.view(-1, pairwise)
             adv_loss = F.kl_div(F.log_softmax(adv_logits, dim=-1, dtype=torch.float32), F.softmax(logits.detach(), dim=-1, dtype=torch.float32), reduction='batchmean')
-        noise_grad, = torch.autograd.grad(adv_loss, noise, only_inputs=True)
-        norm = noise_grad.norm()
+        delta_grad, = torch.autograd.grad(adv_loss, delta, only_inputs=True)
+        norm = delta_grad.norm()
         if (torch.isnan(norm) or torch.isinf(norm)):
             return 0
-        adv_direct = self._norm_grad(noise_grad, norm_type=self.norm_p)
-        embed = embed + (noise + adv_direct) * self.step_size
+        delta_grad = self._norm_grad(delta_grad)
+        embed = embed + delta_grad * self.step_size
         embed = embed.detach()
         vat_args = [input_ids, token_type_ids, attention_mask, premise_mask, hyp_mask, task_id, 2, embed]
         adv_logits = model(*vat_args)
