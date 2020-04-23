@@ -6,6 +6,16 @@ from torch.nn.modules.loss import _Loss
 import torch.nn.functional as F
 from enum import IntEnum
 
+def stable_kl(logit, target, epsilon=1e-6):
+    logit = logit.view(-1, logit.size(-1)).float()
+    target = target.view(-1, target.size(-1)).float()
+    p = F.log_softmax(logit, 1).exp()
+    y = F.log_softmax(target, 1).exp()
+    rp = -(1.0/(p + epsilon) -1 + epsilon).detach().log()
+    ry = -(1.0/(y + epsilon) -1 + epsilon).detach().log()
+    return (p* (rp- ry) * 2).mean() 
+
+
 class Criterion(_Loss):
     def __init__(self, alpha=1.0, name='criterion'):
         super().__init__()
@@ -80,6 +90,22 @@ class KlCriterion(Criterion):
         loss = loss * self.alpha
         return loss
 
+class NsKlCriterion(Criterion):
+    def __init__(self, alpha=1.0, name='KL Div Criterion'):
+        super().__init__()
+        self.alpha = alpha
+        self.name = name
+
+    def forward(self, input, target, weight=None, ignore_index=-1):
+        """input/target: logits
+        """
+        input = input.float()
+        target = target.float()
+        loss = stable_kl(input, target.detach()) 
+        loss = loss * self.alpha
+        return loss
+
+
 class SymKlCriterion(Criterion):
     def __init__(self, alpha=1.0, name='KL Div Criterion'):
         super().__init__()
@@ -95,6 +121,23 @@ class SymKlCriterion(Criterion):
             F.kl_div(F.log_softmax(target, dim=-1, dtype=torch.float32), F.softmax(input.detach(), dim=-1, dtype=torch.float32), reduction='batchmean')
         loss = loss * self.alpha
         return loss
+
+class NsSymKlCriterion(Criterion):
+    def __init__(self, alpha=1.0, name='KL Div Criterion'):
+        super().__init__()
+        self.alpha = alpha
+        self.name = name
+
+    def forward(self, input, target, weight=None, ignore_index=-1):
+        """input/target: logits
+        """
+        input = input.float()
+        target = target.float()
+        loss = stable_kl(input, target.detach()) + \
+                stable_kl(target, input.detach())
+        loss = loss * self.alpha
+        return loss
+
 
 
 class RankCeCriterion(Criterion):
@@ -164,6 +207,8 @@ class LossCriterion(IntEnum):
     MlmCriterion = 5
     KlCriterion = 6
     SymKlCriterion = 7
+    NsKlCriterion = 8
+    NsSymKlCriterion = 9
 
 LOSS_REGISTRY = {
      LossCriterion.CeCriterion: CeCriterion,
@@ -173,5 +218,7 @@ LOSS_REGISTRY = {
      LossCriterion.SeqCeCriterion: SeqCeCriterion,
      LossCriterion.MlmCriterion: MlmCriterion,
      LossCriterion.KlCriterion: KlCriterion,
-     LossCriterion.SymKlCriterion: SymKlCriterion
+     LossCriterion.SymKlCriterion: SymKlCriterion,
+     LossCriterion.NsKlCriterion: NsKlCriterion,
+     LossCriterion.NsSymKlCriterion: NsSymKlCriterion
 }

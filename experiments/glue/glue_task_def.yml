@@ -22,7 +22,7 @@ mnli:
   - ACC
   loss: CeCriterion
   kd_loss: MseCriterion
-  adv_loss: SymKlCriterion
+  adv_loss: NsSymKlCriterion
   n_class: 3
   split_names:
   - train
