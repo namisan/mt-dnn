@@ -44,6 +44,7 @@ def eval_model(model, data, metric_meta, use_cuda=True, with_label=True, label_m
         scores.extend(score)
         ids.extend(batch_info['uids'])
 
+    #import pdb; pdb.set_trace()
     if task_type == TaskType.Span:
         from experiments.squad import squad_utils
         golds = squad_utils.merge_answers(ids, golds)

@@ -368,7 +368,7 @@ def position_encoding(m, threshold=4):
                 encoding[i][j] = float(1.0 / math.log(j - i + 1))
     return torch.from_numpy(encoding)
 
-def get_final_text(pred_text, orig_text, do_lower_case, verbose_logging=False):
+def get_final_text(pred_text, orig_text, verbose_logging=False, do_lower_case=False):
     """Project the tokenized prediction back to the original text."""
 
     # When we created the data, we kept track of the alignment between original
@@ -414,7 +414,7 @@ def get_final_text(pred_text, orig_text, do_lower_case, verbose_logging=False):
     #tokenizer = tokenization.BasicTokenizer(do_lower_case=do_lower_case)
     global tokenizer
     if tokenizer is None:
-        tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+        tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=do_lower_case)
 
     tok_text = " ".join(tokenizer.tokenize(orig_text))
 
@@ -487,7 +487,7 @@ def masking_score(mask, batch_meta, start, end, keep_first_token=False):
     end = F.softmax(end, 1)
     return start, end
 
-def extract_answer(batch_meta, batch_data, start, end, keep_first_token=False, max_len=5):
+def extract_answer(batch_meta, batch_data, start, end, keep_first_token=False, max_len=5, do_lower_case=False):
     doc_len = start.size(1)
     pos_enc = position_encoding(doc_len, max_len)
     token_is_max_contexts = batch_meta['token_is_max_context']
@@ -528,7 +528,7 @@ def extract_answer(batch_meta, batch_data, start, end, keep_first_token=False, m
         re = word_maps[i][str(e_idx)]
         raw_answer = ' '.join(context[rs:re+1])
         # extract final answer
-        answer = get_final_text(tok_text, raw_answer, True, False)
+        answer = get_final_text(tok_text, raw_answer, False, do_lower_case=do_lower_case)
         predictions.append(answer)
         answer_scores.append(float(best_score))
     return predictions, answer_scores

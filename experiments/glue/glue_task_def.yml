@@ -12,7 +12,7 @@ cola:
   task_type: Classification
 mnli:
   data_format: PremiseAndOneHypothesis
-  dropout_p: 0.3
+  dropout_p: 0.1
   enable_san: true
   labels:
   - contradiction

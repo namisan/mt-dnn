@@ -1,9 +1,10 @@
 # coding=utf-8
 # Copyright (c) Microsoft. All rights reserved.
-import logging
 import sys
-import numpy as np
 import torch
+import tasks
+import logging
+import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
@@ -12,12 +13,10 @@ from data_utils.utils import AverageMeter
 from pytorch_pretrained_bert import BertAdam as Adam
 from module.bert_optim import Adamax, RAdam
 from mt_dnn.loss import LOSS_REGISTRY
-from .matcher import SANBertNetwork
-from .perturbation import SmartPerturbation
-from .loss import *
-
+from mt_dnn.matcher import SANBertNetwork
+from mt_dnn.perturbation import SmartPerturbation
+from mt_dnn.loss import *
 from data_utils.task_def import TaskType, EncoderModelType
-import tasks
 from experiments.exp_def import TaskDef
 
 logger = logging.getLogger(__name__)
@@ -55,6 +54,7 @@ class MTDNNModel(object):
                     config['adv_step_size'],
                     config['adv_noise_var'],
                     config['adv_p_norm'],
+                    config['adv_k'],
                     config['fp16'],
                     config['encoder_type'],
                     loss_map=self.adv_task_loss_criterion)
@@ -222,7 +222,7 @@ class MTDNNModel(object):
             task_type = batch_meta['task_def']['task_type']
             adv_inputs = [self.mnetwork, logits] + inputs + [task_type, batch_meta.get('pairwise_size', 1)]
             adv_loss = self.adv_teacher.forward(*adv_inputs)
-            loss += self.config['adv_alpha'] * adv_loss
+            loss = loss + self.config['adv_alpha'] * adv_loss
 
         self.train_loss.update(loss.item(), batch_data[batch_meta['token_id']].size(0))
         # scale loss
@@ -303,9 +303,10 @@ class MTDNNModel(object):
         elif task_type == TaskType.Span:
             start, end = score
             predictions = []
+            import pdb; pdb.set_trace()
             if self.config['encoder_type'] == EncoderModelType.BERT:
                 import experiments.squad.squad_utils as mrc_utils
-                scores, predictions = mrc_utils.extract_answer(batch_meta, batch_data,start, end, self.config.get('max_answer_len', 5))
+                scores, predictions = mrc_utils.extract_answer(batch_meta, batch_data, start, end, self.config.get('max_answer_len', 5), do_lower_case=self.config.get('do_lower_case', False))
             return scores, predictions, batch_meta['answer']
         else:
             raise ValueError("Unknown task_type: %s" % task_type)
@@ -323,9 +324,12 @@ class MTDNNModel(object):
 
     def load(self, checkpoint):
         model_state_dict = torch.load(checkpoint)
-        self.network.load_state_dict(model_state_dict['state'], strict=False)
-        self.optimizer.load_state_dict(model_state_dict['optimizer'])
-        self.config.update(model_state_dict['config'])
+        if 'state' in model_state_dict:
+            self.network.load_state_dict(model_state_dict['state'], strict=False)
+        if 'optimizer' in model_state_dict:
+            self.optimizer.load_state_dict(model_state_dict['optimizer'])
+        if 'config' in model_state_dict:
+            self.config.update(model_state_dict['config'])
 
     def cuda(self):
         self.network.cuda()

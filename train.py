@@ -37,7 +37,7 @@ def model_config(parser):
                         help='bilinear/simple/defualt')
     parser.add_argument('--answer_merge_opt', type=int, default=1)
     parser.add_argument('--answer_mem_type', type=int, default=1)
-    parser.add_argument('--max_answer_len', type=int, default=5)
+    parser.add_argument('--max_answer_len', type=int, default=10)
     parser.add_argument('--answer_dropout_p', type=float, default=0.1)
     parser.add_argument('--answer_weight_norm_on', action='store_true')
     parser.add_argument('--dump_state_on', action='store_true')
@@ -73,6 +73,7 @@ def data_config(parser):
     parser.add_argument('--glue_format_on', action='store_true')
     parser.add_argument('--mkd-opt', type=int, default=0, 
                         help=">0 to turn on knowledge distillation, requires 'softlabel' column in input data")
+    parser.add_argument('--do_padding', action='store_true')
     return parser
 
 
@@ -108,10 +109,8 @@ def train_config(parser):
     # scheduler
     parser.add_argument('--have_lr_scheduler', dest='have_lr_scheduler', action='store_false')
     parser.add_argument('--multi_step_lr', type=str, default='10,20,30')
-    parser.add_argument('--freeze_layers', type=int, default=-1)
-    parser.add_argument('--embedding_opt', type=int, default=0)
+    #parser.add_argument('--feature_based_on', action='store_true')
     parser.add_argument('--lr_gamma', type=float, default=0.5)
-    parser.add_argument('--bert_l2norm', type=float, default=0.0)
     parser.add_argument('--scheduler_type', type=str, default='ms', help='ms/rop/exp')
     parser.add_argument('--output_dir', default='checkpoint')
     parser.add_argument('--seed', type=int, default=2018,
@@ -131,8 +130,9 @@ def train_config(parser):
     parser.add_argument('--adv_opt', default=0, type=int)
     parser.add_argument('--adv_p_norm', default='inf', type=str)
     parser.add_argument('--adv_alpha', default=1, type=float)
+    parser.add_argument('--adv_k', default=1, type=int)
     parser.add_argument('--adv_step_size', default=1e-3, type=float)
-    parser.add_argument('--adv_noise_var', default=1e-4, type=float)
+    parser.add_argument('--adv_noise_var', default=1e-5, type=float)
     parser.add_argument('--adv_epsilon', default=1e-6, type=float)
     return parser
 
@@ -167,8 +167,6 @@ def dump(path, data):
         json.dump(data, f)
 
 
-
-
 def main():
     logger.info('Launching the MT-DNN training')
     opt = vars(args)
@@ -195,7 +193,7 @@ def main():
         logger.info('Loading {} as task {}'.format(train_path, task_id))
         train_data_set = SingleTaskDataset(train_path, True, maxlen=args.max_seq_len, task_id=task_id, task_def=task_def)
         train_datasets.append(train_data_set)
-    train_collater = Collater(dropout_w=args.dropout_w, encoder_type=encoder_type, soft_label=args.mkd_opt > 0)
+    train_collater = Collater(dropout_w=args.dropout_w, encoder_type=encoder_type, soft_label=args.mkd_opt > 0, max_seq_len=args.max_seq_len, do_padding=args.do_padding)
     multi_task_train_dataset = MultiTaskDataset(train_datasets)
     multi_task_batch_sampler = MultiTaskBatchSampler(train_datasets, args.batch_size, args.mix_opt, args.ratio)
     multi_task_train_data = DataLoader(multi_task_train_dataset, batch_sampler=multi_task_batch_sampler, collate_fn=train_collater.collate_fn, pin_memory=args.cuda)
@@ -204,7 +202,7 @@ def main():
 
     dev_data_list = []
     test_data_list = []
-    test_collater = Collater(is_train=False, encoder_type=encoder_type)
+    test_collater = Collater(is_train=False, encoder_type=encoder_type, max_seq_len=args.max_seq_len, do_padding=args.do_padding)
     for dataset in args.test_datasets:
         prefix = dataset.split('_')[0]
         task_def = task_defs.get_task_def(prefix)
