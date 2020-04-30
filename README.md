@@ -4,7 +4,7 @@
 **New Release ** <br/>
 We are working on the v0.2 version which is easier to adapt it to new tasks. <br/>
 You are welcomed to test our new version. <br/>
-It supports Sequence Labeling Task, e.g., NER. <br/>
+[ALUM code](https://github.com/namisan/mt-dnn/blob/master/alum/README.md). <br/>
 If you want to use the old version, please use following cmd to clone the code: <br/>
 ```git clone -b v0.1 https://github.com/namisan/mt-dnn.git ```
 
@@ -41,7 +41,7 @@ Xiaodong Liu, Yu Wang, Jianshu Ji, Hao Cheng, Xueyun Zhu, Emmanuel Awa, Pengchen
 The Microsoft Toolkit of Multi-Task Deep Neural Networks for Natural Language Understanding <br/>
 [arXiv version](https://arxiv.org/abs/2002.07972) <br/>
 
-Xiaodong Liu, Yu Wang, Jianshu Ji, Hao Cheng, Xueyun Zhu, Emmanuel Awa, Pengcheng He, Weizhu Chen, Hoifung Poon, Guihong Cao, Jianfeng Gao<br/>
+Xiaodong Liu, Hao Cheng, Pengcheng He, Weizhu Chen, Yu Wang, Hoifung Poon and Jianfeng Gao<br/>
 Adversarial Training for Large Neural Language Models <br/>
 [arXiv version](https://arxiv.org/abs/2004.08994) <br/>
 
