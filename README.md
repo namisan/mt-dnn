@@ -41,6 +41,10 @@ Xiaodong Liu, Yu Wang, Jianshu Ji, Hao Cheng, Xueyun Zhu, Emmanuel Awa, Pengchen
 The Microsoft Toolkit of Multi-Task Deep Neural Networks for Natural Language Understanding <br/>
 [arXiv version](https://arxiv.org/abs/2002.07972) <br/>
 
+Xiaodong Liu, Yu Wang, Jianshu Ji, Hao Cheng, Xueyun Zhu, Emmanuel Awa, Pengcheng He, Weizhu Chen, Hoifung Poon, Guihong Cao, Jianfeng Gao<br/>
+Adversarial Training for Large Neural Language Models <br/>
+[arXiv version](https://arxiv.org/abs/2004.08994) <br/>
+
 
 ## Quickstart
 
@@ -230,6 +234,13 @@ We also used some code from: https://github.com/kevinduh/san_mrc <br/>
   year={2020}
 }
 
+
+@article{liu2020alum,
+  title={Adversarial Training for Large Neural Language Models},
+  author={Liu, Xiaodong and Cheng, Hao and He, Pengcheng and Chen, Weizhu and Wang, Yu and Poon, Hoifung and Gao, Jianfeng},
+  journal={arXiv preprint arXiv:2004.08994},
+  year={2020}
+}
 ```
 ### Contact Information
 
