@@ -17,7 +17,7 @@ Adversarial Training for Large Neural Language Models <br/>
    [Setup](https://github.com/pytorch/fairseq).
 
 
-### Train a toy MT-DNN model
+### Pre-train an ALUM model
 1. Download data </br>
    [Data Info](https://arxiv.org/abs/1907.11692) 
 
