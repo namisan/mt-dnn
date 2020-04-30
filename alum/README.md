@@ -14,21 +14,21 @@ Adversarial Training for Large Neural Language Models <br/>
 ## Quickstart
 
 ### Setup Environment
-   Refer to [setting] (https://github.com/pytorch/fairseq)
+   [Setup](https://github.com/pytorch/fairseq).
 
 
 ### Train a toy MT-DNN model
 1. Download data </br>
-   Download the large scale raw texts: [RoBERTa](https://arxiv.org/abs/1907.11692) 
+   [Data Info](https://arxiv.org/abs/1907.11692) 
 
-2. Preprocess data/Training </br>
-   Please refer: [prepro/train](https://github.com/pytorch/fairseq/blob/master/examples/roberta/README.pretraining.md)
+2. Prepro/train </br>
+   [Prepro/train](https://github.com/pytorch/fairseq/blob/master/examples/roberta/README.pretraining.md)
 
 
 ## Notes and Acknowledgments
-BERT pytorch is from: https://github.com/huggingface/pytorch-pretrained-BERT <br/>
 FAIRSEQ: https://github.com/pytorch/fairseq<br/>
-We also used some code from: https://github.com/kevinduh/san_mrc <br/>
+Megatron-LM: https://github.com/NVIDIA/Megatron-LM <br/>
+SAN: https://github.com/kevinduh/san_mrc <br/>
 
 ### How do I cite ALUM?
 
