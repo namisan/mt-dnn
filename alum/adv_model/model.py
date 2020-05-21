@@ -28,7 +28,6 @@ from fairseq.modules.transformer_sentence_encoder import init_bert_params
 
 from .hub_interface import RobertaHubInterface
 
-                                    
 logger = logging.getLogger(__name__)
 
 @register_model('advbert')
@@ -283,7 +282,7 @@ class RobertaEncoder(FairseqDecoder):
             encoder_normalize_before=True,
             apply_bert_init=True,
             activation_fn=args.activation_fn,  
-        )                                                                 
+        )
 
         self.lm_head = RobertaLMHead(
             embed_dim=args.encoder_embed_dim,
@@ -327,7 +326,6 @@ class RobertaEncoder(FairseqDecoder):
             last_state_only=not return_all_hiddens,
         )
         features = inner_states[-1].transpose(0, 1)  # T x B x C -> B x T x C
-        #print("feature:",features.shape)
         return features, {'inner_states': inner_states if return_all_hiddens else None}
 
     def output_layer(self, features, masked_tokens=None, **unused):
@@ -337,18 +335,15 @@ class RobertaEncoder(FairseqDecoder):
         """Maximum output length supported by the encoder."""
         return self.args.max_positions
 
-    def embed_forward(self, embed, padding_mask, layer_idx=0):
+    def embed_forward(self, embed, padding_mask):
         encoder = self.sentence_encoder # TransformerSentenceEncoder
         x = embed
         reps = []
         layers = encoder.layers
-        layers = layers[layer_idx:] if layer_idx > 0 else layers
         for layer in layers:
-            #print("x:",x.shape)
             x, _ = layer(x, self_attn_padding_mask=padding_mask)
             # B x T x C -> T x B x C
             reps.append(x)
-        #print("x:",x.shape)
         return x.transpose(0, 1), {'inner_states': reps}
 
 

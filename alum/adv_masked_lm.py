@@ -78,12 +78,12 @@ class AdvMaskedLmLoss(FairseqCriterion):
             reduction='sum',
             ignore_index=self.padding_idx,
         )
-        if self.training:
+        if self.args.adv_opt > 0 and self.training:
             embed = extra['inner_states'][self.args.prob_n_layer]
             noise = embed.data.new(embed.size()).normal_(0, 1) * self.args.noise_var
             noise.requires_grad_()
             newembed = embed.data.detach() + noise
-            adv_logits, _ = model(**sample['net_input'], masked_tokens=masked_tokens, task_id=1, embed=newembed, player=self.args.prob_n_layer)
+            adv_logits, _ = model(**sample['net_input'], masked_tokens=masked_tokens, task_id=1, embed=newembed, player=0)
             adv_loss = KL(adv_logits, logits.detach())
             delta_grad, = torch.autograd.grad(adv_loss, noise, only_inputs=True)
             norm = delta_grad.norm()
@@ -100,7 +100,7 @@ class AdvMaskedLmLoss(FairseqCriterion):
             adv_direct = self.adv_project(delta_grad, norm_type=self.args.project_norm_type, eps=self.args.noise_gamma) 
             newembed = embed + adv_direct * self.args.adv_step_size
             newembed = newembed.detach()
-            adv_logits, _ = model(**sample['net_input'], masked_tokens=masked_tokens, task_id=1, embed=newembed, player=self.args.prob_n_layer)
+            adv_logits, _ = model(**sample['net_input'], masked_tokens=masked_tokens, task_id=1, embed=newembed, player=0)
             adv_loss_f = KL(adv_logits, logits.detach())
             adv_loss_b = KL(logits, adv_logits.detach())
             adv_loss = (adv_loss_f + adv_loss_b) * self.args.adv_alpha
@@ -112,7 +112,6 @@ class AdvMaskedLmLoss(FairseqCriterion):
             'nsentences': sample['nsentences'],
             'sample_size': sample_size,
         }
-        #return loss, sample_size, logging_output, logits, extra
         return loss, sample_size, logging_output
 
     @staticmethod
