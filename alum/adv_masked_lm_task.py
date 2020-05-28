@@ -57,7 +57,7 @@ class AdvMaskedLMTask(FairseqTask):
                             help='mask whole words; you may also want to set --bpe')
 
         ## ALUM args
-        parser.add_argument('--adv_opt', default=0, type=0, help="1: adv training")
+        parser.add_argument('--adv_opt', default=0, type=int, help="1: adv training")
         parser.add_argument('--prob_n_layer', default=0, type=int)
         parser.add_argument('--adv_step_size', default=1e-3, type=float,
                             help="1 (default), perturbation size for adversarial training.")
