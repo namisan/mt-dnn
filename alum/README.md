@@ -22,7 +22,8 @@ Adversarial Training for Large Neural Language Models <br/>
    [Data Info](https://arxiv.org/abs/1907.11692) 
 
 2. Prepro/train </br>
-   [Prepro/train](https://github.com/pytorch/fairseq/blob/master/examples/roberta/README.pretraining.md)
+   [Prepro/train](https://github.com/pytorch/fairseq/blob/master/examples/roberta/README.pretraining.md) </br>
+   > bash alum_train.sh <data_dir> <LR> <alum_code_path> <RoBERTa_model_path>
 
 
 ## Notes and Acknowledgments
