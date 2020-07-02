@@ -1,0 +1,13 @@
+snli:
+  data_format: PremiseAndOneHypothesis
+  enable_san: true
+  labels:
+  - contradiction
+  - neutral
+  - entailment
+  metric_meta:
+  - ACC
+  loss: CeCriterion
+  kd_loss: MseCriterion
+  n_class: 3
+  task_type: Classification
