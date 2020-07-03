@@ -9,11 +9,12 @@ from enum import IntEnum
 def stable_kl(logit, target, epsilon=1e-6):
     logit = logit.view(-1, logit.size(-1)).float()
     target = target.view(-1, target.size(-1)).float()
+    bs = logit.size(0)
     p = F.log_softmax(logit, 1).exp()
     y = F.log_softmax(target, 1).exp()
     rp = -(1.0/(p + epsilon) -1 + epsilon).detach().log()
     ry = -(1.0/(y + epsilon) -1 + epsilon).detach().log()
-    return (p* (rp- ry) * 2).mean() 
+    return (p* (rp- ry) * 2).sum() / bs
 
 
 class Criterion(_Loss):
