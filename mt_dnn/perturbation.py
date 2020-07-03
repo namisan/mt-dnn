@@ -14,15 +14,6 @@ logger = logging.getLogger(__name__)
 
 def generate_noise(embed, mask, epsilon=1e-5, encoder_type=EncoderModelType.ROBERTA):
     noise = embed.data.new(embed.size()).normal_(0, 1) *  epsilon
-    #newembed = (embed.data.detach()+ noise).detach()
-    #if encoder_type == EncoderModelType.ROBERTA:
-    #    embedding_mask = 1 - mask.unsqueeze(-1).type_as(embed)
-    #    newembed = newembed * embedding_mask
-    #else:
-    #    embedding_mask = mask.unsqueeze(2).type_as(embed)
-    #    newembed = newembed * embedding_mask
-    #newembed.requires_grad_()
-    #return newembed
     noise.detach()
     noise.requires_grad_()
     return noise
@@ -79,7 +70,6 @@ class SmartPerturbation():
 
         # init delta
         embed = model(*vat_args)
-        #embed = generate_noise(embed, attention_mask, epsilon=self.noise_var, encoder_type=self.encoder_type)
         noise = generate_noise(embed, attention_mask, epsilon=self.noise_var, encoder_type=self.encoder_type)
         for step in range(0, self.K):
             vat_args = [input_ids, token_type_ids, attention_mask, premise_mask, hyp_mask, task_id, 2, embed + noise]
@@ -89,9 +79,7 @@ class SmartPerturbation():
             else:
                 if task_type == TaskType.Ranking:
                     adv_logits = adv_logits.view(-1, pairwise)
-                #adv_loss = F.kl_div(F.log_softmax(adv_logits, dim=-1, dtype=torch.float32), F.softmax(logits.detach(), dim=-1, dtype=torch.float32), reduction='batchmean')
                 adv_loss = stable_kl(adv_logits, logits.detach()) 
-            #delta_grad, = torch.autograd.grad(adv_loss, embed, only_inputs=True)
             delta_grad, = torch.autograd.grad(adv_loss, noise, only_inputs=True)
             norm = delta_grad.norm()
             if (torch.isnan(norm) or torch.isinf(norm)):

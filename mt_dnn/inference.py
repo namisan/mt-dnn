@@ -34,9 +34,6 @@ def eval_model(model, data, metric_meta, use_cuda=True, with_label=True, label_m
     ids = []
     metrics = {}
     for (batch_info, batch_data) in tqdm(data, total=len(data)):
-    #for idx, (batch_info, batch_data) in enumerate(data):
-        #if idx % 100 == 0:
-        #    print("predicting {}".format(idx))
         batch_info, batch_data = Collater.patch_data(use_cuda, batch_info, batch_data)
         score, pred, gold = model.predict(batch_info, batch_data)
         predictions.extend(pred)
@@ -44,7 +41,6 @@ def eval_model(model, data, metric_meta, use_cuda=True, with_label=True, label_m
         scores.extend(score)
         ids.extend(batch_info['uids'])
 
-    #import pdb; pdb.set_trace()
     if task_type == TaskType.Span:
         from experiments.squad import squad_utils
         golds = squad_utils.merge_answers(ids, golds)

@@ -303,7 +303,6 @@ class MTDNNModel(object):
         elif task_type == TaskType.Span:
             start, end = score
             predictions = []
-            import pdb; pdb.set_trace()
             if self.config['encoder_type'] == EncoderModelType.BERT:
                 import experiments.squad.squad_utils as mrc_utils
                 scores, predictions = mrc_utils.extract_answer(batch_meta, batch_data, start, end, self.config.get('max_answer_len', 5), do_lower_case=self.config.get('do_lower_case', False))

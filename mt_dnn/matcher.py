@@ -124,12 +124,6 @@ class SANBertNetwork(nn.Module):
         if token_type_ids is None:
             token_type_ids = torch.zeros_like(input_ids)
         embedding_output = self.bert.embeddings(input_ids, token_type_ids)
-        #embedding_mask = attention_mask.unsqueeze(2)
-        #if self.opt['fp16']:
-        #    embedding_mask = embedding_mask.to(dtype=torch.half)
-        #else:
-        #    embedding_mask = embedding_mask.to(dtype=torch.float)
-        #embedding_output = embedding_output * embedding_mask
         return embedding_output
 
 
@@ -142,25 +136,6 @@ class SANBertNetwork(nn.Module):
         return sequence_output, pooled_output
 
     def embed_forward(self, embed, attention_mask=None, output_all_encoded_layers=True):
-        #extended_attention_mask = attention_mask.unsqueeze(1).unsqueeze(2)
-        #if self.opt['fp16']:
-        #    extended_attention_mask = extended_attention_mask.to(dtype=torch.half)
-        #else:
-        #    extended_attention_mask =  extended_attention_mask.to(dtype=torch.float)
-        #extended_attention_mask = (1.0 - extended_attention_mask) * -10000.0
-        #transformer_layers = self.bert.encoder.layer
-        #encoded_layers = ()
-        #embedding_output = embed
-        #for idx, layer in enumerate(transformer_layers):
-        #    encoded_layers = encoded_layers + (embedding_output,)
-        #    layer_output = layer(embedding_output, extended_attention_mask)
-        #    # layer_output is a tuple
-        #    embedding_output = layer_output[0]
-        #pooled_output = self.bert.pooler(embedding_output)
-        #if not output_all_encoded_layers:
-        #    encoded_layers = encoded_layers[-1]
-        #return encoded_layers, pooled_output
-        #import pdb; pdb.set_trace()
         device = embed.device
         input_shape = embed.size()[:-1]
         if attention_mask is None:
@@ -220,7 +195,6 @@ class SANBertNetwork(nn.Module):
         return outputs
 
     def forward(self, input_ids, token_type_ids, attention_mask, premise_mask=None, hyp_mask=None, task_id=0, fwd_type=0, embed=None):
-        #import pdb; pdb.set_trace()
         if fwd_type == 2:
             assert embed is not None
             sequence_output, pooled_output = self.embed_forward(embed, attention_mask) 
