@@ -2,9 +2,9 @@
 [![Travis-CI](https://travis-ci.org/namisan/mt-dnn.svg?branch=master)](https://github.com/namisan/mt-dnn)
 
 **New Release ** <br/>
-We are working on the v0.2 version which is easier to adapt it to new tasks. <br/>
-You are welcomed to test our new version. <br/>
-[ALUM code](https://github.com/namisan/mt-dnn/blob/master/alum/README.md). <br/>
+We released Adversarial training for both LM pre-training/finetuning. 
+
+Large-scale Adversarial training for LMs: [ALUM code](https://github.com/namisan/mt-dnn/blob/master/alum/README.md). <br/>
 If you want to use the old version, please use following cmd to clone the code: <br/>
 ```git clone -b v0.1 https://github.com/namisan/mt-dnn.git ```
 
@@ -109,6 +109,11 @@ Here, we provide two examples, STS-B and RTE. You can use similar scripts to fin
 2. Training </br>
    ```> python train.py --data_dir <data-path> --init_checkpoint <bert/ner-model> --train_dataset ner --test_dataset ner --task_def experiments\ner\ner_task_def.yml```
 
+### SMART
+Adv training at the fine-tuning stages:
+   ```> python train.py --data_dir <data-path> --init_checkpoint <bert/mt-dnn-model> --train_dataset mnli --test_dataset mnli_matched,mnli_mismatched --task_def experiments\glue\glue_task_def.yml --adv_train --adv_opt 1```
+
+
 ### HNN
 The code to reproduce HNN is under `hnn` folder, to reproduce the results of HNN, run 
 
@@ -144,8 +149,6 @@ Here, we go through how to convert a Chinese Tensorflow BERT model into mt-dnn f
    ```python scripts\convert_tf_to_pt.py --tf_checkpoint_root chinese_L-12_H-768_A-12\ --pytorch_checkpoint_path chinese_L-12_H-768_A-12\bert_base_chinese.pt```
 
 ### TODO
-
-- [ ] Release SMART/MT-DNN-SMART which outperforms T5. <br/>
 - [ ] Publish pretrained Tensorflow checkpoints. <br/>
 
 

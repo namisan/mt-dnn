@@ -7,7 +7,7 @@ from data_utils.metrics import Metric
 from mt_dnn.loss import LossCriterion
 
 class TaskDef(dict):
-    def __init__(self, label_vocab, n_class, data_type, task_type, metric_meta, split_names, enable_san, dropout_p, loss, kd_loss):
+    def __init__(self, label_vocab, n_class, data_type, task_type, metric_meta, split_names, enable_san, dropout_p, loss, kd_loss, adv_loss):
         """
             :param label_vocab: map string label to numbers.
                 only valid for Classification task or ranking task.
@@ -24,6 +24,7 @@ class TaskDef(dict):
         self.dropout_p = dropout_p
         self.loss = loss
         self.kd_loss = kd_loss
+        self.adv_loss = adv_loss
 
     @classmethod
     def from_dict(cls, dict_rep):
@@ -44,6 +45,7 @@ class TaskDefs:
         dropout_p_map = {}
         loss_map = {}
         kd_loss_map = {}
+        adv_loss_map = {}
 
         for task, task_def in self._task_def_dic.items():
             assert "_" not in task, "task name should not contain '_', current task name: %s" % task
@@ -77,6 +79,13 @@ class TaskDefs:
             else:
                 kd_loss_map[task] = None
 
+            if "adv_loss" in task_def:
+                t_loss = task_def["adv_loss"]
+                loss_crt = LossCriterion[t_loss]
+                adv_loss_map[task] = loss_crt
+            else:
+                adv_loss_map[task] = None
+
 
         self._global_map = global_map
         self._n_class_map = n_class_map
@@ -88,6 +97,7 @@ class TaskDefs:
         self._dropout_p_map = dropout_p_map
         self._loss_map = loss_map
         self._kd_loss_map = kd_loss_map
+        self._adv_loss_map = adv_loss_map
 
         self._task_def_dic = {}
 
@@ -107,6 +117,7 @@ class TaskDefs:
                 self._enable_san_map[task_name],
                 self._dropout_p_map.get(task_name, None),
                 self._loss_map[task_name],
-                self._kd_loss_map[task_name]
+                self._kd_loss_map[task_name],
+                self._adv_loss_map[task_name]
             )
         return self._task_def_dic[task_name]

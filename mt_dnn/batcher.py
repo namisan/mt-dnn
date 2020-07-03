@@ -202,12 +202,16 @@ class Collater:
                  is_train=True,
                  dropout_w=0.005,
                  soft_label=False,
-                 encoder_type=EncoderModelType.BERT):
+                 encoder_type=EncoderModelType.BERT,
+                 max_seq_len=512,
+                 do_padding=False):
         self.is_train = is_train
         self.dropout_w = dropout_w
         self.soft_label_on = soft_label
         self.encoder_type = encoder_type
         self.pairwise_size = 1
+        self.max_seq_len = max_seq_len
+        self.do_padding = do_padding 
 
     def __random_select__(self, arr):
         if self.dropout_w > 0:
@@ -340,6 +344,7 @@ class Collater:
 
     def _get_max_len(self, batch, key='token_id'):
         tok_len = max(len(x[key]) for x in batch)
+        tok_len = self.max_seq_len if self.do_padding else tok_len
         return tok_len
 
     def _get_batch_size(self, batch):
