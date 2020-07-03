@@ -4,6 +4,7 @@ from data_utils.metrics import calc_metrics
 from mt_dnn.batcher import Collater
 from data_utils.task_def import TaskType
 import torch
+from tqdm import tqdm
 
 def extract_encoding(model, data, use_cuda=True):
     if use_cuda:
@@ -32,9 +33,7 @@ def eval_model(model, data, metric_meta, use_cuda=True, with_label=True, label_m
     scores = []
     ids = []
     metrics = {}
-    for idx, (batch_info, batch_data) in enumerate(data):
-        if idx % 100 == 0:
-            print("predicting {}".format(idx))
+    for (batch_info, batch_data) in tqdm(data, total=len(data)):
         batch_info, batch_data = Collater.patch_data(use_cuda, batch_info, batch_data)
         score, pred, gold = model.predict(batch_info, batch_data)
         predictions.extend(pred)
