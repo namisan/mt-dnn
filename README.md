@@ -2,9 +2,9 @@
 [![Travis-CI](https://travis-ci.org/namisan/mt-dnn.svg?branch=master)](https://github.com/namisan/mt-dnn)
 
 **New Release ** <br/>
-We are working on the v0.2 version which is easier to adapt it to new tasks. <br/>
-You are welcomed to test our new version. <br/>
-[ALUM code](https://github.com/namisan/mt-dnn/blob/master/alum/README.md). <br/>
+We released Adversarial training for both LM pre-training/finetuning. 
+
+Large-scale Adversarial training for LMs: [ALUM code](https://github.com/namisan/mt-dnn/blob/master/alum/README.md). <br/>
 If you want to use the old version, please use following cmd to clone the code: <br/>
 ```git clone -b v0.1 https://github.com/namisan/mt-dnn.git ```
 
@@ -144,8 +144,6 @@ Here, we go through how to convert a Chinese Tensorflow BERT model into mt-dnn f
    ```python scripts\convert_tf_to_pt.py --tf_checkpoint_root chinese_L-12_H-768_A-12\ --pytorch_checkpoint_path chinese_L-12_H-768_A-12\bert_base_chinese.pt```
 
 ### TODO
-
-- [ ] Release SMART/MT-DNN-SMART which outperforms T5. <br/>
 - [ ] Publish pretrained Tensorflow checkpoints. <br/>
 
 
