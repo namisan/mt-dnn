@@ -109,6 +109,11 @@ Here, we provide two examples, STS-B and RTE. You can use similar scripts to fin
 2. Training </br>
    ```> python train.py --data_dir <data-path> --init_checkpoint <bert/ner-model> --train_dataset ner --test_dataset ner --task_def experiments\ner\ner_task_def.yml```
 
+### SMART
+Adv training at the fine-tuning stages:
+   ```> python train.py --data_dir <data-path> --init_checkpoint <bert/mt-dnn-model> --train_dataset mnli --test_dataset mnli_matched,mnli_mismatched --task_def experiments\glue\glue_task_def.yml --adv_train --adv_opt 1```
+
+
 ### HNN
 The code to reproduce HNN is under `hnn` folder, to reproduce the results of HNN, run 
 
