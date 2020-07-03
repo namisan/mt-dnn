@@ -9,5 +9,6 @@ snlisample:
   - ACC
   loss: CeCriterion
   kd_loss: MseCriterion
+  adv_loss: SymKlCriterion
   n_class: 3
   task_type: Classification
