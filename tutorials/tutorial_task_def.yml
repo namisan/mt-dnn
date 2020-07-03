@@ -1,4 +1,4 @@
-snli:
+snlisample:
   data_format: PremiseAndOneHypothesis
   enable_san: true
   labels:

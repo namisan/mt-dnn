@@ -1,0 +1,100 @@
+0	neutral	A person on a horse jumps over a broken down airplane.	A person is training his horse for a competition.
+1	contradiction	A person on a horse jumps over a broken down airplane.	A person is at a diner, ordering an omelette.
+2	entailment	A person on a horse jumps over a broken down airplane.	A person is outdoors, on a horse.
+3	neutral	Children smiling and waving at camera	They are smiling at their parents
+4	entailment	Children smiling and waving at camera	There are children present
+5	contradiction	Children smiling and waving at camera	The kids are frowning
+6	contradiction	A boy is jumping on skateboard in the middle of a red bridge.	The boy skates down the sidewalk.
+7	entailment	A boy is jumping on skateboard in the middle of a red bridge.	The boy does a skateboarding trick.
+8	neutral	A boy is jumping on skateboard in the middle of a red bridge.	The boy is wearing safety equipment.
+9	neutral	An older man sits with his orange juice at a small table in a coffee shop while employees in bright colored shirts smile in the background.	An older man drinks his juice as he waits for his daughter to get off work.
+10	contradiction	An older man sits with his orange juice at a small table in a coffee shop while employees in bright colored shirts smile in the background.	A boy flips a burger.
+11	neutral	An older man sits with his orange juice at a small table in a coffee shop while employees in bright colored shirts smile in the background.	An elderly man sits in a small shop.
+12	neutral	Two blond women are hugging one another.	Some women are hugging on vacation.
+13	contradiction	Two blond women are hugging one another.	The women are sleeping.
+14	entailment	Two blond women are hugging one another.	There are women showing affection.
+15	neutral	A few people in a restaurant setting, one of them is drinking orange juice.	The people are eating omelettes.
+16	contradiction	A few people in a restaurant setting, one of them is drinking orange juice.	The people are sitting at desks in school.
+17	entailment	A few people in a restaurant setting, one of them is drinking orange juice.	The diners are at a restaurant.
+18	entailment	An older man is drinking orange juice at a restaurant.	A man is drinking juice.
+19	contradiction	An older man is drinking orange juice at a restaurant.	Two women are at a restaurant drinking wine.
+20	neutral	An older man is drinking orange juice at a restaurant.	A man in a restaurant is waiting for his meal to arrive.
+21	neutral	A man with blond-hair, and a brown shirt drinking out of a public water fountain.	A blond man getting a drink of water from a fountain in the park.
+22	contradiction	A man with blond-hair, and a brown shirt drinking out of a public water fountain.	A blond man wearing a brown shirt is reading a book on a bench in the park
+23	entailment	A man with blond-hair, and a brown shirt drinking out of a public water fountain.	A blond man drinking water from a fountain.
+24	contradiction	Two women who just had lunch hugging and saying goodbye.	The friends scowl at each other over a full dinner table.
+25	entailment	Two women who just had lunch hugging and saying goodbye.	There are two woman in this picture.
+26	neutral	Two women who just had lunch hugging and saying goodbye.	The friends have just met for the first time in 20 years, and have had a great time catching up.
+27	neutral	Two women, holding food carryout containers, hug.	The two sisters saw each other across the crowded diner and shared a hug, both clutching their doggie bags.
+28	contradiction	Two women, holding food carryout containers, hug.	Two groups of rival gang members flipped each other off.
+29	entailment	Two women, holding food carryout containers, hug.	Two women hug each other.
+30	neutral	A Little League team tries to catch a runner sliding into a base in an afternoon game.	A team is trying to score the games winning out.
+31	entailment	A Little League team tries to catch a runner sliding into a base in an afternoon game.	A team is trying to tag a runner out.
+32	contradiction	A Little League team tries to catch a runner sliding into a base in an afternoon game.	A team is playing baseball on Saturn.
+33	contradiction	The school is having a special event in order to show the american culture on how other cultures are dealt with in parties.	A school hosts a basketball game.
+34	neutral	The school is having a special event in order to show the american culture on how other cultures are dealt with in parties.	A high school is hosting an event.
+35	entailment	The school is having a special event in order to show the american culture on how other cultures are dealt with in parties.	A school is hosting an event.
+36	contradiction	High fashion ladies wait outside a tram beside a crowd of people in the city.	The women do not care what clothes they wear.
+37	entailment	High fashion ladies wait outside a tram beside a crowd of people in the city.	Women are waiting by a tram.
+38	neutral	High fashion ladies wait outside a tram beside a crowd of people in the city.	The women enjoy having a good fashion sense.
+39	neutral	A man, woman, and child enjoying themselves on a beach.	A child with mom and dad, on summer vacation at the beach.
+40	entailment	A man, woman, and child enjoying themselves on a beach.	A family of three is at the beach.
+41	contradiction	A man, woman, and child enjoying themselves on a beach.	A family of three is at the mall shopping.
+42	neutral	People waiting to get on a train or just getting off.	The people waiting on the train are sitting.
+43	entailment	People waiting to get on a train or just getting off.	There are people just getting on a train
+44	entailment	People waiting to get on a train or just getting off.	There are people waiting on a train.
+45	entailment	A couple playing with a little boy on the beach.	A couple are playing with a young child outside.
+46	neutral	A couple playing with a little boy on the beach.	A couple are playing frisbee with a young child at the beach.
+47	contradiction	A couple playing with a little boy on the beach.	A couple watch a little girl play by herself on the beach.
+48	contradiction	A couple play in the tide with their young son.	The family is sitting down for dinner.
+49	entailment	A couple play in the tide with their young son.	The family is outside.
+50	neutral	A couple play in the tide with their young son.	The family is on vacation.
+51	contradiction	A man and a woman cross the street in front of a pizza and gyro restaurant.	The people are standing still on the curb.
+52	entailment	A man and a woman cross the street in front of a pizza and gyro restaurant.	Near a couple of restaurants, two people walk across the street.
+53	neutral	A man and a woman cross the street in front of a pizza and gyro restaurant.	The couple are walking across the street together.
+54	contradiction	A woman in a green jacket and hood over her head looking towards a valley.	The woman is nake.
+55	neutral	A woman in a green jacket and hood over her head looking towards a valley.	The woman is cold.
+56	entailment	A woman in a green jacket and hood over her head looking towards a valley.	The woman is wearing green.
+57	neutral	Woman in white in foreground and a man slightly behind walking with a sign for John's Pizza and Gyro in the background.	The man with the sign is caucasian.
+58	contradiction	Woman in white in foreground and a man slightly behind walking with a sign for John's Pizza and Gyro in the background.	They are protesting outside the capital.
+59	entailment	Woman in white in foreground and a man slightly behind walking with a sign for John's Pizza and Gyro in the background.	A woman in white.
+60	entailment	Woman in white in foreground and a man slightly behind walking with a sign for John's Pizza and Gyro in the background.	A man is advertising for a restaurant.
+61	contradiction	Woman in white in foreground and a man slightly behind walking with a sign for John's Pizza and Gyro in the background.	The woman is wearing black.
+62	neutral	Woman in white in foreground and a man slightly behind walking with a sign for John's Pizza and Gyro in the background.	A man and a woman walk down a crowded city street.
+63	entailment	Woman in white in foreground and a man slightly behind walking with a sign for John's Pizza and Gyro in the background.	The woman is wearing white.
+64	neutral	Woman in white in foreground and a man slightly behind walking with a sign for John's Pizza and Gyro in the background.	They are working for John's Pizza.
+65	contradiction	Woman in white in foreground and a man slightly behind walking with a sign for John's Pizza and Gyro in the background.	Olympic swimming.
+66	contradiction	Woman in white in foreground and a man slightly behind walking with a sign for John's Pizza and Gyro in the background.	A man and a soman are eating together at John's Pizza and Gyro.
+67	entailment	Woman in white in foreground and a man slightly behind walking with a sign for John's Pizza and Gyro in the background.	They are walking with a sign.
+68	neutral	Woman in white in foreground and a man slightly behind walking with a sign for John's Pizza and Gyro in the background.	The woman is waiting for a friend.
+69	contradiction	Woman in white in foreground and a man slightly behind walking with a sign for John's Pizza and Gyro in the background.	The man is sitting down while he has a sign for John's Pizza and Gyro in his arms.
+70	entailment	Woman in white in foreground and a man slightly behind walking with a sign for John's Pizza and Gyro in the background.	The woman and man are outdoors.
+71	neutral	Woman in white in foreground and a man slightly behind walking with a sign for John's Pizza and Gyro in the background.	A woman ordering pizza.
+72	neutral	Two adults, one female in white, with shades and one male, gray clothes, walking across a street, away from a eatery with a blurred image of a dark colored red shirted person in the foreground.	The people are related.
+73	contradiction	Two adults, one female in white, with shades and one male, gray clothes, walking across a street, away from a eatery with a blurred image of a dark colored red shirted person in the foreground.	Two adults run across the street to get away from a red shirted person chasing them.
+74	entailment	Two adults, one female in white, with shades and one male, gray clothes, walking across a street, away from a eatery with a blurred image of a dark colored red shirted person in the foreground.	The adults are both male and female.
+75	neutral	Two adults, one female in white, with shades and one male, gray clothes, walking across a street, away from a eatery with a blurred image of a dark colored red shirted person in the foreground.	Two people walk home after a tasty steak dinner.
+76	contradiction	Two adults, one female in white, with shades and one male, gray clothes, walking across a street, away from a eatery with a blurred image of a dark colored red shirted person in the foreground.	Two adults swimming in water
+77	entailment	Two adults, one female in white, with shades and one male, gray clothes, walking across a street, away from a eatery with a blurred image of a dark colored red shirted person in the foreground.	Two adults walk across a street.
+78	contradiction	Two adults, one female in white, with shades and one male, gray clothes, walking across a street, away from a eatery with a blurred image of a dark colored red shirted person in the foreground.	Two people ride bicycles into a tunnel.
+79	entailment	Two adults, one female in white, with shades and one male, gray clothes, walking across a street, away from a eatery with a blurred image of a dark colored red shirted person in the foreground.	Two people walk away from a restaurant across a street.
+80	neutral	Two adults, one female in white, with shades and one male, gray clothes, walking across a street, away from a eatery with a blurred image of a dark colored red shirted person in the foreground.	Two adults walking across a road near the convicted prisoner dressed in red
+81	neutral	Two adults, one female in white, with shades and one male, gray clothes, walking across a street, away from a eatery with a blurred image of a dark colored red shirted person in the foreground.	Two friends cross a street.
+82	contradiction	Two adults, one female in white, with shades and one male, gray clothes, walking across a street, away from a eatery with a blurred image of a dark colored red shirted person in the foreground.	Some people board a train.
+83	entailment	Two adults, one female in white, with shades and one male, gray clothes, walking across a street, away from a eatery with a blurred image of a dark colored red shirted person in the foreground.	Two adults walk across the street.
+84	entailment	Two adults, one female in white, with shades and one male, gray clothes, walking across a street, away from a eatery with a blurred image of a dark colored red shirted person in the foreground.	Two adults walking across a road
+85	contradiction	Two adults, one female in white, with shades and one male, gray clothes, walking across a street, away from a eatery with a blurred image of a dark colored red shirted person in the foreground.	There are no women in the picture.
+86	neutral	Two adults, one female in white, with shades and one male, gray clothes, walking across a street, away from a eatery with a blurred image of a dark colored red shirted person in the foreground.	Two adults walk across the street to get away from a red shirted person who is chasing them.
+87	contradiction	A woman wearing all white and eating, walks next to a man holding a briefcase.	A married couple is sleeping.
+88	entailment	A woman wearing all white and eating, walks next to a man holding a briefcase.	A female is next to a man.
+89	neutral	A woman wearing all white and eating, walks next to a man holding a briefcase.	A married couple is walking next to each other.
+90	contradiction	A woman is walking across the street eating a banana, while a man is following with his briefcase.	Nobody has food.
+91	entailment	A woman is walking across the street eating a banana, while a man is following with his briefcase.	A woman eats a banana and walks across a street, and there is a man trailing behind her.
+92	contradiction	A woman is walking across the street eating a banana, while a man is following with his briefcase.	The woman and man are playing baseball together.
+93	neutral	A woman is walking across the street eating a banana, while a man is following with his briefcase.	two coworkers cross pathes on a street
+94	contradiction	A woman is walking across the street eating a banana, while a man is following with his briefcase.	A woman eats ice cream walking down the sidewalk, and there is another woman in front of her with a purse.
+95	neutral	A woman is walking across the street eating a banana, while a man is following with his briefcase.	The mans briefcase is for work.
+96	entailment	A woman is walking across the street eating a banana, while a man is following with his briefcase.	A person eating.
+97	neutral	A woman is walking across the street eating a banana, while a man is following with his briefcase.	A person that is hungry.
+98	neutral	A woman is walking across the street eating a banana, while a man is following with his briefcase.	An actress and her favorite assistant talk a walk in the city.
+99	entailment	A woman is walking across the street eating a banana, while a man is following with his briefcase.	a woman eating a banana crosses a street
