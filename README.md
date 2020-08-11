@@ -1,10 +1,10 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Travis-CI](https://travis-ci.org/namisan/mt-dnn.svg?branch=master)](https://github.com/namisan/mt-dnn)
 
-**New Release ** <br/>
-We are working on the v0.2 version which is easier to adapt it to new tasks. <br/>
-You are welcomed to test our new version. <br/>
-It supports Sequence Labeling Task, e.g., NER. <br/>
+**New Release** <br/>
+We released Adversarial training for both LM pre-training/finetuning. 
+
+Large-scale Adversarial training for LMs: [ALUM code](https://github.com/namisan/mt-dnn/blob/master/alum/README.md). <br/>
 If you want to use the old version, please use following cmd to clone the code: <br/>
 ```git clone -b v0.1 https://github.com/namisan/mt-dnn.git ```
 
@@ -39,7 +39,11 @@ SMART: Robust and Efficient Fine-Tuning for Pre-trained Natural Language Models 
 
 Xiaodong Liu, Yu Wang, Jianshu Ji, Hao Cheng, Xueyun Zhu, Emmanuel Awa, Pengcheng He, Weizhu Chen, Hoifung Poon, Guihong Cao, Jianfeng Gao<br/>
 The Microsoft Toolkit of Multi-Task Deep Neural Networks for Natural Language Understanding <br/>
-[arXiv version](https://arxiv.org/abs/2002.12804) <br/>
+[arXiv version](https://arxiv.org/abs/2002.07972) <br/>
+
+Xiaodong Liu, Hao Cheng, Pengcheng He, Weizhu Chen, Yu Wang, Hoifung Poon and Jianfeng Gao<br/>
+Adversarial Training for Large Neural Language Models <br/>
+[arXiv version](https://arxiv.org/abs/2004.08994) <br/>
 
 
 ## Quickstart
@@ -105,6 +109,11 @@ Here, we provide two examples, STS-B and RTE. You can use similar scripts to fin
 2. Training </br>
    ```> python train.py --data_dir <data-path> --init_checkpoint <bert/ner-model> --train_dataset ner --test_dataset ner --task_def experiments\ner\ner_task_def.yml```
 
+### SMART
+Adv training at the fine-tuning stages:
+   ```> python train.py --data_dir <data-path> --init_checkpoint <bert/mt-dnn-model> --train_dataset mnli --test_dataset mnli_matched,mnli_mismatched --task_def experiments\glue\glue_task_def.yml --adv_train --adv_opt 1```
+
+
 ### HNN
 The code to reproduce HNN is under `hnn` folder, to reproduce the results of HNN, run 
 
@@ -140,8 +149,6 @@ Here, we go through how to convert a Chinese Tensorflow BERT model into mt-dnn f
    ```python scripts\convert_tf_to_pt.py --tf_checkpoint_root chinese_L-12_H-768_A-12\ --pytorch_checkpoint_path chinese_L-12_H-768_A-12\bert_base_chinese.pt```
 
 ### TODO
-
-- [ ] Release SMART/MT-DNN-SMART which outperforms T5. <br/>
 - [ ] Publish pretrained Tensorflow checkpoints. <br/>
 
 
@@ -230,6 +237,13 @@ We also used some code from: https://github.com/kevinduh/san_mrc <br/>
   year={2020}
 }
 
+
+@article{liu2020alum,
+  title={Adversarial Training for Large Neural Language Models},
+  author={Liu, Xiaodong and Cheng, Hao and He, Pengcheng and Chen, Weizhu and Wang, Yu and Poon, Hoifung and Gao, Jianfeng},
+  journal={arXiv preprint arXiv:2004.08994},
+  year={2020}
+}
 ```
 ### Contact Information
 
