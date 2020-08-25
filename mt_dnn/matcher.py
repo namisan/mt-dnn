@@ -202,7 +202,7 @@ class SANBertNetwork(nn.Module):
         elif fwd_type == 1:
             return self.embed_encode(input_ids, token_type_ids, attention_mask)
         else:
-            sequence_output, pooled_output = self.encode(input_ids, token_type_ids, attention_mask)
+            sequence_output, pooled_output, _ = self.encode(input_ids, token_type_ids, attention_mask)
         decoder_opt = self.decoder_opt[task_id]
         task_type = self.task_types[task_id]
         task_obj = tasks.get_task_obj(self.task_def_list[task_id])
