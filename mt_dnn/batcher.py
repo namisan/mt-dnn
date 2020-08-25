@@ -354,7 +354,8 @@ class Collater:
         batch_size = self._get_batch_size(batch)
         tok_len = self._get_max_len(batch, key='token_id')
         #tok_len = max(len(x['token_id']) for x in batch)
-        premise_len = max(len(x['type_id']) - sum(x['type_id']) for x in batch)
+        # premise_len = max(len(x['type_id']) - sum(x['type_id']) for x in batch)
+        premise_len = max(len(x['type_id']) for x in batch)  # is a bug? question by littlepai and fixed below
         if self.encoder_type == EncoderModelType.ROBERTA:
             token_ids = torch.LongTensor(batch_size, tok_len).fill_(1)
             type_ids = torch.LongTensor(batch_size, tok_len).fill_(0)
