@@ -6,7 +6,7 @@ from torch.nn.modules.loss import _Loss
 import torch.nn.functional as F
 from enum import IntEnum
 
-def stable_kl(logit, target, epsilon=1e-6):
+def stable_kl(logit, target, epsilon=1e-6, reduce=True):
     logit = logit.view(-1, logit.size(-1)).float()
     target = target.view(-1, target.size(-1)).float()
     bs = logit.size(0)
@@ -14,7 +14,10 @@ def stable_kl(logit, target, epsilon=1e-6):
     y = F.log_softmax(target, 1).exp()
     rp = -(1.0/(p + epsilon) -1 + epsilon).detach().log()
     ry = -(1.0/(y + epsilon) -1 + epsilon).detach().log()
-    return (p* (rp- ry) * 2).sum() / bs
+    if reduce:
+        return (p* (rp- ry) * 2).sum() / bs
+    else:
+        return (p* (rp- ry) * 2).sum()
 
 
 class Criterion(_Loss):

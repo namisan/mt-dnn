@@ -12,7 +12,7 @@ from .loss import stable_kl
 
 logger = logging.getLogger(__name__)
 
-def generate_noise(embed, mask, epsilon=1e-5, encoder_type=EncoderModelType.ROBERTA):
+def generate_noise(embed, mask, epsilon=1e-5):
     noise = embed.data.new(embed.size()).normal_(0, 1) *  epsilon
     noise.detach()
     noise.requires_grad_()
@@ -70,16 +70,16 @@ class SmartPerturbation():
 
         # init delta
         embed = model(*vat_args)
-        noise = generate_noise(embed, attention_mask, epsilon=self.noise_var, encoder_type=self.encoder_type)
+        noise = generate_noise(embed, attention_mask, epsilon=self.noise_var)
         for step in range(0, self.K):
             vat_args = [input_ids, token_type_ids, attention_mask, premise_mask, hyp_mask, task_id, 2, embed + noise]
             adv_logits = model(*vat_args)
             if task_type == TaskType.Regression:
-                adv_loss = F.mse_loss(adv_logits, logits.detach())
+                adv_loss = F.mse_loss(adv_logits, logits.detach(), reduction='sum')
             else:
                 if task_type == TaskType.Ranking:
                     adv_logits = adv_logits.view(-1, pairwise)
-                adv_loss = stable_kl(adv_logits, logits.detach()) 
+                adv_loss = stable_kl(adv_logits, logits.detach(), reduce=False) 
             delta_grad, = torch.autograd.grad(adv_loss, noise, only_inputs=True)
             norm = delta_grad.norm()
             if (torch.isnan(norm) or torch.isinf(norm)):
