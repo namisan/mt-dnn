@@ -28,7 +28,7 @@ class LinearPooler(nn.Module):
 
 def generate_decoder_opt(enable_san, max_opt):
     opt_v = 0
-    if enable_san and max_opt < 3:
+    if enable_san and max_opt < 2:
         opt_v = max_opt
     return opt_v
 
