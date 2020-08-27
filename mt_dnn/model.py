@@ -38,7 +38,6 @@ class MTDNNModel(object):
             self.network.cuda()
         optimizer_parameters = self._get_param_groups()
         self._setup_optim(optimizer_parameters, state_dict, num_train_step)
-        self.para_swapped = False
         self.optimizer.zero_grad()
         self._setup_lossmap(self.config)
         self._setup_kd_lossmap(self.config)
@@ -57,7 +56,8 @@ class MTDNNModel(object):
                     config['adv_k'],
                     config['fp16'],
                     config['encoder_type'],
-                    loss_map=self.adv_task_loss_criterion)
+                    loss_map=self.adv_task_loss_criterion,
+                    norm_level=config['adv_norm_level'])
 
 
     def _get_param_groups(self):
@@ -160,10 +160,6 @@ class MTDNNModel(object):
                 lc = LOSS_REGISTRY[cs](name='Adv Loss func of task {}: {}'.format(idx, cs))
                 self.adv_task_loss_criterion.append(lc)
 
-
-    def train(self):
-        if self.para_swapped:
-            self.para_swapped = False
 
     def _to_cuda(self, tensor):
         if tensor is None: return tensor
