@@ -128,6 +128,7 @@ def train_config(parser):
     parser.add_argument('--adv_train', action='store_true')
     # the current release only includes smart perturbation
     parser.add_argument('--adv_opt', default=0, type=int)
+    parser.add_argument('--adv_norm_level', default=0, type=int)
     parser.add_argument('--adv_p_norm', default='inf', type=str)
     parser.add_argument('--adv_alpha', default=1, type=float)
     parser.add_argument('--adv_k', default=1, type=int)

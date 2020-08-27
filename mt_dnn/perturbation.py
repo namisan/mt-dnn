@@ -29,7 +29,8 @@ class SmartPerturbation():
                  k=1,
                  fp16=False,
                  encoder_type=EncoderModelType.BERT,
-                 loss_map=[]):
+                 loss_map=[],
+                 norm_level=0):
         super(SmartPerturbation, self).__init__()
         self.epsilon = epsilon 
         # eta
@@ -42,16 +43,23 @@ class SmartPerturbation():
         self.norm_p = norm_p
         self.encoder_type = encoder_type 
         self.loss_map = loss_map 
+        self.norm_level = norm_level > 0
         assert len(loss_map) > 0
 
 
-    def _norm_grad(self, grad):
+    def _norm_grad(self, grad, sentence_level=False):
         if self.norm_p == 'l2':
-            direction = grad / (torch.norm(grad, dim=-1, keepdim=True) + self.epsilon)
+            if sentence_level:
+                direction = grad / (torch.norm(grad, dim=(-2, -1), keepdim=True) + self.epsilon)
+            else:
+                direction = grad / (torch.norm(grad, dim=-1, keepdim=True) + self.epsilon)
         elif self.norm_p == 'l1':
             direction = grad.sign()
         else:
-            direction = grad / (grad.abs().max(-1, keepdim=True)[0] + self.epsilon)
+            if sentence_level:
+                direction = grad / (grad.abs().max((-2, -1), keepdim=True)[0] + self.epsilon)
+            else:
+                direction = grad / (grad.abs().max(-1, keepdim=True)[0] + self.epsilon)
         return direction
 
     def forward(self, model,
@@ -84,11 +92,11 @@ class SmartPerturbation():
             norm = delta_grad.norm()
             if (torch.isnan(norm) or torch.isinf(norm)):
                 return 0
-            delta_grad = self._norm_grad(delta_grad)
-            embed = embed + delta_grad * self.step_size
-            embed = embed.detach()
-            embed.requires_grad_()
-        vat_args = [input_ids, token_type_ids, attention_mask, premise_mask, hyp_mask, task_id, 2, embed]
+            delta_grad = noise + delta_grad * self.step_size
+            noise = self._norm_grad(delta_grad, sentence_level=self.norm_level)
+            noise = noise.detach()
+            noise.requires_grad_()
+        vat_args = [input_ids, token_type_ids, attention_mask, premise_mask, hyp_mask, task_id, 2, embed + noise]
         adv_logits = model(*vat_args)
         if task_type == TaskType.Ranking:
             adv_logits = adv_logits.view(-1, pairwise)
