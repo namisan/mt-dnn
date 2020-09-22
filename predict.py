@@ -58,10 +58,11 @@ task_def = task_defs.get_task_def(prefix)
 task_def_list = [task_def]
 config['task_def_list'] = task_def_list
 ## temp fix
+config['fp16'] = False
 config['answer_opt'] = 0
-config['adv_train'] = False 
+config['adv_train'] = False
+del state_dict['optimizer']
 model = MTDNNModel(config, state_dict=state_dict)
-model.load(checkpoint_path)
 encoder_type = config.get('encoder_type', EncoderModelType.BERT)
 # load data
 test_data_set = SingleTaskDataset(args.prep_input, False, maxlen=args.max_seq_len, task_id=args.task_id, task_def=task_def)
