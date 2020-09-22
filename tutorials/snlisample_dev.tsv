@@ -1,0 +1,100 @@
+0	neutral	Two women are embracing while holding to go packages.	The sisters are hugging goodbye while holding to go packages after just eating lunch.
+1	entailment	Two women are embracing while holding to go packages.	Two woman are holding packages.
+2	contradiction	Two women are embracing while holding to go packages.	The men are fighting outside a deli.
+3	entailment	Two young children in blue jerseys, one with the number 9 and one with the number 2 are standing on wooden steps in a bathroom and washing their hands in a sink.	Two kids in numbered jerseys wash their hands.
+4	neutral	Two young children in blue jerseys, one with the number 9 and one with the number 2 are standing on wooden steps in a bathroom and washing their hands in a sink.	Two kids at a ballgame wash their hands.
+5	contradiction	Two young children in blue jerseys, one with the number 9 and one with the number 2 are standing on wooden steps in a bathroom and washing their hands in a sink.	Two kids in jackets walk to school.
+6	contradiction	A man selling donuts to a customer during a world exhibition event held in the city of Angeles	A woman drinks her coffee in a small cafe.
+7	neutral	A man selling donuts to a customer during a world exhibition event held in the city of Angeles	A man selling donuts to a customer during a world exhibition event while people wait in line behind him.
+8	entailment	A man selling donuts to a customer during a world exhibition event held in the city of Angeles	A man selling donuts to a customer.
+9	entailment	Two young boys of opposing teams play football, while wearing full protection uniforms and helmets.	boys play football
+10	contradiction	Two young boys of opposing teams play football, while wearing full protection uniforms and helmets.	dog eats out of bowl
+11	neutral	Two young boys of opposing teams play football, while wearing full protection uniforms and helmets.	boys scoring a touchdown
+12	neutral	A man in a blue shirt standing in front of a garage-like structure painted with geometric designs.	A man is repainting a garage
+13	entailment	A man in a blue shirt standing in front of a garage-like structure painted with geometric designs.	A man is wearing a blue shirt
+14	contradiction	A man in a blue shirt standing in front of a garage-like structure painted with geometric designs.	A man is wearing a black shirt
+15	entailment	Under a blue sky with white clouds, a child reaches up to touch the propeller of a plane standing parked on a field of grass.	A child is reaching to touch the propeller of a plane.
+16	neutral	Under a blue sky with white clouds, a child reaches up to touch the propeller of a plane standing parked on a field of grass.	A child is reaching to touch the propeller out of curiosity.
+17	contradiction	Under a blue sky with white clouds, a child reaches up to touch the propeller of a plane standing parked on a field of grass.	A child is playing with a ball.
+18	entailment	A woman is doing a cartwheel while wearing a bikini in the sand next to the beach.	A woman is doing a cartwheel.
+19	contradiction	A woman is doing a cartwheel while wearing a bikini in the sand next to the beach.	A woman is fixing her home.
+20	contradiction	A woman is doing a cartwheel while wearing a bikini in the sand next to the beach.	A woman is doing a cartwheel and falls on her head.
+21	entailment	Two men on bicycles competing in a race.	People are riding bikes.
+22	neutral	Two men on bicycles competing in a race.	Men are riding bicycles on the street.
+23	contradiction	Two men on bicycles competing in a race.	A few people are catching fish.
+24	neutral	A young boy in a field of flowers carrying a ball	boy leaving baseball game
+25	entailment	A young boy in a field of flowers carrying a ball	boy in field
+26	contradiction	A young boy in a field of flowers carrying a ball	dog in pool
+27	contradiction	Families waiting in line at an amusement park for their turn to ride.	The restaurant is very bad.
+28	contradiction	Families waiting in line at an amusement park for their turn to ride.	People are waiting in line at a restaurant.
+29	contradiction	Families waiting in line at an amusement park for their turn to ride.	People are waiting to see a movie.
+30	entailment	A senior is waiting at the window of a restaurant that serves sandwiches.	A person waits to be served his food.
+31	contradiction	A senior is waiting at the window of a restaurant that serves sandwiches.	A man is waiting in line for the bus.
+32	neutral	A senior is waiting at the window of a restaurant that serves sandwiches.	A man is looking to order a grilled cheese sandwich.
+33	entailment	Man in a black suit, white shirt and black bowtie playing an instrument with the rest of his symphony surrounding him.	A person in a suit
+34	contradiction	Man in a black suit, white shirt and black bowtie playing an instrument with the rest of his symphony surrounding him.	Nobody has a suit
+35	neutral	Man in a black suit, white shirt and black bowtie playing an instrument with the rest of his symphony surrounding him.	A tall person in a suit
+36	entailment	Two women having drinks and smoking cigarettes at the bar.	Two women are at a bar.
+37	contradiction	Two women having drinks and smoking cigarettes at the bar.	Three women are at a bar.
+38	neutral	Two women having drinks and smoking cigarettes at the bar.	Women are celebrating at a bar.
+39	contradiction	At an outdoor event in an Asian-themed area, a crowd congregates as one person in a yellow Chinese dragon costume confronts the camera.	A single man is next to a camera
+40	neutral	At an outdoor event in an Asian-themed area, a crowd congregates as one person in a yellow Chinese dragon costume confronts the camera.	A crowd is dancing
+41	neutral	At an outdoor event in an Asian-themed area, a crowd congregates as one person in a yellow Chinese dragon costume confronts the camera.	A crowd is in front of a camera
+42	contradiction	Two doctors perform surgery on patient.	Two surgeons are having lunch.
+43	entailment	Two doctors perform surgery on patient.	Doctors are performing surgery.
+44	neutral	Two doctors perform surgery on patient.	Two doctors are performing surgery on a man.
+45	contradiction	A white dog with long hair jumps to catch a red and green toy.	A white dog with long hair is swimming underwater.
+46	entailment	A white dog with long hair jumps to catch a red and green toy.	An animal is jumping to catch an object.
+47	neutral	A white dog with long hair jumps to catch a red and green toy.	A white chihuahua mix with long curly hair is jumping to catch a red and green toy bone.
+48	neutral	Kids are on a amusement ride.	Kids ride their favorite amusement ride.
+49	contradiction	Kids are on a amusement ride.	A car is broke down on the side of the road.
+50	entailment	Kids are on a amusement ride.	Kids ride an amusement ride.
+51	neutral	A man in a black shirt is playing golf outside.	A man plays on a golf course to relax.
+52	contradiction	A man in a black shirt is playing golf outside.	The man in the black shirt trades Pokemon cards with his girlfriend.
+53	entailment	A man in a black shirt is playing golf outside.	The man wearing the black shirt plays a game of golf.
+54	neutral	A older gentleman finds it humorous that he is getting his picture taken while doing his laundry.	a blond man laughs while doing laundry
+55	entailment	A older gentleman finds it humorous that he is getting his picture taken while doing his laundry.	a guy laughs while doing laundry
+56	contradiction	A older gentleman finds it humorous that he is getting his picture taken while doing his laundry.	two ladies pin clothes to dry
+57	entailment	An Indian woman is washing and cleaning dirty laundry at a lake and in the background is a kid who appears to have jumped into the lake.	An Indian woman is doing her laundry in a lake.
+58	contradiction	An Indian woman is washing and cleaning dirty laundry at a lake and in the background is a kid who appears to have jumped into the lake.	An Indian woman is putting her laundry into the machine.
+59	neutral	An Indian woman is washing and cleaning dirty laundry at a lake and in the background is a kid who appears to have jumped into the lake.	An Indian woman is doing laundry for her son in the lake.
+60	contradiction	A man in a green jersey and rollerskates stumbles as a man in a black jersey appears to collide with him.	They are driving cars.
+61	neutral	A man in a green jersey and rollerskates stumbles as a man in a black jersey appears to collide with him.	They both fall to the ground.
+62	entailment	A man in a green jersey and rollerskates stumbles as a man in a black jersey appears to collide with him.	The man stumbles stumbles in rollerskates.
+63	contradiction	A group of onlookers glance at a person doing a strange trick on her head.	A boy does a card trick.
+64	neutral	A group of onlookers glance at a person doing a strange trick on her head.	Onlookers are impressed by the trick.
+65	entailment	A group of onlookers glance at a person doing a strange trick on her head.	People watch another person do a trick.
+66	contradiction	The middle eastern woman wearing the pink headscarf is walking beside a woman in a purple headscarf.	Only one woman is wearing a head scarf.
+67	neutral	The middle eastern woman wearing the pink headscarf is walking beside a woman in a purple headscarf.	These two women are friends.
+68	contradiction	A taxi SUV drives past an urban construction site, as a man walks down the street in the other direction.	A man is chasing an SUV that is going in the same direction as him.
+69	entailment	A taxi SUV drives past an urban construction site, as a man walks down the street in the other direction.	An SUV and a man are going in opposite directions.
+70	neutral	A taxi SUV drives past an urban construction site, as a man walks down the street in the other direction.	A taxi SUV races to pick up some clients while a man walks peacefully in the other direction.
+71	contradiction	People wearing red shirts are standing in a large pool of water as it splashes over and around them.	Nobody has a shirt on
+72	entailment	People wearing red shirts are standing in a large pool of water as it splashes over and around them.	A person in a shirt
+73	neutral	People wearing red shirts are standing in a large pool of water as it splashes over and around them.	A tall person in a shirt
+74	contradiction	A man in a white t-shirt takes a picture in the middle of the street with two public buses in the background.	A man is wearing a black shirt
+75	entailment	A man in a white t-shirt takes a picture in the middle of the street with two public buses in the background.	A man is wearing a white shirt
+76	neutral	A man in a white t-shirt takes a picture in the middle of the street with two public buses in the background.	A man is taking photos while on tour in nyc
+77	neutral	A shirtless man is singing into a microphone while a woman next to him plays an accordion.	He is Polish.
+78	contradiction	A shirtless man is singing into a microphone while a woman next to him plays an accordion.	He is playing a saxophone.
+79	entailment	A shirtless man is singing into a microphone while a woman next to him plays an accordion.	A man is singing into a microphone.
+80	neutral	Women and children sitting outside in the shade while a group of younger children sitting inside in the shade.	It is very sunny outside.
+81	entailment	Women and children sitting outside in the shade while a group of younger children sitting inside in the shade.	The woman and kids and sitting down.
+82	contradiction	Women and children sitting outside in the shade while a group of younger children sitting inside in the shade.	The woman is running.
+83	contradiction	A pregnant lady singing on stage while holding a flag behind her.	A woman is sick in bed.
+84	entailment	A pregnant lady singing on stage while holding a flag behind her.	A woman is making music.
+85	neutral	A pregnant lady singing on stage while holding a flag behind her.	A lady is participating in a talent show.
+86	entailment	The two farmers are working on a piece of John Deere equipment.	Men are working on John Deere equipment
+87	entailment	The two farmers are working on a piece of John Deere equipment.	John Deere equipment is being worked on by two farmers
+88	contradiction	The two farmers are working on a piece of John Deere equipment.	2 Men are making a pool together
+89	neutral	A little boy in a blue shirt holding a toy.	Boy dressed in blue carrying toy to a toybox.
+90	contradiction	A little boy in a blue shirt holding a toy.	Boy dressed in red lighting things on fire.
+91	entailment	A little boy in a blue shirt holding a toy.	Boy dressed in blue holds a toy.
+92	neutral	A woman is writing something on a post-it note which is hanging on a bulletin board with a lot of other post-it notes.	The woman is writing a grocery list.
+93	contradiction	A woman is writing something on a post-it note which is hanging on a bulletin board with a lot of other post-it notes.	The woman is talking on the phone.
+94	entailment	A woman is writing something on a post-it note which is hanging on a bulletin board with a lot of other post-it notes.	The woman is writing a note.
+95	entailment	A baby at the end of a slip and slide at a party	The baby is wet.
+96	contradiction	A baby at the end of a slip and slide at a party	The man is at the end of the slip and slide
+97	entailment	A baby at the end of a slip and slide at a party	There is a party
+98	neutral	A girl swings high in the air.	A girl is gaining momentum to flip off the swing
+99	contradiction	A girl swings high in the air.	A girl is laying in the pool

@@ -77,8 +77,6 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
                 ids = sample['uid']
                 premise = sample['premise']
                 label = sample['label']
-                if len(premise) > max_seq_len - 2:
-                    premise = premise[:max_seq_len - 2]
                 input_ids, input_mask, type_ids = feature_extractor(tokenizer, premise, max_length=max_seq_len, model_type=encoderModelType.name)
                 features = {
                     'uid': ids,

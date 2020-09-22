@@ -7,12 +7,13 @@ cola:
   - MCC
   loss: CeCriterion
   kd_loss: MseCriterion
+  adv_loss: SymKlCriterion
   n_class: 2
   task_type: Classification
 mnli:
   data_format: PremiseAndOneHypothesis
-  dropout_p: 0.3
-  enable_san: true
+  dropout_p: 0.1
+  enable_san: false 
   labels:
   - contradiction
   - neutral
@@ -21,6 +22,7 @@ mnli:
   - ACC
   loss: CeCriterion
   kd_loss: MseCriterion
+  adv_loss: SymKlCriterion
   n_class: 3
   split_names:
   - train
@@ -31,17 +33,18 @@ mnli:
   task_type: Classification
 mrpc:
   data_format: PremiseAndOneHypothesis
-  enable_san: true
+  enable_san: false 
   metric_meta:
   - ACC
   - F1
   loss: CeCriterion
   kd_loss: MseCriterion
+  adv_loss: SymKlCriterion
   n_class: 2
   task_type: Classification
 qnli:
   data_format: PremiseAndOneHypothesis
-  enable_san: true
+  enable_san: false 
   labels:
   - not_entailment
   - entailment
@@ -49,21 +52,23 @@ qnli:
   - ACC
   loss: CeCriterion
   kd_loss: MseCriterion
+  adv_loss: SymKlCriterion
   n_class: 2
   task_type: Classification
 qqp:
   data_format: PremiseAndOneHypothesis
-  enable_san: true
+  enable_san: false 
   metric_meta:
   - ACC
   - F1
   loss: CeCriterion
   kd_loss: MseCriterion
+  adv_loss: SymKlCriterion
   n_class: 2
   task_type: Classification
 rte:
   data_format: PremiseAndOneHypothesis
-  enable_san: true
+  enable_san: false
   labels:
   - not_entailment
   - entailment
@@ -71,11 +76,12 @@ rte:
   - ACC
   loss: CeCriterion
   kd_loss: MseCriterion
+  adv_loss: SymKlCriterion
   n_class: 2
   task_type: Classification
 scitail:
   data_format: PremiseAndOneHypothesis
-  enable_san: true
+  enable_san: false
   labels:
   - neutral
   - entails
@@ -83,11 +89,12 @@ scitail:
   - ACC
   loss: CeCriterion
   kd_loss: MseCriterion
+  adv_loss: SymKlCriterion
   n_class: 2
   task_type: Classification
 snli:
   data_format: PremiseAndOneHypothesis
-  enable_san: true
+  enable_san: false
   labels:
   - contradiction
   - neutral
@@ -96,6 +103,7 @@ snli:
   - ACC
   loss: CeCriterion
   kd_loss: MseCriterion
+  adv_loss: SymKlCriterion
   n_class: 3
   task_type: Classification
 sst:
@@ -105,6 +113,7 @@ sst:
   - ACC
   loss: CeCriterion
   kd_loss: MseCriterion
+  adv_loss: SymKlCriterion
   n_class: 2
   task_type: Classification
 stsb:
@@ -116,13 +125,15 @@ stsb:
   n_class: 1
   loss: MseCriterion
   kd_loss: MseCriterion
+  adv_loss: MseCriterion
   task_type: Regression
 wnli:
   data_format: PremiseAndOneHypothesis
-  enable_san: true
+  enable_san: false 
   metric_meta:
   - ACC
   loss: CeCriterion
   kd_loss: MseCriterion
+  adv_loss: SymKlCriterion
   n_class: 2
   task_type: Classification

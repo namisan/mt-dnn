@@ -1,9 +1,10 @@
 # coding=utf-8
 # Copyright (c) Microsoft. All rights reserved.
-import logging
 import sys
-import numpy as np
 import torch
+import tasks
+import logging
+import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
@@ -12,10 +13,10 @@ from data_utils.utils import AverageMeter
 from pytorch_pretrained_bert import BertAdam as Adam
 from module.bert_optim import Adamax, RAdam
 from mt_dnn.loss import LOSS_REGISTRY
-from .matcher import SANBertNetwork
-
+from mt_dnn.matcher import SANBertNetwork
+from mt_dnn.perturbation import SmartPerturbation
+from mt_dnn.loss import *
 from data_utils.task_def import TaskType, EncoderModelType
-import tasks
 from experiments.exp_def import TaskDef
 
 logger = logging.getLogger(__name__)
@@ -37,10 +38,27 @@ class MTDNNModel(object):
             self.network.cuda()
         optimizer_parameters = self._get_param_groups()
         self._setup_optim(optimizer_parameters, state_dict, num_train_step)
-        self.para_swapped = False
         self.optimizer.zero_grad()
         self._setup_lossmap(self.config)
         self._setup_kd_lossmap(self.config)
+        self._setup_adv_lossmap(self.config)
+        self._setup_adv_training(self.config)
+
+
+    def _setup_adv_training(self, config):
+        self.adv_teacher = None
+        if config.get('adv_train', False):
+            self.adv_teacher = SmartPerturbation(config['adv_epsilon'],
+                    config['multi_gpu_on'],
+                    config['adv_step_size'],
+                    config['adv_noise_var'],
+                    config['adv_p_norm'],
+                    config['adv_k'],
+                    config['fp16'],
+                    config['encoder_type'],
+                    loss_map=self.adv_task_loss_criterion,
+                    norm_level=config['adv_norm_level'])
+
 
     def _get_param_groups(self):
         no_decay = ['bias', 'gamma', 'beta', 'LayerNorm.bias', 'LayerNorm.weight']
@@ -129,12 +147,19 @@ class MTDNNModel(object):
             for idx, task_def in enumerate(task_def_list):
                 cs = task_def.kd_loss
                 assert cs is not None
-                lc = LOSS_REGISTRY[cs](name='Loss func of task {}: {}'.format(idx, cs))
+                lc = LOSS_REGISTRY[cs](name='KD Loss func of task {}: {}'.format(idx, cs))
                 self.kd_task_loss_criterion.append(lc)
 
-    def train(self):
-        if self.para_swapped:
-            self.para_swapped = False
+    def _setup_adv_lossmap(self, config):
+        task_def_list: List[TaskDef] = config['task_def_list']
+        self.adv_task_loss_criterion = []
+        if config.get('adv_train', False):
+            for idx, task_def in enumerate(task_def_list):
+                cs = task_def.adv_loss
+                assert cs is not None
+                lc = LOSS_REGISTRY[cs](name='Adv Loss func of task {}: {}'.format(idx, cs))
+                self.adv_task_loss_criterion.append(lc)
+
 
     def _to_cuda(self, tensor):
         if tensor is None: return tensor
@@ -165,12 +190,19 @@ class MTDNNModel(object):
                 weight = batch_data[batch_meta['factor']].cuda(non_blocking=True)
             else:
                 weight = batch_data[batch_meta['factor']]
+
+        # fw to get logits
         logits = self.mnetwork(*inputs)
 
         # compute loss
         loss = 0
         if self.task_loss_criterion[task_id] and (y is not None):
-            loss = self.task_loss_criterion[task_id](logits, y, weight, ignore_index=-1)
+            loss_criterion = self.task_loss_criterion[task_id]
+            if isinstance(loss_criterion, RankCeCriterion) and batch_meta['pairwise_size'] > 1:
+                # reshape the logits for ranking.
+                loss = self.task_loss_criterion[task_id](logits, y, weight, ignore_index=-1, pairwise_size=batch_meta['pairwise_size'])
+            else:
+                loss = self.task_loss_criterion[task_id](logits, y, weight, ignore_index=-1)
 
         # compute kd loss
         if self.config.get('mkd_opt', 0) > 0 and ('soft_label' in batch_meta):
@@ -179,6 +211,14 @@ class MTDNNModel(object):
             kd_lc = self.kd_task_loss_criterion[task_id]
             kd_loss = kd_lc(logits, soft_labels, weight, ignore_index=-1) if kd_lc else 0
             loss = loss + kd_loss
+
+        # adv training
+        if self.config.get('adv_train', False) and self.adv_teacher:
+            # task info
+            task_type = batch_meta['task_def']['task_type']
+            adv_inputs = [self.mnetwork, logits] + inputs + [task_type, batch_meta.get('pairwise_size', 1)]
+            adv_loss = self.adv_teacher.forward(*adv_inputs)
+            loss = loss + self.config['adv_alpha'] * adv_loss
 
         self.train_loss.update(loss.item(), batch_data[batch_meta['token_id']].size(0))
         # scale loss
@@ -261,7 +301,7 @@ class MTDNNModel(object):
             predictions = []
             if self.config['encoder_type'] == EncoderModelType.BERT:
                 import experiments.squad.squad_utils as mrc_utils
-                scores, predictions = mrc_utils.extract_answer(batch_meta, batch_data,start, end, self.config.get('max_answer_len', 5))
+                scores, predictions = mrc_utils.extract_answer(batch_meta, batch_data, start, end, self.config.get('max_answer_len', 5), do_lower_case=self.config.get('do_lower_case', False))
             return scores, predictions, batch_meta['answer']
         else:
             raise ValueError("Unknown task_type: %s" % task_type)
@@ -279,11 +319,12 @@ class MTDNNModel(object):
 
     def load(self, checkpoint):
         model_state_dict = torch.load(checkpoint)
-        self.network.load_state_dict(model_state_dict['state'], strict=False)
-        self.optimizer.load_state_dict(model_state_dict['optimizer'])
-        self.config.update(model_state_dict['config'])
+        if 'state' in model_state_dict:
+            self.network.load_state_dict(model_state_dict['state'], strict=False)
+        if 'optimizer' in model_state_dict:
+            self.optimizer.load_state_dict(model_state_dict['optimizer'])
+        if 'config' in model_state_dict:
+            self.config.update(model_state_dict['config'])
 
     def cuda(self):
         self.network.cuda()
-
-        
