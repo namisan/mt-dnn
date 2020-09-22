@@ -4,6 +4,7 @@ from enum import Enum
 from sklearn.metrics import matthews_corrcoef
 from sklearn.metrics import accuracy_score, f1_score
 from sklearn.metrics import roc_auc_score
+from sklearn.metrics import confusion_matrix
 from scipy.stats import pearsonr, spearmanr
 from seqeval.metrics import classification_report
 from data_utils.squad_eval import evaluate_func
@@ -34,6 +35,10 @@ def compute_spearman(predicts, labels):
 def compute_auc(predicts, labels):
     auc = roc_auc_score(labels, predicts)
     return 100.0 * auc
+
+def compute_cmat(predicts, labels):
+    #return str(confusion_matrix(labels, predicts))
+    return confusion_matrix(labels, predicts)
 
 def compute_seqacc(predicts, labels, label_mapper):
     y_true, y_pred = [], []
@@ -70,6 +75,7 @@ class Metric(Enum):
     EmF1 = 8
     F1MAC = 9
     F1MIC = 10
+    CMAT = 11 
 
 
 
@@ -84,6 +90,7 @@ METRIC_FUNC = {
     Metric.EmF1: compute_emf1,
     Metric.F1MAC: compute_f1mac,
     Metric.F1MIC: compute_f1mic,
+    Metric.CMAT: compute_cmat,
 }
 
 
@@ -95,7 +102,7 @@ def calc_metrics(metric_meta, golds, predictions, scores, label_mapper=None):
     for mm in metric_meta:
         metric_name = mm.name
         metric_func = METRIC_FUNC[mm]
-        if mm in (Metric.ACC, Metric.F1, Metric.MCC, Metric.F1MAC, Metric.F1MIC):
+        if mm in (Metric.ACC, Metric.F1, Metric.MCC, Metric.F1MAC, Metric.F1MIC, Metric.CMAT):
             metric = metric_func(predictions, golds)
         elif mm == Metric.SeqEval:
             metric = metric_func(predictions, golds, label_mapper)
