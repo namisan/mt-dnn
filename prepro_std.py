@@ -35,7 +35,8 @@ def feature_extractor(tokenizer, text_a, text_b=None, max_length=512, model_type
         add_special_tokens=True,
         max_length=max_length,
     )
-    input_ids, token_type_ids = inputs["input_ids"], inputs["token_type_ids"]
+    input_ids = inputs["input_ids"]
+    token_type_ids = inputs["token_type_ids"] if "token_type_ids" in inputs else [0] * len(input_ids)
 
     # The mask has 1 for real tokens and 0 for padding tokens. Only real
     # tokens are attended to.
