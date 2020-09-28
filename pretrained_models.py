@@ -5,6 +5,6 @@ MODEL_CLASSES = {
     "xlnet": (XLNetConfig, XLNetModel, XLNetTokenizer),
     "roberta": (RobertaConfig, RobertaModel, RobertaTokenizer),
     "albert": (AlbertConfig, AlbertModel, AlbertTokenizer),
-    "xlmroberta": (XLMRobertaConfig, XLMRobertaModel, XLMRobertaTokenizer),
+    "xlm": (XLMRobertaConfig, XLMRobertaModel, XLMRobertaTokenizer),
     "san": (BertConfig, SanModel, BertTokenizer),
 }
