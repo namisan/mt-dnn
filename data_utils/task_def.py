@@ -22,3 +22,4 @@ class EncoderModelType(IntEnum):
     ROBERTA = 2
     XLNET = 3
     SAN = 4
+    XLM = 5
