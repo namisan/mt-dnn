@@ -99,9 +99,10 @@ class AdvMaskedLmLoss(FairseqCriterion):
                 }
                 return loss, sample_size, logging_output
             # line 6 inner sum
-            newembed = embed + delta_grad * self.args.adv_step_size
+            noise = noise + delta_grad * self.args.adv_step_size
             # line 6 projection
-            newembed = self.adv_project(newembed, norm_type=self.args.project_norm_type, eps=self.args.noise_gamma) 
+            noise = self.adv_project(noise, norm_type=self.args.project_norm_type, eps=self.args.noise_gamma)
+            newembed = embed.data.detach() + noise
             newembed = newembed.detach()
             adv_logits, _ = model(**sample['net_input'], masked_tokens=masked_tokens, task_id=1, embed=newembed, player=0)
             # line 8 symmetric KL
