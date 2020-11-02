@@ -2,7 +2,7 @@
 [![Travis-CI](https://travis-ci.org/namisan/mt-dnn.svg?branch=master)](https://github.com/namisan/mt-dnn)
 
 **New Release** <br/>
-We released Adversarial training for both LM pre-training/finetuning. 
+We released Adversarial training for both LM pre-training/finetuning and f-divergence.
 
 Large-scale Adversarial training for LMs: [ALUM code](https://github.com/namisan/mt-dnn/blob/master/alum/README.md). <br/>
 If you want to use the old version, please use following cmd to clone the code: <br/>
@@ -44,6 +44,10 @@ The Microsoft Toolkit of Multi-Task Deep Neural Networks for Natural Language Un
 Xiaodong Liu, Hao Cheng, Pengcheng He, Weizhu Chen, Yu Wang, Hoifung Poon and Jianfeng Gao<br/>
 Adversarial Training for Large Neural Language Models <br/>
 [arXiv version](https://arxiv.org/abs/2004.08994) <br/>
+
+Hao Cheng and Xiaodong Liu and Lis Pereira and Yaoliang Yu and Jianfeng Gao<br/>
+Posterior Differential Regularization with f-divergence for Improving Model Robustness <br/>
+[arXiv version](https://arxiv.org/abs/2010.12638) <br/>
 
 
 ## Quickstart
@@ -242,6 +246,13 @@ We also used some code from: https://github.com/kevinduh/san_mrc <br/>
   title={Adversarial Training for Large Neural Language Models},
   author={Liu, Xiaodong and Cheng, Hao and He, Pengcheng and Chen, Weizhu and Wang, Yu and Poon, Hoifung and Gao, Jianfeng},
   journal={arXiv preprint arXiv:2004.08994},
+  year={2020}
+}
+
+@article{cheng2020posterior,
+  title={Posterior Differential Regularization with f-divergence for Improving Model Robustness},
+  author={Cheng, Hao and Liu, Xiaodong and Pereira, Lis and Yu, Yaoliang and Gao, Jianfeng},
+  journal={arXiv preprint arXiv:2010.12638},
   year={2020}
 }
 ```
