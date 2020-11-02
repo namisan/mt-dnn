@@ -17,20 +17,60 @@ from experiments.mlm.mlm_utils import create_instances_from_document, create_mas
 UNK_ID=100
 BOS_ID=101
 
+def search_bin(bins, size):
+    idx = len(bins) - 1
+    for i, bin in enumerate(bins):
+        if size <= bin:
+            idx = i
+            break
+    return idx
+
+
+def create_bins(bin_size, maxlen):
+    return [min(i+bin_size, maxlen) for i in range(0, maxlen, bin_size)]
+
+
 class MultiTaskBatchSampler(BatchSampler):
-    def __init__(self, datasets, batch_size, mix_opt, extra_task_ratio):
+    def __init__(self, datasets, batch_size, mix_opt, extra_task_ratio, bin_size=64, bin_on=False, bin_grow_ratio=0.5):
         self._datasets = datasets
         self._batch_size = batch_size
         self._mix_opt = mix_opt
         self._extra_task_ratio = extra_task_ratio
+        self.bin_size = bin_size
+        self.bin_on = bin_on
+        self.bin_grow_ratio = bin_grow_ratio
         train_data_list = []
         for dataset in datasets:
-            train_data_list.append(self._get_shuffled_index_batches(len(dataset), batch_size))
+            if bin_on:
+                train_data_list.append(self._get_shuffled_index_batches_bin(dataset, batch_size, bin_size=bin_size, bin_grow_ratio=bin_grow_ratio))
+            else:
+                train_data_list.append(self._get_shuffled_index_batches(len(dataset), batch_size))
         self._train_data_list = train_data_list
 
     @staticmethod
     def _get_shuffled_index_batches(dataset_len, batch_size):
         index_batches = [list(range(i, min(i+batch_size, dataset_len))) for i in range(0, dataset_len, batch_size)]
+        random.shuffle(index_batches)
+        return index_batches
+
+    @staticmethod
+    def _get_shuffled_index_batches_bin(dataset, batch_size, bin_size, bin_grow_ratio):
+        maxlen = dataset._maxlen
+        bins = create_bins(bin_size, maxlen)
+        data = [[] for i in range(0, len(bins))]
+        
+        for idx, sample in enumerate(dataset):
+            bin_idx = search_bin(bins, len(sample['sample']['token_id']))
+            data[bin_idx].append(idx)
+        index_batches = []
+
+        for idx, sub_data in enumerate(data):
+            if len(sub_data) < 1: continue
+            batch_size = int(batch_size * bin_grow_ratio)
+            batch_size = 1 if batch_size < 1 else batch_size
+            sub_dataset_len = len(sub_data)
+            sub_batches = [list(range(i, min(i+batch_size, sub_dataset_len))) for i in range(0, sub_dataset_len, batch_size)]
+            index_batches.extend(sub_batches)
         random.shuffle(index_batches)
         return index_batches
 
@@ -121,6 +161,7 @@ class SingleTaskDataset(Dataset):
         self._max_seq_length = max_seq_length
         self._max_predictions_per_seq = max_predictions_per_seq
         self._rng = random.Random(seed)
+        self._maxlen = maxlen
 
     def get_task_id(self):
         return self._task_id

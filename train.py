@@ -56,6 +56,11 @@ def model_config(parser):
     parser.add_argument('--masked_lm_prob', type=float, default=0.15)
     parser.add_argument('--short_seq_prob', type=float, default=0.2)
     parser.add_argument('--max_predictions_per_seq', type=int, default=128)
+
+    # bin samples
+    parser.add_argument('--bin_on', action='store_true')
+    parser.add_argument('--bin_size', type=int, default=64)
+    parser.add_argument('--bin_grow_ratio', type=int, default=0.5)
     return parser
 
 
@@ -196,7 +201,7 @@ def main():
         train_datasets.append(train_data_set)
     train_collater = Collater(dropout_w=args.dropout_w, encoder_type=encoder_type, soft_label=args.mkd_opt > 0, max_seq_len=args.max_seq_len, do_padding=args.do_padding)
     multi_task_train_dataset = MultiTaskDataset(train_datasets)
-    multi_task_batch_sampler = MultiTaskBatchSampler(train_datasets, args.batch_size, args.mix_opt, args.ratio)
+    multi_task_batch_sampler = MultiTaskBatchSampler(train_datasets, args.batch_size, args.mix_opt, args.ratio, bin_on=args.bin_on, bin_size=args.bin_size, bin_grow_ratio=args.bin_grow_ratio)
     multi_task_train_data = DataLoader(multi_task_train_dataset, batch_sampler=multi_task_batch_sampler, collate_fn=train_collater.collate_fn, pin_memory=args.cuda)
 
     opt['task_def_list'] = task_def_list

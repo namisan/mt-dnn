@@ -220,7 +220,11 @@ class MTDNNModel(object):
             adv_loss = self.adv_teacher.forward(*adv_inputs)
             loss = loss + self.config['adv_alpha'] * adv_loss
 
-        self.train_loss.update(loss.item(), batch_data[batch_meta['token_id']].size(0))
+        batch_size = batch_data[batch_meta['token_id']].size(0)
+        # rescale loss as dynamic batching
+        if self.config['bin_on']:
+            loss = loss * (1.0 * batch_size / self.config['batch_size'])
+        self.train_loss.update(loss.item(), batch_size)
         # scale loss
         loss = loss / self.config.get('grad_accumulation_step', 1)
         if self.config['fp16']:
