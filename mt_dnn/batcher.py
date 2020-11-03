@@ -55,7 +55,7 @@ class MultiTaskBatchSampler(BatchSampler):
 
     @staticmethod
     def _get_shuffled_index_batches_bin(dataset, batch_size, bin_size, bin_grow_ratio):
-        maxlen = dataset._maxlen
+        maxlen = dataset.maxlen
         bins = create_bins(bin_size, maxlen)
         data = [[] for i in range(0, len(bins))]
         
@@ -161,7 +161,7 @@ class SingleTaskDataset(Dataset):
         self._max_seq_length = max_seq_length
         self._max_predictions_per_seq = max_predictions_per_seq
         self._rng = random.Random(seed)
-        self._maxlen = maxlen
+        self.maxlen = maxlen
 
     def get_task_id(self):
         return self._task_id
