@@ -66,11 +66,11 @@ class MultiTaskBatchSampler(BatchSampler):
 
         for idx, sub_data in enumerate(data):
             if len(sub_data) < 1: continue
-            batch_size = int(batch_size * bin_grow_ratio)
             batch_size = 1 if batch_size < 1 else batch_size
             sub_dataset_len = len(sub_data)
             sub_batches = [list(range(i, min(i+batch_size, sub_dataset_len))) for i in range(0, sub_dataset_len, batch_size)]
             index_batches.extend(sub_batches)
+            batch_size = int(batch_size * bin_grow_ratio)
         random.shuffle(index_batches)
         return index_batches
 
