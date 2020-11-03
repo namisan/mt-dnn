@@ -202,6 +202,42 @@ class MlmCriterion(Criterion):
         loss = loss * self.alpha
         return loss
 
+class JSCriterion(Criterion):
+    def __init__(self, alpha=1.0, name='JS Div Criterion'):
+        super().__init__()
+        self.alpha = alpha
+        self.name = name
+
+    def forward(self, input, target, weight=None, ignore_index=-1, reduction='batchmean'):
+        """input/target: logits
+        """
+        input = input.float()
+        target = target.float()
+        m = F.softmax(target.detach(), dim=-1, dtype=torch.float32) + \
+            F.softmax(input.detach(), dim=-1, dtype=torch.float32)
+        m = 0.5 * m
+        loss = F.kl_div(F.log_softmax(input, dim=-1, dtype=torch.float32), m, reduction=reduction) + \
+            F.kl_div(F.log_softmax(target, dim=-1, dtype=torch.float32), m, reduction=reduction)
+        loss = loss * self.alpha
+        return loss
+
+class HLCriterion(Criterion):
+    def __init__(self, alpha=1.0, name='Hellinger Criterion'):
+        super().__init__()
+        self.alpha = alpha
+        self.name = name
+
+    def forward(self, input, target, weight=None, ignore_index=-1, reduction='batchmean'):
+        """input/target: logits
+        """
+        input = input.float()
+        target = target.float()
+        si = F.softmax(target.detach(), dim=-1, dtype=torch.float32).sqrt_()
+        st = F.softmax(input.detach(), dim=-1, dtype=torch.float32).sqrt_()
+        loss = F.mse_loss(si, st)
+        loss = loss * self.alpha
+        return loss
+
 class LossCriterion(IntEnum):
     CeCriterion = 0
     MseCriterion = 1
@@ -213,6 +249,8 @@ class LossCriterion(IntEnum):
     SymKlCriterion = 7
     NsKlCriterion = 8
     NsSymKlCriterion = 9
+    JSCriterion = 10
+    HLCriterion = 11
 
 LOSS_REGISTRY = {
      LossCriterion.CeCriterion: CeCriterion,
@@ -224,5 +262,7 @@ LOSS_REGISTRY = {
      LossCriterion.KlCriterion: KlCriterion,
      LossCriterion.SymKlCriterion: SymKlCriterion,
      LossCriterion.NsKlCriterion: NsKlCriterion,
-     LossCriterion.NsSymKlCriterion: NsSymKlCriterion
+     LossCriterion.NsSymKlCriterion: NsSymKlCriterion,
+     LossCriterion.JSCriterion: JSCriterion,
+     LossCriterion.HLCriterion: HLCriterion,
 }
