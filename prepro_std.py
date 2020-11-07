@@ -247,7 +247,8 @@ def main(args):
     root = args.root_dir
     assert os.path.exists(root)
 
-    literal_model_type = args.model.split('-')[0].upper()
+    model_name = args.model.split('/')[-1]
+    literal_model_type = model_name.split('-')[0].upper()
     encoder_model = EncoderModelType[literal_model_type]
     literal_model_type = literal_model_type.lower()
     mt_dnn_suffix = literal_model_type
