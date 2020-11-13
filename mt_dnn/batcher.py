@@ -29,6 +29,103 @@ def search_bin(bins, size):
 def create_bins(bin_size, maxlen):
     return [min(i+bin_size, maxlen) for i in range(0, maxlen, bin_size)]
 
+class DistMultiTaskBatchSampler(Sampler):
+    def __init__(self, datasets, batch_size, mix_opt, extra_task_ratio, rank=0, world_size=1, drop_last=False
+                 ):
+        self.rank = rank
+        self.world_size = world_size
+        self._datasets = datasets
+        self._mix_opt = mix_opt
+        self._extra_task_ratio = extra_task_ratio
+        self.drop_last = drop_last
+        train_data_list = []
+        for dataset in datasets:
+            train_data_list.append(self._get_shuffled_index_batches(len(dataset), batch_size))
+        self._train_data_list = train_data_list
+
+    @staticmethod
+    def _get_shuffled_index_batches(dataset_len, batch_size):
+        index_batches = [list(range(i, min(i+batch_size, dataset_len))) for i in range(0, dataset_len, batch_size)]
+        random.shuffle(index_batches)
+        return index_batches
+
+    def __len__(self):
+        return sum(len(train_data) for train_data in self._train_data_list)
+
+    def __iter__(self):
+        all_iters = [iter(item) for item in self._train_data_list]
+        all_indices = self._gen_task_indices(self._train_data_list, self._mix_opt, self._extra_task_ratio)
+        for local_task_idx in all_indices:
+            task_id = self._datasets[local_task_idx].get_task_id()
+            batch = next(all_iters[local_task_idx])
+            batch = [(task_id, sample_id) for sample_id in batch]
+            if len(batch) % self.world_size != 0:
+                if self.drop_last:
+                    break
+                else:
+                    batch.extend([batch[0] for _ in range(self.world_size-len(batch) % self.world_size)])
+            chunk_size = len(batch) // self.world_size
+            #print(self.rank)
+            #print(batch[self.rank * chunk_size: (self.rank+1) * chunk_size])
+            yield batch[self.rank * chunk_size: (self.rank+1) * chunk_size]
+
+    @staticmethod
+    def _gen_task_indices(train_data_list, mix_opt, extra_task_ratio):
+        all_indices = []
+        if len(train_data_list) > 1 and extra_task_ratio > 0:
+            main_indices = [0] * len(train_data_list[0])
+            extra_indices = []
+            for i in range(1, len(train_data_list)):
+                extra_indices += [i] * len(train_data_list[i])
+            random_picks = int(min(len(train_data_list[0]) * extra_task_ratio, len(extra_indices)))
+            extra_indices = np.random.choice(extra_indices, random_picks, replace=False)
+            if mix_opt > 0:
+                extra_indices = extra_indices.tolist()
+                random.shuffle(extra_indices)
+                all_indices = extra_indices + main_indices
+            else:
+                all_indices = main_indices + extra_indices.tolist()
+
+        else:
+            for i in range(1, len(train_data_list)):
+                all_indices += [i] * len(train_data_list[i])
+            if mix_opt > 0:
+                random.shuffle(all_indices)
+            all_indices += [0] * len(train_data_list[0])
+        if mix_opt < 1:
+            random.shuffle(all_indices)
+        return all_indices
+
+class DistSingleTaskBatchSampler(Sampler):
+    def __init__(self, dataset, batch_size, rank=0, world_size=1, drop_last=False):
+        self.rank = rank
+        self.world_size = world_size
+        self._dataset = dataset
+        self.drop_last = drop_last
+        self._data = self._get_index_batches(len(dataset), batch_size)
+
+    @staticmethod
+    def _get_index_batches(dataset_len, batch_size):
+        index_batches = [list(range(i, min(i+batch_size, dataset_len))) for i in range(0, dataset_len, batch_size)]
+        return index_batches
+
+    def __len__(self):
+        return len(self._data) 
+
+    def __iter__(self):
+        indices = iter(self._data)
+        for batch in indices:
+            task_id = self._dataset.get_task_id()
+            #batch = next(indices)
+            batch = [(task_id, sample_id) for sample_id in batch]
+            yield batch
+            #if len(batch) % self.world_size != 0:
+            #    if self.drop_last:
+            #        break
+            #    else:
+            #        batch.extend([batch[0] for _ in range(self.world_size-len(batch) % self.world_size)])
+            #chunk_size = len(batch) // self.world_size
+            #yield batch[self.rank * chunk_size: (self.rank+1) * chunk_size]
 
 class MultiTaskBatchSampler(BatchSampler):
     def __init__(self, datasets, batch_size, mix_opt, extra_task_ratio, bin_size=64, bin_on=False, bin_grow_ratio=0.5):
@@ -129,6 +226,20 @@ class MultiTaskDataset(Dataset):
     def __getitem__(self, idx):
         task_id, sample_id = idx
         return self._task_id_2_data_set_dic[task_id][sample_id]
+
+class DistTaskDataset(Dataset):
+    def __init__(self, dataset, task_id):
+        self._dataset = dataset
+
+    def __len__(self):
+        return len(self._dataset) 
+
+    def __getitem__(self, idx):
+        task_id, sample_id = idx
+        return self._dataset[sample_id]
+
+    def get_task_id(self):
+        return self._dataset.get_task_id()
 
 class SingleTaskDataset(Dataset):
     def __init__(self, 
