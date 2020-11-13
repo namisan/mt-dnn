@@ -25,19 +25,15 @@ def extract_encoding(model, data, use_cuda=True):
 
     return torch.cat(new_sequence_outputs)
 
-def eval_model(model, data, metric_meta, device, with_label=True, label_mapper=None, task_type=TaskType.Classification, model_avg=False):
+def eval_model(model, data, metric_meta, device, with_label=True, label_mapper=None, task_type=TaskType.Classification):
     predictions = []
     golds = []
     scores = []
     ids = []
     metrics = {}
     for (batch_info, batch_data) in data:
-    #for (batch_info, batch_data) in tqdm(data, total=len(data)):
         batch_info, batch_data = Collater.patch_data(device, batch_info, batch_data)
-        if model_avg:
-            score, pred, gold = model.predict_avg(batch_info, batch_data)
-        else:
-            score, pred, gold = model.predict(batch_info, batch_data)
+        score, pred, gold = model.predict(batch_info, batch_data)
         predictions.extend(pred)
         golds.extend(gold)
         scores.extend(score)

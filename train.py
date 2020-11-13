@@ -179,6 +179,48 @@ def dump(path, data):
     with open(path, 'w') as f:
         json.dump(data, f)
 
+def evaluation(model, datasets, data_list, task_defs, output_dir='checkpoints', epoch=0, n_updates=-1, with_label=False, tensorboard=None, glue_format_on=False, test_on=False, device=None, logger=None):
+    # eval on rank 1
+    print_message(logger, "Evaluation")
+    test_prefix = "Test" if test_on else "Dev"
+    if n_updates > 0:
+        updates_str = "updates"
+    else:
+        updates_str = "epoch_{}".format(epoch)
+    updates = model.updates if n_updates > 0 else epoch
+    for idx, dataset in enumerate(datasets):
+        prefix = dataset.split('_')[0]
+        task_def = task_defs.get_task_def(prefix)
+        label_dict = task_def.label_vocab
+        test_data = data_list[idx]
+        if test_data is not None:
+            with torch.no_grad():
+                test_metrics, test_predictions, test_scores, test_golds, test_ids= eval_model(model,
+                                                                                test_data,
+                                                                                metric_meta=task_def.metric_meta,
+                                                                                device=device,
+                                                                                with_label=with_label,
+                                                                                label_mapper=label_dict,
+                                                                                task_type=task_def.task_type)
+            for key, val in test_metrics.items():
+                if tensorboard:
+                    tensorboard.add_scalar('{}/{}/{}'.format(test_prefix, dataset, key), val, global_step=updates)
+                if isinstance(val, str):
+                    print_message(logger, 'Task {0} -- {1} {2} -- {3} {4}: {5}'.format(dataset, updates_str, updates, test_prefix, key, val), level=1)
+                elif isinstance(val, float):
+                    print_message(logger, 'Task {0} -- {1} {2} -- {3} {4}: {5:.3f}'.format(dataset, updates_str, updates, test_prefix, key, val), level=1)
+                else:
+                    test_metrics[key] = str(val)
+                    print_message(logger, 'Task {0} -- {1} {2} -- {3} {4}: \n{5}'.format(dataset, updates_str, updates, test_prefix, key, val), level=1)
+
+            if args.local_rank in [-1, 0]:
+                score_file = os.path.join(output_dir, '{}_{}_scores_{}.json'.format(dataset, test_prefix.lower(), updates_str))
+                results = {'metrics': test_metrics, 'predictions': test_predictions, 'uids': test_ids, 'scores': test_scores}
+                dump(score_file, results)
+                if glue_format_on:
+                    from experiments.glue.glue_utils import submit
+                    official_score_file = os.path.join(output_dir, '{}_{}_scores_{}.tsv'.format(dataset, test_prefix.lower(), updates_str))
+                    submit(official_score_file, results, label_dict)
 def initialize_distributed(args):
     """Initialize torch.distributed."""
     args.rank = int(os.getenv('RANK', '0'))
