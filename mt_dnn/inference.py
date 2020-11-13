@@ -25,17 +25,19 @@ def extract_encoding(model, data, use_cuda=True):
 
     return torch.cat(new_sequence_outputs)
 
-def eval_model(model, data, metric_meta, use_cuda=True, with_label=True, label_mapper=None, task_type=TaskType.Classification):
-    if use_cuda:
-        model.cuda()
+def eval_model(model, data, metric_meta, device, with_label=True, label_mapper=None, task_type=TaskType.Classification, model_avg=False):
     predictions = []
     golds = []
     scores = []
     ids = []
     metrics = {}
-    for (batch_info, batch_data) in tqdm(data, total=len(data)):
-        batch_info, batch_data = Collater.patch_data(use_cuda, batch_info, batch_data)
-        score, pred, gold = model.predict(batch_info, batch_data)
+    for (batch_info, batch_data) in data:
+    #for (batch_info, batch_data) in tqdm(data, total=len(data)):
+        batch_info, batch_data = Collater.patch_data(device, batch_info, batch_data)
+        if model_avg:
+            score, pred, gold = model.predict_avg(batch_info, batch_data)
+        else:
+            score, pred, gold = model.predict(batch_info, batch_data)
         predictions.extend(pred)
         golds.extend(gold)
         scores.extend(score)
@@ -45,6 +47,8 @@ def eval_model(model, data, metric_meta, use_cuda=True, with_label=True, label_m
         from experiments.squad import squad_utils
         golds = squad_utils.merge_answers(ids, golds)
         predictions, scores = squad_utils.select_answers(ids, predictions, scores)
+    if task_type == TaskType.MultiRC:
+        predictions, golds = reduce_multirc(ids, predictions, golds)
     if with_label:
         metrics = calc_metrics(metric_meta, golds, predictions, scores, label_mapper)
     return metrics, predictions, scores, golds, ids
