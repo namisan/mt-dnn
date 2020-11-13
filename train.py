@@ -17,7 +17,8 @@ from mt_dnn.inference import eval_model, extract_encoding
 from data_utils.log_wrapper import create_logger
 from data_utils.task_def import EncoderModelType
 from data_utils.utils import set_environment
-from mt_dnn.batcher import SingleTaskDataset, MultiTaskDataset, Collater, MultiTaskBatchSampler
+from mt_dnn.batcher import SingleTaskDataset, MultiTaskDataset, Collater, MultiTaskBatchSampler, DistMultiTaskBatchSampler, DistSingleTaskBatchSampler
+from mt_dnn.batcher import DistTaskDataset
 from mt_dnn.model import MTDNNModel
 
 
@@ -61,6 +62,13 @@ def model_config(parser):
     parser.add_argument('--bin_on', action='store_true')
     parser.add_argument('--bin_size', type=int, default=64)
     parser.add_argument('--bin_grow_ratio', type=int, default=0.5)
+
+    # dist training
+    parser.add_argument("--local_rank", type=int, default=-1, help="For distributed training: local_rank")
+    parser.add_argument("--world_size", type=int, default=1, help="For distributed training: world size")
+    parser.add_argument("--master_addr", type=str, default="localhost")
+    parser.add_argument("--master_port", type=str, default="6600")
+    parser.add_argument("--backend", type=str, default="nccl")
     return parser
 
 
@@ -140,6 +148,7 @@ def train_config(parser):
     parser.add_argument('--adv_step_size', default=1e-3, type=float)
     parser.add_argument('--adv_noise_var', default=1e-5, type=float)
     parser.add_argument('--adv_epsilon', default=1e-6, type=float)
+    parser.add_argument('--encode_mode', action='store_true', help="only encode test data")
     return parser
 
 
@@ -147,7 +156,6 @@ parser = argparse.ArgumentParser()
 parser = data_config(parser)
 parser = model_config(parser)
 parser = train_config(parser)
-parser.add_argument('--encode_mode', action='store_true', help="only encode test data")
 
 args = parser.parse_args()
 
@@ -172,6 +180,47 @@ def dump(path, data):
     with open(path, 'w') as f:
         json.dump(data, f)
 
+def initialize_distributed(args):
+    """Initialize torch.distributed."""
+    args.rank = int(os.getenv('RANK', '0'))
+    args.world_size = int(os.getenv("WORLD_SIZE", '1'))
+
+    if os.getenv('OMPI_COMM_WORLD_LOCAL_RANK'):
+        # We are using (OpenMPI) mpirun for launching distributed data parallel processes
+        local_rank = int(os.getenv('OMPI_COMM_WORLD_LOCAL_RANK'))
+        local_size = int(os.getenv('OMPI_COMM_WORLD_LOCAL_SIZE'))
+        args.local_rank = local_rank
+        args.rank = nodeid * local_size + local_rank
+        args.world_size = num_nodes * local_size
+    args.batch_size = args.batch_size * args.world_size
+    #args.batch_size_eval = args.batch_size_eval * args.world_size
+
+    device = args.rank % torch.cuda.device_count()
+    if args.local_rank is not None:
+        device = args.local_rank
+    torch.cuda.set_device(device)
+    # Call the init process
+    init_method = 'tcp://'
+    master_ip = os.getenv('MASTER_ADDR', 'localhost')
+    master_port = os.getenv('MASTER_PORT', '6600')
+    init_method += master_ip + ':' + master_port
+    torch.distributed.init_process_group(
+        backend=args.backend,
+        world_size=args.world_size, rank=args.rank,
+        init_method=init_method)
+    #print_message(logger, args)
+    return device
+
+def print_message(logger, message, level=0):
+    if torch.distributed.is_initialized() and torch.distributed.get_rank() == 0:
+        do_logging = True
+    else:
+        do_logging = False
+    if do_logging:
+        if level == 1:
+            logger.warning(message)
+        else:
+            logger.info(message)
 
 def main():
     logger.info('Launching the MT-DNN training')
@@ -256,7 +305,7 @@ def main():
             arch = arch.replace('_', '-')
             # convert model arch
             from data_utils.roberta_utils import update_roberta_keys
-            from data_utils.roberta_utils import patch_name_dict 
+            from data_utils.roberta_utils import patch_name_dict
             state = update_roberta_keys(state_dict['model'], nlayer=state_dict['args'].encoder_layers)
             state = patch_name_dict(state)
             literal_encoder_type = EncoderModelType(opt['encoder_type']).name.lower()
@@ -386,5 +435,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-

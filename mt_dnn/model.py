@@ -29,16 +29,30 @@ class MTDNNModel(object):
         self.local_updates = 0
         self.train_loss = AverageMeter()
         self.initial_from_local = True if state_dict else False
-        self.network = SANBertNetwork(opt, initial_from_local=self.initial_from_local)
+        model = SANBertNetwork(opt, initial_from_local=self.initial_from_local)
+        self.total_param = sum([p.nelement() for p in model.parameters() if p.requires_grad])
+        if opt['cuda']:
+            if self.config['local_rank'] != -1:
+                model = model.to(self.config['local_rank'])
+            else:
+                model = model.to(self.device)
+        self.network = model
         if state_dict:
             missing_keys, unexpected_keys = self.network.load_state_dict(state_dict['state'], strict=False)
-        self.mnetwork = nn.DataParallel(self.network) if opt['multi_gpu_on'] else self.network
-        self.total_param = sum([p.nelement() for p in self.network.parameters() if p.requires_grad])
-        if opt['cuda']:
-            self.network.cuda()
+
         optimizer_parameters = self._get_param_groups()
         self._setup_optim(optimizer_parameters, state_dict, num_train_step)
         self.optimizer.zero_grad()
+
+        #if self.config["local_rank"] not in [-1, 0]:
+        #    torch.distributed.barrier()
+
+        if self.config['local_rank'] != -1:
+            self.mnetwork = torch.nn.parallel.DistributedDataParallel(self.network, device_ids=[self.config["local_rank"]], output_device=self.config["local_rank"], find_unused_parameters=True)
+        elif self.config['multi_gpu_on']:
+            self.mnetwork = nn.DataParallel(self.network)
+        else:
+            self.mnetwork = self.network
         self._setup_lossmap(self.config)
         self._setup_kd_lossmap(self.config)
         self._setup_adv_lossmap(self.config)
@@ -224,6 +238,10 @@ class MTDNNModel(object):
         # rescale loss as dynamic batching
         if self.config['bin_on']:
             loss = loss * (1.0 * batch_size / self.config['batch_size'])
+        if self.config['local_rank'] != -1:
+            #print('Rank ', self.config['local_rank'], ' loss ', loss)
+            torch.distributed.all_reduce(loss.data)
+            loss.data = loss.data / self.config['world_size']
         self.train_loss.update(loss.item(), batch_size)
         # scale loss
         loss = loss / self.config.get('grad_accumulation_step', 1)
@@ -312,12 +330,20 @@ class MTDNNModel(object):
         return score, predict, batch_meta['label']
 
     def save(self, filename):
-        network_state = dict([(k, v.cpu()) for k, v in self.network.state_dict().items()])
+        if isinstance(self.mnetwork, torch.nn.parallel.DistributedDataParallel):
+            model = self.mnetwork.module
+        else:
+            model = self.network
+        #network_state = dict([(k, v.cpu()) for k, v in self.network.state_dict().items()])
+        network_state = dict([(k, v.cpu()) for k, v in model.state_dict().items()])
         params = {
             'state': network_state,
             'optimizer': self.optimizer.state_dict(),
             'config': self.config,
         }
+        if self.model_avg is not None:
+            avg_state = dict([(k, v.cpu()) for k, v in self.model_avg.state_dict().items()])
+            params['ema'] = avg_state
         torch.save(params, filename)
         logger.info('model saved to {}'.format(filename))
 
