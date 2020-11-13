@@ -170,7 +170,6 @@ output_dir = os.path.abspath(output_dir)
 set_environment(args.seed, args.cuda)
 log_path = args.log_file
 logger = create_logger(__name__, to_disk=True, log_file=log_path)
-logger.info(args.answer_opt)
 
 task_defs = TaskDefs(args.task_def)
 encoder_type = args.encoder_type
@@ -426,7 +425,6 @@ def main():
 
     for epoch in range(0, args.epochs):
         print_message(logger, 'At epoch {}'.format(epoch), level=1)
-        print_message(logger, 'batches {}'.format(len(multi_task_train_data)))
         start = datetime.now()
 
         for i, (batch_meta, batch_data) in enumerate(multi_task_train_data):

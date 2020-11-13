@@ -343,9 +343,6 @@ class MTDNNModel(object):
             'optimizer': self.optimizer.state_dict(),
             'config': self.config,
         }
-        if self.model_avg is not None:
-            avg_state = dict([(k, v.cpu()) for k, v in self.model_avg.state_dict().items()])
-            params['ema'] = avg_state
         torch.save(params, filename)
         logger.info('model saved to {}'.format(filename))
 

@@ -43,8 +43,6 @@ def eval_model(model, data, metric_meta, device, with_label=True, label_mapper=N
         from experiments.squad import squad_utils
         golds = squad_utils.merge_answers(ids, golds)
         predictions, scores = squad_utils.select_answers(ids, predictions, scores)
-    if task_type == TaskType.MultiRC:
-        predictions, golds = reduce_multirc(ids, predictions, golds)
     if with_label:
         metrics = calc_metrics(metric_meta, golds, predictions, scores, label_mapper)
     return metrics, predictions, scores, golds, ids
