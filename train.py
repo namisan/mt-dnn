@@ -251,7 +251,7 @@ def main():
         task_def_list.append(task_def)
         train_path = os.path.join(data_dir, '{}_train.json'.format(dataset))
         print_message(logger, 'Loading {} as task {}'.format(train_path, task_id))
-        train_data_set = SingleTaskDataset(train_path, True, maxlen=args.max_seq_len, task_id=task_id, task_def=task_def, skip_exceeded_sample=args.skip_exceeded_sample, printable=printable)
+        train_data_set = SingleTaskDataset(train_path, True, maxlen=args.max_seq_len, task_id=task_id, task_def=task_def, printable=printable)
         train_datasets.append(train_data_set)
     train_collater = Collater(dropout_w=args.dropout_w, encoder_type=encoder_type, soft_label=args.mkd_opt > 0, max_seq_len=args.max_seq_len, do_padding=args.do_padding)
     multi_task_train_dataset = MultiTaskDataset(train_datasets)
@@ -276,7 +276,7 @@ def main():
         dev_path = os.path.join(data_dir, '{}_dev.json'.format(dataset))
         dev_data = None
         if os.path.exists(dev_path):
-            dev_data_set = SingleTaskDataset(dev_path, False, maxlen=args.max_seq_len, task_id=task_id, task_def=task_def, skip_exceeded_sample=args.skip_exceeded_sample, printable=printable)
+            dev_data_set = SingleTaskDataset(dev_path, False, maxlen=args.max_seq_len, task_id=task_id, task_def=task_def, printable=printable)
             if args.local_rank != -1:
                 dev_data_set = DistTaskDataset(dev_data_set, task_id)
                 single_task_batch_sampler = DistSingleTaskBatchSampler(dev_data_set, args.batch_size_eval, rank=args.local_rank, world_size=args.world_size)
@@ -288,7 +288,7 @@ def main():
         test_path = os.path.join(data_dir, '{}_test.json'.format(dataset))
         test_data = None
         if os.path.exists(test_path):
-            test_data_set = SingleTaskDataset(test_path, False, maxlen=args.max_seq_len, task_id=task_id, task_def=task_def, skip_exceeded_sample=args.skip_exceeded_sample, printable=printable)
+            test_data_set = SingleTaskDataset(test_path, False, maxlen=args.max_seq_len, task_id=task_id, task_def=task_def, printable=printable)
             if args.local_rank != -1:
                 test_data_set = DistTaskDataset(test_data_set, task_id)
                 single_task_batch_sampler = DistSingleTaskBatchSampler(test_data_set, args.batch_size_eval, rank=args.local_rank, world_size=args.world_size)

@@ -255,7 +255,8 @@ class SingleTaskDataset(Dataset):
                  seed=13,
                  short_seq_prob=0.1,
                  max_seq_length=512,
-                 max_predictions_per_seq=80):
+                 max_predictions_per_seq=80,
+                 printable=True):
         data, tokenizer = self.load(path, is_train, maxlen, factor, task_def, bert_model, do_lower_case)
         self._data = data
         self._tokenizer = tokenizer
@@ -278,7 +279,7 @@ class SingleTaskDataset(Dataset):
         return self._task_id
 
     @staticmethod
-    def load(path, is_train=True, maxlen=512, factor=1.0, task_def=None, bert_model='bert-base-uncased', do_lower_case=True):
+    def load(path, is_train=True, maxlen=512, factor=1.0, task_def=None, bert_model='bert-base-uncased', do_lower_case=True, printable=True):
         task_type = task_def.task_type
         assert task_type is not None
 
@@ -314,7 +315,8 @@ class SingleTaskDataset(Dataset):
                     if (task_type != TaskType.Ranking) and (len(sample['token_id']) > maxlen):
                         continue
                 data.append(sample)
-            print('Loaded {} samples out of {}'.format(len(data), cnt))
+            if printable:
+                print('Loaded {} samples out of {}'.format(len(data), cnt))
         return data, None
 
     def __len__(self):
