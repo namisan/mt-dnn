@@ -23,10 +23,11 @@ logger = logging.getLogger(__name__)
 
 
 class MTDNNModel(object):
-    def __init__(self, opt, state_dict=None, num_train_step=-1):
+    def __init__(self, opt, device=None, state_dict=None, num_train_step=-1):
         self.config = opt
         self.updates = state_dict['updates'] if state_dict and 'updates' in state_dict else 0
         self.local_updates = 0
+        self.device = device
         self.train_loss = AverageMeter()
         self.initial_from_local = True if state_dict else False
         model = SANBertNetwork(opt, initial_from_local=self.initial_from_local)
@@ -174,16 +175,17 @@ class MTDNNModel(object):
                 lc = LOSS_REGISTRY[cs](name='Adv Loss func of task {}: {}'.format(idx, cs))
                 self.adv_task_loss_criterion.append(lc)
 
-
     def _to_cuda(self, tensor):
         if tensor is None: return tensor
 
         if isinstance(tensor, list) or isinstance(tensor, tuple):
-            y = [e.cuda(non_blocking=True) for e in tensor]
+            #y = [e.cuda(non_blocking=True) for e in tensor]
+            y = [e.to(self.device) for e in tensor]
             for e in y:
                 e.requires_grad = False
         else:
-            y = tensor.cuda(non_blocking=True)
+            #y = tensor.cuda(non_blocking=True)
+            y = tensor.to(self.device)
             y.requires_grad = False
         return y
 

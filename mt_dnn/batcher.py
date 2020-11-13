@@ -373,22 +373,24 @@ class Collater:
         else: return arr
 
     @staticmethod
-    def patch_data(gpu, batch_info, batch_data):
-        if gpu:
-            for i, part in enumerate(batch_data):
-                if isinstance(part, torch.Tensor):
-                    batch_data[i] = part.pin_memory().cuda(non_blocking=True)
-                elif isinstance(part, tuple):
-                    batch_data[i] = tuple(sub_part.pin_memory().cuda(non_blocking=True) for sub_part in part)
-                elif isinstance(part, list):
-                    batch_data[i] = [sub_part.pin_memory().cuda(non_blocking=True) for sub_part in part]
-                else:
-                    raise TypeError("unknown batch data type at %s: %s" % (i, part))
-                    
+    def patch_data(device, batch_info, batch_data):
+        #if gpu:
+        for i, part in enumerate(batch_data):
+            if part is None:
+                continue
+            if isinstance(part, torch.Tensor):
+                batch_data[i] = part.pin_memory().to(device)
+            elif isinstance(part, tuple):
+                batch_data[i] = tuple(sub_part.pin_memory().to(device) for sub_part in part)
+            elif isinstance(part, list):
+                batch_data[i] = [sub_part.pin_memory().to(device) for sub_part in part]
+            else:
+                raise TypeError("unknown batch data type at %s: %s" % (i, part))
+                
             if "soft_label" in batch_info:
-                batch_info["soft_label"] = batch_info["soft_label"].pin_memory().cuda(non_blocking=True)
-
+                batch_info["soft_label"] = batch_info["soft_label"].pin_memory().to(device)
         return batch_info, batch_data
+
 
     def rebatch(self, batch):
         newbatch = []
