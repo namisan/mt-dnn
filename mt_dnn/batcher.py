@@ -9,7 +9,7 @@ from shutil import copyfile
 from data_utils.task_def import TaskType, DataFormat
 from data_utils.task_def import EncoderModelType
 import tasks
-from torch.utils.data import Dataset, DataLoader, BatchSampler
+from torch.utils.data import Dataset, DataLoader, BatchSampler, Sampler
 from experiments.exp_def import TaskDef
 from experiments.mlm.mlm_utils import truncate_seq_pair, load_loose_json
 from experiments.mlm.mlm_utils import create_instances_from_document, create_masked_lm_predictions
