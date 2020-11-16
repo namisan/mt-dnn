@@ -214,7 +214,7 @@ def evaluation(model, datasets, data_list, task_defs, output_dir='checkpoints', 
                     print_message(logger, 'Task {0} -- {1} {2} -- {3} {4}: \n{5}'.format(dataset, updates_str, updates, test_prefix, key, val), level=1)
 
             if args.local_rank in [-1, 0]:
-                score_file = os.path.join(output_dir, '{}_{}_scores_{}.json'.format(dataset, test_prefix.lower(), updates_str))
+                score_file = os.path.join(output_dir, '{}_{}_scores_{}_{}.json'.format(dataset, test_prefix.lower(), updates_str, updates))
                 results = {'metrics': test_metrics, 'predictions': test_predictions, 'uids': test_ids, 'scores': test_scores}
                 dump(score_file, results)
                 if glue_format_on:
