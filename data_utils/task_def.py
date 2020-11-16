@@ -23,3 +23,5 @@ class EncoderModelType(IntEnum):
     XLNET = 3
     SAN = 4
     XLM = 5
+    DEBERTA = 6
+    ELECTRA = 7
