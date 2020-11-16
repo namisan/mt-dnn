@@ -12,21 +12,21 @@ import torch.nn.functional as F
 from fairseq import utils
 from fairseq.criterions import FairseqCriterion, register_criterion
 
-def KL(input, target):
+def KL(input, target, reduction="sum"):
     input = input.float()
     target = target.float()
-    loss = F.kl_div(F.log_softmax(input, dim=-1, dtype=torch.float32), F.softmax(target, dim=-1, dtype=torch.float32), reduction='batchmean')
+    loss = F.kl_div(F.log_softmax(input, dim=-1, dtype=torch.float32), F.softmax(target, dim=-1, dtype=torch.float32), reduction=reduction)
     return loss
 
 def SKL(logit, target, epsilon=1e-8):
     logit = logit.view(-1, logit.size(-1)).float()
     target = target.view(-1, target.size(-1)).float()
-    bs = logit.size(0)
+    #bs = logit.size(0)
     p = F.log_softmax(logit, 1).exp()
     y = F.log_softmax(target, 1).exp()
     rp = -(1.0/(p + epsilon) -1 + epsilon).detach().log()
     ry = -(1.0/(y + epsilon) -1 + epsilon).detach().log()
-    return (p* (rp- ry) * 2).sum()/bs
+    return (p* (rp- ry) * 2).sum()
 
 
 @register_criterion('adv_masked_lm')
@@ -84,7 +84,8 @@ class AdvMaskedLmLoss(FairseqCriterion):
             noise.requires_grad_()
             newembed = embed.data.detach() + noise
             adv_logits, _ = model(**sample['net_input'], masked_tokens=masked_tokens, task_id=1, embed=newembed, player=0)
-            adv_loss = KL(adv_logits, logits.detach())
+            adv_loss = KL(adv_logits, logits.detach(), reduction="batchmean")
+            # line 5, g_adv
             delta_grad, = torch.autograd.grad(adv_loss, noise, only_inputs=True)
             norm = delta_grad.norm()
             if (torch.isnan(norm) or torch.isinf(norm)):
@@ -97,10 +98,14 @@ class AdvMaskedLmLoss(FairseqCriterion):
                     'sample_size': sample_size,
                 }
                 return loss, sample_size, logging_output
-            adv_direct = self.adv_project(delta_grad, norm_type=self.args.project_norm_type, eps=self.args.noise_gamma) 
-            newembed = embed + adv_direct * self.args.adv_step_size
+            # line 6 inner sum
+            noise = noise + delta_grad * self.args.adv_step_size
+            # line 6 projection
+            noise = self.adv_project(noise, norm_type=self.args.project_norm_type, eps=self.args.noise_gamma)
+            newembed = embed.data.detach() + noise
             newembed = newembed.detach()
             adv_logits, _ = model(**sample['net_input'], masked_tokens=masked_tokens, task_id=1, embed=newembed, player=0)
+            # line 8 symmetric KL
             adv_loss_f = KL(adv_logits, logits.detach())
             adv_loss_b = KL(logits, adv_logits.detach())
             adv_loss = (adv_loss_f + adv_loss_b) * self.args.adv_alpha

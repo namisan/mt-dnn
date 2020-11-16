@@ -17,7 +17,8 @@ from mt_dnn.inference import eval_model, extract_encoding
 from data_utils.log_wrapper import create_logger
 from data_utils.task_def import EncoderModelType
 from data_utils.utils import set_environment
-from mt_dnn.batcher import SingleTaskDataset, MultiTaskDataset, Collater, MultiTaskBatchSampler
+from mt_dnn.batcher import SingleTaskDataset, MultiTaskDataset, Collater, MultiTaskBatchSampler, DistMultiTaskBatchSampler, DistSingleTaskBatchSampler
+from mt_dnn.batcher import DistTaskDataset
 from mt_dnn.model import MTDNNModel
 
 
@@ -56,6 +57,18 @@ def model_config(parser):
     parser.add_argument('--masked_lm_prob', type=float, default=0.15)
     parser.add_argument('--short_seq_prob', type=float, default=0.2)
     parser.add_argument('--max_predictions_per_seq', type=int, default=128)
+
+    # bin samples
+    parser.add_argument('--bin_on', action='store_true')
+    parser.add_argument('--bin_size', type=int, default=64)
+    parser.add_argument('--bin_grow_ratio', type=int, default=0.5)
+
+    # dist training
+    parser.add_argument("--local_rank", type=int, default=-1, help="For distributed training: local_rank")
+    parser.add_argument("--world_size", type=int, default=1, help="For distributed training: world size")
+    parser.add_argument("--master_addr", type=str, default="localhost")
+    parser.add_argument("--master_port", type=str, default="6600")
+    parser.add_argument("--backend", type=str, default="nccl")
     return parser
 
 
@@ -135,6 +148,7 @@ def train_config(parser):
     parser.add_argument('--adv_step_size', default=1e-3, type=float)
     parser.add_argument('--adv_noise_var', default=1e-5, type=float)
     parser.add_argument('--adv_epsilon', default=1e-6, type=float)
+    parser.add_argument('--encode_mode', action='store_true', help="only encode test data")
     return parser
 
 
@@ -142,7 +156,6 @@ parser = argparse.ArgumentParser()
 parser = data_config(parser)
 parser = model_config(parser)
 parser = train_config(parser)
-parser.add_argument('--encode_mode', action='store_true', help="only encode test data")
 
 args = parser.parse_args()
 
@@ -150,7 +163,6 @@ output_dir = args.output_dir
 data_dir = args.data_dir
 args.train_datasets = args.train_datasets.split(',')
 args.test_datasets = args.test_datasets.split(',')
-pprint(args)
 
 os.makedirs(output_dir, exist_ok=True)
 output_dir = os.path.abspath(output_dir)
@@ -158,7 +170,6 @@ output_dir = os.path.abspath(output_dir)
 set_environment(args.seed, args.cuda)
 log_path = args.log_file
 logger = create_logger(__name__, to_disk=True, log_file=log_path)
-logger.info(args.answer_opt)
 
 task_defs = TaskDefs(args.task_def)
 encoder_type = args.encoder_type
@@ -167,36 +178,128 @@ def dump(path, data):
     with open(path, 'w') as f:
         json.dump(data, f)
 
+def evaluation(model, datasets, data_list, task_defs, output_dir='checkpoints', epoch=0, n_updates=-1, with_label=False, tensorboard=None, glue_format_on=False, test_on=False, device=None, logger=None):
+    # eval on rank 1
+    print_message(logger, "Evaluation")
+    test_prefix = "Test" if test_on else "Dev"
+    if n_updates > 0:
+        updates_str = "updates"
+    else:
+        updates_str = "epoch_{}".format(epoch)
+    updates = model.updates if n_updates > 0 else epoch
+    for idx, dataset in enumerate(datasets):
+        prefix = dataset.split('_')[0]
+        task_def = task_defs.get_task_def(prefix)
+        label_dict = task_def.label_vocab
+        test_data = data_list[idx]
+        if test_data is not None:
+            with torch.no_grad():
+                test_metrics, test_predictions, test_scores, test_golds, test_ids= eval_model(model,
+                                                                                test_data,
+                                                                                metric_meta=task_def.metric_meta,
+                                                                                device=device,
+                                                                                with_label=with_label,
+                                                                                label_mapper=label_dict,
+                                                                                task_type=task_def.task_type)
+            for key, val in test_metrics.items():
+                if tensorboard:
+                    tensorboard.add_scalar('{}/{}/{}'.format(test_prefix, dataset, key), val, global_step=updates)
+                if isinstance(val, str):
+                    print_message(logger, 'Task {0} -- {1} {2} -- {3} {4}: {5}'.format(dataset, updates_str, updates, test_prefix, key, val), level=1)
+                elif isinstance(val, float):
+                    print_message(logger, 'Task {0} -- {1} {2} -- {3} {4}: {5:.3f}'.format(dataset, updates_str, updates, test_prefix, key, val), level=1)
+                else:
+                    test_metrics[key] = str(val)
+                    print_message(logger, 'Task {0} -- {1} {2} -- {3} {4}: \n{5}'.format(dataset, updates_str, updates, test_prefix, key, val), level=1)
+
+            if args.local_rank in [-1, 0]:
+                score_file = os.path.join(output_dir, '{}_{}_scores_{}.json'.format(dataset, test_prefix.lower(), updates_str))
+                results = {'metrics': test_metrics, 'predictions': test_predictions, 'uids': test_ids, 'scores': test_scores}
+                dump(score_file, results)
+                if glue_format_on:
+                    from experiments.glue.glue_utils import submit
+                    official_score_file = os.path.join(output_dir, '{}_{}_scores_{}.tsv'.format(dataset, test_prefix.lower(), updates_str))
+                    submit(official_score_file, results, label_dict)
+def initialize_distributed(args):
+    """Initialize torch.distributed."""
+    args.rank = int(os.getenv('RANK', '0'))
+    args.world_size = int(os.getenv("WORLD_SIZE", '1'))
+
+    if os.getenv('OMPI_COMM_WORLD_LOCAL_RANK'):
+        # We are using (OpenMPI) mpirun for launching distributed data parallel processes
+        local_rank = int(os.getenv('OMPI_COMM_WORLD_LOCAL_RANK'))
+        local_size = int(os.getenv('OMPI_COMM_WORLD_LOCAL_SIZE'))
+        args.local_rank = local_rank
+        args.rank = nodeid * local_size + local_rank
+        args.world_size = num_nodes * local_size
+    args.batch_size = args.batch_size * args.world_size
+
+    device = args.rank % torch.cuda.device_count()
+    if args.local_rank is not None:
+        device = args.local_rank
+    torch.cuda.set_device(device)
+    # Call the init process
+    init_method = 'tcp://'
+    master_ip = os.getenv('MASTER_ADDR', 'localhost')
+    master_port = os.getenv('MASTER_PORT', '6600')
+    init_method += master_ip + ':' + master_port
+    torch.distributed.init_process_group(
+        backend=args.backend,
+        world_size=args.world_size, rank=args.rank,
+        init_method=init_method)
+    return device
+
+def print_message(logger, message, level=0):
+    if torch.distributed.is_initialized() and torch.distributed.get_rank() == 0:
+        do_logging = True
+    else:
+        do_logging = False
+    if do_logging:
+        if level == 1:
+            logger.warning(message)
+        else:
+            logger.info(message)
 
 def main():
-    logger.info('Launching the MT-DNN training')
+    # set up dist
+    device = torch.device("cuda")
+    if args.local_rank > -1:
+        device = initialize_distributed(args)
+    elif torch.cuda.is_available():
+        device = torch.device("cuda")
+    else:
+        device = torch.device("cpu")
+
     opt = vars(args)
     # update data dir
     opt['data_dir'] = data_dir
     batch_size = args.batch_size
-
+    print_message(logger, 'Launching the MT-DNN training')
+    #return
     tasks = {}
     task_def_list = []
     dropout_list = []
+    printable = args.local_rank in [-1, 0]
 
     train_datasets = []
     for dataset in args.train_datasets:
         prefix = dataset.split('_')[0]
-        if prefix in tasks: 
+        if prefix in tasks:
             continue
         task_id = len(tasks)
         tasks[prefix] = task_id
         task_def = task_defs.get_task_def(prefix)
         task_def_list.append(task_def)
-
-
         train_path = os.path.join(data_dir, '{}_train.json'.format(dataset))
-        logger.info('Loading {} as task {}'.format(train_path, task_id))
-        train_data_set = SingleTaskDataset(train_path, True, maxlen=args.max_seq_len, task_id=task_id, task_def=task_def)
+        print_message(logger, 'Loading {} as task {}'.format(train_path, task_id))
+        train_data_set = SingleTaskDataset(train_path, True, maxlen=args.max_seq_len, task_id=task_id, task_def=task_def, printable=printable)
         train_datasets.append(train_data_set)
     train_collater = Collater(dropout_w=args.dropout_w, encoder_type=encoder_type, soft_label=args.mkd_opt > 0, max_seq_len=args.max_seq_len, do_padding=args.do_padding)
     multi_task_train_dataset = MultiTaskDataset(train_datasets)
-    multi_task_batch_sampler = MultiTaskBatchSampler(train_datasets, args.batch_size, args.mix_opt, args.ratio)
+    if args.local_rank != -1:
+        multi_task_batch_sampler = DistMultiTaskBatchSampler(train_datasets, args.batch_size, args.mix_opt, args.ratio, rank=args.local_rank, world_size=args.world_size)
+    else:
+        multi_task_batch_sampler = MultiTaskBatchSampler(train_datasets, args.batch_size, args.mix_opt, args.ratio, bin_on=args.bin_on, bin_size=args.bin_size, bin_grow_ratio=args.bin_grow_ratio)
     multi_task_train_data = DataLoader(multi_task_train_dataset, batch_sampler=multi_task_batch_sampler, collate_fn=train_collater.collate_fn, pin_memory=args.cuda)
 
     opt['task_def_list'] = task_def_list
@@ -214,44 +317,58 @@ def main():
         dev_path = os.path.join(data_dir, '{}_dev.json'.format(dataset))
         dev_data = None
         if os.path.exists(dev_path):
-            dev_data_set = SingleTaskDataset(dev_path, False, maxlen=args.max_seq_len, task_id=task_id, task_def=task_def)
-            dev_data = DataLoader(dev_data_set, batch_size=args.batch_size_eval, collate_fn=test_collater.collate_fn, pin_memory=args.cuda)
+            dev_data_set = SingleTaskDataset(dev_path, False, maxlen=args.max_seq_len, task_id=task_id, task_def=task_def, printable=printable)
+            if args.local_rank != -1:
+                dev_data_set = DistTaskDataset(dev_data_set, task_id)
+                single_task_batch_sampler = DistSingleTaskBatchSampler(dev_data_set, args.batch_size_eval, rank=args.local_rank, world_size=args.world_size)
+                dev_data = DataLoader(dev_data_set, batch_sampler=single_task_batch_sampler, collate_fn=test_collater.collate_fn, pin_memory=args.cuda)
+            else:
+                dev_data = DataLoader(dev_data_set, batch_size=args.batch_size_eval, collate_fn=test_collater.collate_fn, pin_memory=args.cuda)
         dev_data_list.append(dev_data)
 
         test_path = os.path.join(data_dir, '{}_test.json'.format(dataset))
         test_data = None
         if os.path.exists(test_path):
-            test_data_set = SingleTaskDataset(test_path, False, maxlen=args.max_seq_len, task_id=task_id, task_def=task_def)
-            test_data = DataLoader(test_data_set, batch_size=args.batch_size_eval, collate_fn=test_collater.collate_fn, pin_memory=args.cuda)
+            test_data_set = SingleTaskDataset(test_path, False, maxlen=args.max_seq_len, task_id=task_id, task_def=task_def, printable=printable)
+            if args.local_rank != -1:
+                test_data_set = DistTaskDataset(test_data_set, task_id)
+                single_task_batch_sampler = DistSingleTaskBatchSampler(test_data_set, args.batch_size_eval, rank=args.local_rank, world_size=args.world_size)
+                test_data = DataLoader(test_data_set, batch_sampler=single_task_batch_sampler, collate_fn=test_collater.collate_fn, pin_memory=args.cuda)
+            else:
+                test_data = DataLoader(test_data_set, batch_size=args.batch_size_eval, collate_fn=test_collater.collate_fn, pin_memory=args.cuda)
         test_data_list.append(test_data)
 
-    logger.info('#' * 20)
-    logger.info(opt)
-    logger.info('#' * 20)
+    print_message(logger, '#' * 20)
+    print_message(logger, opt)
+    print_message(logger, '#' * 20)
 
     # div number of grad accumulation. 
     num_all_batches = args.epochs * len(multi_task_train_data) // args.grad_accumulation_step
-    logger.info('############# Gradient Accumulation Info #############')
-    logger.info('number of step: {}'.format(args.epochs * len(multi_task_train_data)))
-    logger.info('number of grad grad_accumulation step: {}'.format(args.grad_accumulation_step))
-    logger.info('adjusted number of step: {}'.format(num_all_batches))
-    logger.info('############# Gradient Accumulation Info #############')
+    print_message(logger, '############# Gradient Accumulation Info #############')
+    print_message(logger, 'number of step: {}'.format(args.epochs * len(multi_task_train_data)))
+    print_message(logger, 'number of grad grad_accumulation step: {}'.format(args.grad_accumulation_step))
+    print_message(logger, 'adjusted number of step: {}'.format(num_all_batches))
+    print_message(logger, '############# Gradient Accumulation Info #############')
 
     init_model = args.init_checkpoint
     state_dict = None
 
     if os.path.exists(init_model):
-        if encoder_type == EncoderModelType.BERT:
+        if encoder_type == EncoderModelType.BERT or \
+            encoder_type == EncoderModelType.DEBERTA or \
+            encoder_type == EncoderModelType.ELECTRA:
             state_dict = torch.load(init_model)
             config = state_dict['config']
-        elif encoder_type == EncoderModelType.ROBERTA:
+        elif encoder_type == EncoderModelType.ROBERTA or encoder_type == EncoderModelType.XLM:
             model_path = '{}/model.pt'.format(init_model)
             state_dict = torch.load(model_path)
             arch = state_dict['args'].arch
             arch = arch.replace('_', '-')
+            if encoder_type == EncoderModelType.XLM:
+                arch = "xlm-{}".format(arch)
             # convert model arch
             from data_utils.roberta_utils import update_roberta_keys
-            from data_utils.roberta_utils import patch_name_dict 
+            from data_utils.roberta_utils import patch_name_dict
             state = update_roberta_keys(state_dict['model'], nlayer=state_dict['args'].encoder_layers)
             state = patch_name_dict(state)
             literal_encoder_type = EncoderModelType(opt['encoder_type']).name.lower()
@@ -268,19 +385,20 @@ def main():
     config['attention_probs_dropout_prob'] = args.bert_dropout_p
     config['hidden_dropout_prob'] = args.bert_dropout_p
     config['multi_gpu_on'] = opt["multi_gpu_on"]
-    if args.num_hidden_layers != -1:
+    if args.num_hidden_layers > 0:
         config['num_hidden_layers'] = args.num_hidden_layers
+
     opt.update(config)
 
-    model = MTDNNModel(opt, state_dict=state_dict, num_train_step=num_all_batches)
+    model = MTDNNModel(opt, device=device, state_dict=state_dict, num_train_step=num_all_batches)
     if args.resume and args.model_ckpt:
-        logger.info('loading model from {}'.format(args.model_ckpt))
+        print_message(logger, 'loading model from {}'.format(args.model_ckpt))
         model.load(args.model_ckpt)
 
     #### model meta str
     headline = '############# Model Arch of MT-DNN #############'
     ### print network
-    logger.info('\n{}\n{}\n'.format(headline, model.network))
+    print_message(logger, '\n{}\n{}\n'.format(headline, model.network))
 
     # dump config
     config_file = os.path.join(output_dir, 'config.json')
@@ -288,9 +406,10 @@ def main():
         writer.write('{}\n'.format(json.dumps(opt)))
         writer.write('\n{}\n{}\n'.format(headline, model.network))
 
-    logger.info("Total number of params: {}".format(model.total_param))
+    print_message(logger, "Total number of params: {}".format(model.total_param))
 
     # tensorboard
+    tensorboard = None
     if args.tensorboard:
         args.tensorboard_logdir = os.path.join(args.output_dir, args.tensorboard_logdir)
         tensorboard = SummaryWriter(log_dir=args.tensorboard_logdir)
@@ -305,18 +424,31 @@ def main():
         return
 
     for epoch in range(0, args.epochs):
-        logger.warning('At epoch {}'.format(epoch))
+        print_message(logger, 'At epoch {}'.format(epoch), level=1)
         start = datetime.now()
 
         for i, (batch_meta, batch_data) in enumerate(multi_task_train_data):
-            batch_meta, batch_data = Collater.patch_data(args.cuda, batch_meta, batch_data)
+            batch_meta, batch_data = Collater.patch_data(device, batch_meta, batch_data)
             task_id = batch_meta['task_id']
             model.update(batch_meta, batch_data)
-            if (model.local_updates) % (args.log_per_updates * args.grad_accumulation_step) == 0 or model.local_updates == 1:
+
+            if (model.updates) % (args.log_per_updates) == 0 or model.updates == 1:
                 ramaining_time = str((datetime.now() - start) / (i + 1) * (len(multi_task_train_data) - i - 1)).split('.')[0]
-                logger.info('Task [{0:2}] updates[{1:6}] train loss[{2:.5f}] remaining[{3}]'.format(task_id,
+                if args.adv_train and args.debug:
+                    debug_info = ' basic loss[%.5f] adv loss[%.5f] emb val[%.8f] noise val[%.8f] noise grad val[%.8f] no proj noise[%.8f] ' % (
+                        model.basic_loss.avg,
+                        model.adv_loss.avg,
+                        model.emb_val.avg,
+                        model.noise_val.avg,
+                        model.noise_grad_val.avg,
+                        model.no_proj_noise_val.avg
+                    )
+                else:
+                    debug_info = ' '
+                print_message(logger, 'Task [{0:2}] updates[{1:6}] train loss[{2:.5f}]{3}remaining[{4}]'.format(task_id,
                                                                                                     model.updates,
                                                                                                     model.train_loss.avg,
+                                                                                                    debug_info,
                                                                                                     ramaining_time))
                 if args.tensorboard:
                     tensorboard.add_scalar('train/loss', model.train_loss.avg, global_step=model.updates)
@@ -324,62 +456,19 @@ def main():
 
             if args.save_per_updates_on and ((model.local_updates) % (args.save_per_updates * args.grad_accumulation_step) == 0):
                 model_file = os.path.join(output_dir, 'model_{}_{}.pt'.format(epoch, model.updates))
-                logger.info('Saving mt-dnn model to {}'.format(model_file))
+                evaluation(model, args.test_datasets, dev_data_list, task_defs, output_dir, epoch, n_updates=args.save_per_updates, with_label=True, tensorboard=tensorboard, glue_format_on=args.glue_format_on, test_on=False, device=device, logger=logger)
+                evaluation(model, args.test_datasets, test_data_list, task_defs, output_dir, epoch, n_updates=args.save_per_updates, with_label=False, tensorboard=tensorboard, glue_format_on=args.glue_format_on, test_on=True, device=device, logger=logger)
+                print_message(logger, 'Saving mt-dnn model to {}'.format(model_file))
                 model.save(model_file)
 
-        for idx, dataset in enumerate(args.test_datasets):
-            prefix = dataset.split('_')[0]
-            task_def = task_defs.get_task_def(prefix)
-            label_dict = task_def.label_vocab
-            dev_data = dev_data_list[idx]
-            if dev_data is not None:
-                with torch.no_grad():
-                    dev_metrics, dev_predictions, scores, golds, dev_ids= eval_model(model,
-                                                                                    dev_data,
-                                                                                    metric_meta=task_def.metric_meta,
-                                                                                    use_cuda=args.cuda,
-                                                                                    label_mapper=label_dict,
-                                                                                    task_type=task_def.task_type)
-                for key, val in dev_metrics.items():
-                    if args.tensorboard:
-                        tensorboard.add_scalar('dev/{}/{}'.format(dataset, key), val, global_step=epoch)
-                    if isinstance(val, str):
-                        logger.warning('Task {0} -- epoch {1} -- Dev {2}:\n {3}'.format(dataset, epoch, key, val))
-                    else:
-                        logger.warning('Task {0} -- epoch {1} -- Dev {2}: {3:.3f}'.format(dataset, epoch, key, val))
-                score_file = os.path.join(output_dir, '{}_dev_scores_{}.json'.format(dataset, epoch))
-                results = {'metrics': dev_metrics, 'predictions': dev_predictions, 'uids': dev_ids, 'scores': scores}
-                dump(score_file, results)
-                if args.glue_format_on:
-                    from experiments.glue.glue_utils import submit
-                    official_score_file = os.path.join(output_dir, '{}_dev_scores_{}.tsv'.format(dataset, epoch))
-                    submit(official_score_file, results, label_dict)
-
-            # test eval
-            test_data = test_data_list[idx]
-            if test_data is not None:
-                with torch.no_grad():
-                    test_metrics, test_predictions, scores, golds, test_ids= eval_model(model, test_data,
-                                                                                        metric_meta=task_def.metric_meta,
-                                                                                        use_cuda=args.cuda, with_label=False,
-                                                                                        label_mapper=label_dict,
-                                                                                        task_type=task_def.task_type)
-                score_file = os.path.join(output_dir, '{}_test_scores_{}.json'.format(dataset, epoch))
-                results = {'metrics': test_metrics, 'predictions': test_predictions, 'uids': test_ids, 'scores': scores}
-                dump(score_file, results)
-                if args.glue_format_on:
-                    from experiments.glue.glue_utils import submit
-                    official_score_file = os.path.join(output_dir, '{}_test_scores_{}.tsv'.format(dataset, epoch))
-                    submit(official_score_file, results, label_dict)
-                logger.info('[new test scores saved.]')
+        evaluation(model, args.test_datasets, dev_data_list, task_defs, output_dir, epoch, with_label=True, tensorboard=tensorboard, glue_format_on=args.glue_format_on, test_on=False, device=device, logger=logger)
+        evaluation(model, args.test_datasets, test_data_list, task_defs, output_dir, epoch, with_label=False, tensorboard=tensorboard, glue_format_on=args.glue_format_on, test_on=True, device=device, logger=logger)
+        print_message(logger, '[new test scores at {} saved.]'.format(epoch))
 
         model_file = os.path.join(output_dir, 'model_{}.pt'.format(epoch))
         model.save(model_file)
     if args.tensorboard:
         tensorboard.close()
 
-
 if __name__ == '__main__':
     main()
-
-
