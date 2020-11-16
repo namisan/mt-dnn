@@ -1,5 +1,6 @@
 # coding=utf-8
 # Copyright (c) Microsoft. All rights reserved.
+import copy
 import sys
 import torch
 import tasks
@@ -242,9 +243,10 @@ class MTDNNModel(object):
             loss = loss * (1.0 * batch_size / self.config['batch_size'])
         if self.config['local_rank'] != -1:
             #print('Rank ', self.config['local_rank'], ' loss ', loss)
-            torch.distributed.all_reduce(loss.data)
-            loss.data = loss.data / self.config['world_size']
-        self.train_loss.update(loss.item(), batch_size)
+            copied_loss = copy.deepcopy(loss.data)
+            torch.distributed.all_reduce(copied_loss)
+            copied_loss = copied_loss / self.config['world_size']
+        self.train_loss.update(copied_loss.item(), batch_size)
         # scale loss
         loss = loss / self.config.get('grad_accumulation_step', 1)
         if self.config['fp16']:

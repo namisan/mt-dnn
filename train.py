@@ -149,6 +149,7 @@ def train_config(parser):
     parser.add_argument('--adv_noise_var', default=1e-5, type=float)
     parser.add_argument('--adv_epsilon', default=1e-6, type=float)
     parser.add_argument('--encode_mode', action='store_true', help="only encode test data")
+    parser.add_argument('--debug', action='store_true', help="print debug info")
     return parser
 
 
@@ -185,7 +186,7 @@ def evaluation(model, datasets, data_list, task_defs, output_dir='checkpoints', 
     if n_updates > 0:
         updates_str = "updates"
     else:
-        updates_str = "epoch_{}".format(epoch)
+        updates_str = "epoch"
     updates = model.updates if n_updates > 0 else epoch
     for idx, dataset in enumerate(datasets):
         prefix = dataset.split('_')[0]
@@ -250,10 +251,13 @@ def initialize_distributed(args):
     return device
 
 def print_message(logger, message, level=0):
-    if torch.distributed.is_initialized() and torch.distributed.get_rank() == 0:
-        do_logging = True
+    if torch.distributed.is_initialized():
+        if torch.distributed.get_rank() == 0:
+            do_logging = True
+        else:
+            do_logging = False
     else:
-        do_logging = False
+        do_logging = True
     if do_logging:
         if level == 1:
             logger.warning(message)
