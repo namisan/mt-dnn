@@ -35,7 +35,7 @@ class MTDNNModel(object):
         self.total_param = sum([p.nelement() for p in model.parameters() if p.requires_grad])
         if opt['cuda']:
             if self.config['local_rank'] != -1:
-                model = model.to(self.config['local_rank'])
+                model = model.to(self.device)
             else:
                 model = model.to(self.device)
         self.network = model

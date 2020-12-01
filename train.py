@@ -233,12 +233,13 @@ def initialize_distributed(args):
         args.local_rank = local_rank
         args.rank = nodeid * local_size + local_rank
         args.world_size = num_nodes * local_size
-    args.batch_size = args.batch_size * args.world_size
+    #args.batch_size = args.batch_size * args.world_size
 
     device = args.rank % torch.cuda.device_count()
     if args.local_rank is not None:
         device = args.local_rank
     torch.cuda.set_device(device)
+    device = torch.device('cuda', args.local_rank)
     # Call the init process
     init_method = 'tcp://'
     master_ip = os.getenv('MASTER_ADDR', 'localhost')
@@ -361,11 +362,11 @@ def main():
         if encoder_type == EncoderModelType.BERT or \
             encoder_type == EncoderModelType.DEBERTA or \
             encoder_type == EncoderModelType.ELECTRA:
-            state_dict = torch.load(init_model)
+            state_dict = torch.load(init_model, map_location=device)
             config = state_dict['config']
         elif encoder_type == EncoderModelType.ROBERTA or encoder_type == EncoderModelType.XLM:
             model_path = '{}/model.pt'.format(init_model)
-            state_dict = torch.load(model_path)
+            state_dict = torch.load(model_path, map_location=device)
             arch = state_dict['args'].arch
             arch = arch.replace('_', '-')
             if encoder_type == EncoderModelType.XLM:
