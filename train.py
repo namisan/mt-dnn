@@ -459,7 +459,7 @@ def main():
                     tensorboard.add_scalar('train/loss', model.train_loss.avg, global_step=model.updates)
 
 
-            if args.save_per_updates_on and ((model.local_updates) % (args.save_per_updates * args.grad_accumulation_step) == 0):
+            if args.save_per_updates_on and ((model.local_updates) % (args.save_per_updates * args.grad_accumulation_step) == 0) and args.local_rank in [-1, 0]:
                 model_file = os.path.join(output_dir, 'model_{}_{}.pt'.format(epoch, model.updates))
                 evaluation(model, args.test_datasets, dev_data_list, task_defs, output_dir, epoch, n_updates=args.save_per_updates, with_label=True, tensorboard=tensorboard, glue_format_on=args.glue_format_on, test_on=False, device=device, logger=logger)
                 evaluation(model, args.test_datasets, test_data_list, task_defs, output_dir, epoch, n_updates=args.save_per_updates, with_label=False, tensorboard=tensorboard, glue_format_on=args.glue_format_on, test_on=True, device=device, logger=logger)
@@ -469,9 +469,9 @@ def main():
         evaluation(model, args.test_datasets, dev_data_list, task_defs, output_dir, epoch, with_label=True, tensorboard=tensorboard, glue_format_on=args.glue_format_on, test_on=False, device=device, logger=logger)
         evaluation(model, args.test_datasets, test_data_list, task_defs, output_dir, epoch, with_label=False, tensorboard=tensorboard, glue_format_on=args.glue_format_on, test_on=True, device=device, logger=logger)
         print_message(logger, '[new test scores at {} saved.]'.format(epoch))
-
-        model_file = os.path.join(output_dir, 'model_{}.pt'.format(epoch))
-        model.save(model_file)
+        if args.local_rank in [-1, 0]:
+            model_file = os.path.join(output_dir, 'model_{}.pt'.format(epoch))
+            model.save(model_file)
     if args.tensorboard:
         tensorboard.close()
 
