@@ -47,7 +47,7 @@ class SmartPerturbation():
         assert len(loss_map) > 0
 
 
-    def _norm_grad(self, grad, sentence_level=False):
+    def _norm_grad(self, grad, eff_grad=None, sentence_level=False):
         if self.norm_p == 'l2':
             if sentence_level:
                 direction = grad / (torch.norm(grad, dim=(-2, -1), keepdim=True) + self.epsilon)
@@ -60,7 +60,8 @@ class SmartPerturbation():
                 direction = grad / (grad.abs().max((-2, -1), keepdim=True)[0] + self.epsilon)
             else:
                 direction = grad / (grad.abs().max(-1, keepdim=True)[0] + self.epsilon)
-        return direction
+                eff_direction = eff_grad / (grad.abs().max(-1, keepdim=True)[0] + self.epsilon)
+        return direction, eff_direction
 
     def forward(self, model,
                 logits,
@@ -92,8 +93,9 @@ class SmartPerturbation():
             norm = delta_grad.norm()
             if (torch.isnan(norm) or torch.isinf(norm)):
                 return 0
+            eff_delta_grad = delta_grad * self.step_size
             delta_grad = noise + delta_grad * self.step_size
-            noise = self._norm_grad(delta_grad, sentence_level=self.norm_level)
+            noise, eff_noise = self._norm_grad(delta_grad, eff_grad=eff_delta_grad, sentence_level=self.norm_level)
             noise = noise.detach()
             noise.requires_grad_()
         vat_args = [input_ids, token_type_ids, attention_mask, premise_mask, hyp_mask, task_id, 2, embed + noise]
@@ -102,4 +104,4 @@ class SmartPerturbation():
             adv_logits = adv_logits.view(-1, pairwise)
         adv_lc = self.loss_map[task_id]
         adv_loss = adv_lc(logits, adv_logits, ignore_index=-1)
-        return adv_loss 
+        return adv_loss, embed.detach().abs().mean(), eff_noise.detach().abs().mean()
