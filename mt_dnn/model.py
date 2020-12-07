@@ -246,7 +246,9 @@ class MTDNNModel(object):
             copied_loss = copy.deepcopy(loss.data)
             torch.distributed.all_reduce(copied_loss)
             copied_loss = copied_loss / self.config['world_size']
-        self.train_loss.update(copied_loss.item(), batch_size)
+            self.train_loss.update(copied_loss.item(), batch_size)
+        else:
+            self.train_loss.update(loss.item(), batch_size)
         # scale loss
         loss = loss / self.config.get('grad_accumulation_step', 1)
         if self.config['fp16']:
