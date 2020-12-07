@@ -145,7 +145,7 @@ def train_config(parser):
     parser.add_argument('--adv_p_norm', default='inf', type=str)
     parser.add_argument('--adv_alpha', default=1, type=float)
     parser.add_argument('--adv_k', default=1, type=int)
-    parser.add_argument('--adv_step_size', default=1e-3, type=float)
+    parser.add_argument('--adv_step_size', default=1e-5, type=float)
     parser.add_argument('--adv_noise_var', default=1e-5, type=float)
     parser.add_argument('--adv_epsilon', default=1e-6, type=float)
     parser.add_argument('--encode_mode', action='store_true', help="only encode test data")

@@ -257,7 +257,7 @@ class SingleTaskDataset(Dataset):
                  max_seq_length=512,
                  max_predictions_per_seq=80,
                  printable=True):
-        data, tokenizer = self.load(path, is_train, maxlen, factor, task_def, bert_model, do_lower_case)
+        data, tokenizer = self.load(path, is_train, maxlen, factor, task_def, bert_model, do_lower_case, printable=printable)
         self._data = data
         self._tokenizer = tokenizer
         self._task_id = task_id
