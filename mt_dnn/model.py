@@ -252,7 +252,7 @@ class MTDNNModel(object):
             self.train_loss.update(copied_loss.item(), batch_size)
         else:
             self.train_loss.update(loss.item(), batch_size)
-
+            
         if self.config.get('adv_train', False) and self.adv_teacher:
             if self.config['local_rank'] != -1:
                 copied_adv_loss = copy.deepcopy(adv_loss.data)

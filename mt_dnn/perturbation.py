@@ -89,7 +89,7 @@ class SmartPerturbation():
                 if task_type == TaskType.Ranking:
                     adv_logits = adv_logits.view(-1, pairwise)
                 adv_loss = stable_kl(adv_logits, logits.detach(), reduce=False) 
-            delta_grad, = torch.autograd.grad(adv_loss, noise, only_inputs=True)
+            delta_grad, = torch.autograd.grad(adv_loss, noise, only_inputs=True, retain_graph=False)
             norm = delta_grad.norm()
             if (torch.isnan(norm) or torch.isinf(norm)):
                 return 0
