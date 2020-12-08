@@ -440,13 +440,10 @@ def main():
             if (model.updates) % (args.log_per_updates) == 0 or model.updates == 1:
                 ramaining_time = str((datetime.now() - start) / (i + 1) * (len(multi_task_train_data) - i - 1)).split('.')[0]
                 if args.adv_train and args.debug:
-                    debug_info = ' basic loss[%.5f] adv loss[%.5f] emb val[%.8f] noise val[%.8f] noise grad val[%.8f] no proj noise[%.8f] ' % (
-                        model.basic_loss.avg,
+                    debug_info = ' adv loss[%.5f] emb val[%.8f] eff_perturb[%.8f] ' % (
                         model.adv_loss.avg,
                         model.emb_val.avg,
-                        model.noise_val.avg,
-                        model.noise_grad_val.avg,
-                        model.no_proj_noise_val.avg
+                        model.eff_perturb.avg
                     )
                 else:
                     debug_info = ' '

@@ -30,6 +30,9 @@ class MTDNNModel(object):
         self.local_updates = 0
         self.device = device
         self.train_loss = AverageMeter()
+        self.adv_loss = AverageMeter()
+        self.emb_val =  AverageMeter()
+        self.eff_perturb = AverageMeter()
         self.initial_from_local = True if state_dict else False
         model = SANBertNetwork(opt, initial_from_local=self.initial_from_local)
         self.total_param = sum([p.nelement() for p in model.parameters() if p.requires_grad])
@@ -234,7 +237,7 @@ class MTDNNModel(object):
             # task info
             task_type = batch_meta['task_def']['task_type']
             adv_inputs = [self.mnetwork, logits] + inputs + [task_type, batch_meta.get('pairwise_size', 1)]
-            adv_loss = self.adv_teacher.forward(*adv_inputs)
+            adv_loss, emb_val, eff_perturb = self.adv_teacher.forward(*adv_inputs)
             loss = loss + self.config['adv_alpha'] * adv_loss
 
         batch_size = batch_data[batch_meta['token_id']].size(0)
@@ -249,6 +252,28 @@ class MTDNNModel(object):
             self.train_loss.update(copied_loss.item(), batch_size)
         else:
             self.train_loss.update(loss.item(), batch_size)
+            
+        if self.config.get('adv_train', False) and self.adv_teacher:
+            if self.config['local_rank'] != -1:
+                copied_adv_loss = copy.deepcopy(adv_loss.data)
+                torch.distributed.all_reduce(copied_adv_loss)
+                copied_adv_loss = copied_adv_loss / self.config['world_size']
+                self.adv_loss.update(copied_adv_loss.item(), batch_size)
+
+                copied_emb_val = copy.deepcopy(emb_val.data)
+                torch.distributed.all_reduce(copied_emb_val)
+                copied_emb_val = copied_emb_val / self.config["world_size"]
+                self.emb_val.update(copied_emb_val.item(), batch_size)               
+
+                copied_eff_perturb = copy.deepcopy(eff_perturb.data)
+                torch.distributed.all_reduce(copied_eff_perturb)
+                copied_eff_perturb = copied_eff_perturb / self.config["world_size"]
+                self.eff_perturb.update(copied_eff_perturb.item(), batch_size)               
+            else:
+                self.adv_loss.update(adv_loss.item(), batch_size)
+                self.emb_val.update(emb_val.item(), batch_size)
+                self.eff_perturb.update(eff_perturb.item(), batch_size)
+
         # scale loss
         loss = loss / self.config.get('grad_accumulation_step', 1)
         if self.config['fp16']:
