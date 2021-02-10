@@ -7,4 +7,6 @@ MODEL_CLASSES = {
     "albert": (AlbertConfig, AlbertModel, AlbertTokenizer),
     "xlm": (XLMRobertaConfig, XLMRobertaModel, XLMRobertaTokenizer),
     "san": (BertConfig, SanModel, BertTokenizer),
+    "electra": (ElectraConfig, ElectraModel, ElectraTokenizer),
+
 }
