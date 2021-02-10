@@ -21,14 +21,6 @@ wget https://mrc.blob.core.windows.net/mt-dnn-model/mt_dnn_large.pt -O "${BERT_D
 ## MT-DNN-KD
 wget https://mrc.blob.core.windows.net/mt-dnn-model/mt_dnn_kd_large_cased.pt -O "${BERT_DIR}/mt_dnn_kd_large_cased.pt"
 
-## Download XLNet model
-wget https://storage.googleapis.com/xlnet/released_models/cased_L-24_H-1024_A-16.zip -O "xlnet_cased_large.zip"
-unzip xlnet_cased_large.zip 
-mv xlnet_cased_L-24_H-1024_A-16/spiece.model "${BERT_DIR}/xlnet_large_cased_spiece.model"
-rm -rf *.zip xlnet_cased_L-24_H-1024_A-16
-## download converted xlnet pytorch model
-wget https://mrc.blob.core.windows.net/mt-dnn-model/xlnet_model_large_cased.pt -O "${BERT_DIR}/xlnet_model_large_cased.pt"
-
 
 ## download ROBERTA
 wget https://dl.fbaipublicfiles.com/fairseq/models/roberta.base.tar.gz -O "roberta.base.tar.gz"
@@ -57,12 +49,12 @@ fi
 
 ## DOWNLOAD GLUE DATA
 ## Please refer glue-baseline install requirments or other issues.
-git clone https://github.com/jsalt18-sentence-repl/jiant.git
-cd jiant
+git clone https://github.com/nyu-mll/jiant-v1-legacy.git
+cd jiant-v1-legacy
 python scripts/download_glue_data.py --data_dir $DATA_DIR --tasks all
 
 cd ..
-rm -rf jiant
+rm -rf jiant-v1-legacy
 #########################
 
 ## DOWNLOAD SciTail
