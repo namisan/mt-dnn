@@ -34,7 +34,6 @@ def feature_extractor(tokenizer, text_a, text_b=None, max_length=512, do_padding
         truncation=True,
         padding=do_padding
     )
-    #import pdb; pdb.set_trace()
     input_ids = inputs["input_ids"]
     token_type_ids = inputs["token_type_ids"] if "token_type_ids" in inputs else [0] * len(input_ids)
 
@@ -233,7 +232,7 @@ def main(args):
 
     mt_dnn_root = os.path.join(root, args.model)
     if not os.path.isdir(mt_dnn_root):
-        os.mkdir(mt_dnn_root)
+        os.makedirs(mt_dnn_root)
 
     task_defs = TaskDefs(args.task_def)
 
