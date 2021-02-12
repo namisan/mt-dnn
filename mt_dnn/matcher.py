@@ -34,12 +34,14 @@ class SANBertNetwork(nn.Module):
 
         literal_encoder_type = EncoderModelType(self.encoder_type).name.lower()
         config_class, model_class, _ = MODEL_CLASSES[literal_encoder_type]
-        self.preloaded_config = config_class.from_dict(opt)  # load config from opt
-        self.preloaded_config.output_hidden_states = True # return all hidden states
         if not initial_from_local:
-            self.bert = model_class.from_pretrained(opt['init_checkpoint'], config=self.preloaded_config)
+            # self.bert = model_class.from_pretrained(opt['init_checkpoint'], config=self.preloaded_config)
+            self.bert = model_class.from_pretrained(opt['init_checkpoint'])
         else:
+            self.preloaded_config = config_class.from_dict(opt)  # load config from opt
+            self.preloaded_config.output_hidden_states = True # return all hidden states
             self.bert = model_class(self.preloaded_config)
+
         hidden_size = self.bert.config.hidden_size
 
         if opt.get('dump_feature', False):
@@ -102,8 +104,11 @@ class SANBertNetwork(nn.Module):
 
 
     def encode(self, input_ids, token_type_ids, attention_mask):
-        outputs = self.bert(input_ids=input_ids, token_type_ids=token_type_ids,
-                                                          attention_mask=attention_mask)
+        if self.encoder_type == EncoderModelType.T5:
+            outputs = self.bert(input_ids=input_ids, attention_mask=attention_mask)            
+        else:
+            outputs = self.bert(input_ids=input_ids, token_type_ids=token_type_ids,
+                                                            attention_mask=attention_mask)
         last_hidden_state = outputs.last_hidden_state
         all_hidden_states = outputs.hidden_states # num_layers + 1 (embeddings)
         return last_hidden_state, all_hidden_states

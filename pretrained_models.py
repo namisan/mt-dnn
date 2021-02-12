@@ -8,5 +8,5 @@ MODEL_CLASSES = {
     "xlm": (XLMRobertaConfig, XLMRobertaModel, XLMRobertaTokenizer),
     "san": (BertConfig, SanModel, BertTokenizer),
     "electra": (ElectraConfig, ElectraModel, ElectraTokenizer),
-
+    "t5": (T5Config, T5EncoderModel, T5Tokenizer),
 }

@@ -25,3 +25,4 @@ class EncoderModelType(IntEnum):
     XLM = 5
     DEBERTA = 6
     ELECTRA = 7
+    T5 = 8
