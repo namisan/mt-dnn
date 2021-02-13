@@ -9,22 +9,12 @@ from transformers import BertConfig
 from module.dropout_wrapper import DropoutWrapper
 from module.san import SANClassifier, MaskLmHeader
 from module.san_model import SanModel
+from module.pooler import Pooler
 from torch.nn.modules.normalization import LayerNorm
 from data_utils.task_def import EncoderModelType, TaskType
 import tasks
 from experiments.exp_def import TaskDef
 
-class LinearPooler(nn.Module):
-    def __init__(self, hidden_size):
-        super(LinearPooler, self).__init__()
-        self.dense = nn.Linear(hidden_size, hidden_size)
-        self.activation = nn.Tanh()
-
-    def forward(self, hidden_states):
-        first_token_tensor = hidden_states[:, 0]
-        pooled_output = self.dense(first_token_tensor)
-        pooled_output = self.activation(pooled_output)
-        return pooled_output
 
 def generate_decoder_opt(enable_san, max_opt):
     opt_v = 0
@@ -43,10 +33,15 @@ class SANBertNetwork(nn.Module):
         self.preloaded_config = None
 
         literal_encoder_type = EncoderModelType(self.encoder_type).name.lower()
-        config_class, model_class, tokenizer_class = MODEL_CLASSES[literal_encoder_type]
-        self.preloaded_config = config_class.from_dict(opt)  # load config from opt
-        self.preloaded_config.output_hidden_states = True # return all hidden states
-        self.bert = model_class(self.preloaded_config)
+        config_class, model_class, _ = MODEL_CLASSES[literal_encoder_type]
+        if not initial_from_local:
+            # self.bert = model_class.from_pretrained(opt['init_checkpoint'], config=self.preloaded_config)
+            self.bert = model_class.from_pretrained(opt['init_checkpoint'])
+        else:
+            self.preloaded_config = config_class.from_dict(opt)  # load config from opt
+            self.preloaded_config.output_hidden_states = True # return all hidden states
+            self.bert = model_class(self.preloaded_config)
+
         hidden_size = self.bert.config.hidden_size
 
         if opt.get('dump_feature', False):
@@ -77,6 +72,8 @@ class SANBertNetwork(nn.Module):
             self.dropout_list.append(dropout)
             task_obj = tasks.get_task_obj(task_def)
             if task_obj is not None:
+                # quick hack
+                self.pooler = Pooler(hidden_size, dropout_p= opt['dropout_p'], actf=opt['pooler_actf'])
                 out_proj = task_obj.train_build_task_layer(decoder_opt, hidden_size, lab, opt, prefix='answer', dropout=dropout)
             elif task_type == TaskType.Span:
                 assert decoder_opt != 1
@@ -95,28 +92,7 @@ class SANBertNetwork(nn.Module):
                 else:
                     out_proj = nn.Linear(hidden_size, lab)
             self.scoring_list.append(out_proj)
-
         self.opt = opt
-        self._my_init()
-        # if not loading from local, loading model weights from pre-trained model, after initialization
-        if not initial_from_local:
-            config_class, model_class, tokenizer_class = MODEL_CLASSES[literal_encoder_type]
-            self.bert = model_class.from_pretrained(opt['init_checkpoint'], config=self.preloaded_config)
-
-    def _my_init(self):
-        def init_weights(module):
-            if isinstance(module, (nn.Linear, nn.Embedding)):
-                # Slightly different from the TF version which uses truncated_normal for initialization
-                # cf https://github.com/pytorch/pytorch/pull/5617
-                module.weight.data.normal_(mean=0.0, std=0.02 * self.opt['init_ratio'])
-            if isinstance(module, LayerNorm):
-                # Layer normalization (https://arxiv.org/abs/1607.06450)
-                module.bias.data.zero_()
-                module.weight.data.fill_(1.0)
-            if isinstance(module, nn.Linear):
-                if module.bias is not None:
-                    module.bias.data.zero_()
-        self.apply(init_weights)
 
 
     def embed_encode(self, input_ids, token_type_ids=None, attention_mask=None):
@@ -128,13 +104,14 @@ class SANBertNetwork(nn.Module):
 
 
     def encode(self, input_ids, token_type_ids, attention_mask):
-        outputs = self.bert(input_ids=input_ids, token_type_ids=token_type_ids,
-                                                          attention_mask=attention_mask)
-        # all hidden states: outputs[1]
-        sequence_output = outputs[0]
-        pooled_output = outputs[1]
-        all_hidden_states = outputs[2]
-        return sequence_output, pooled_output, all_hidden_states
+        if self.encoder_type == EncoderModelType.T5:
+            outputs = self.bert(input_ids=input_ids, attention_mask=attention_mask)            
+        else:
+            outputs = self.bert(input_ids=input_ids, token_type_ids=token_type_ids,
+                                                            attention_mask=attention_mask)
+        last_hidden_state = outputs.last_hidden_state
+        all_hidden_states = outputs.hidden_states # num_layers + 1 (embeddings)
+        return last_hidden_state, all_hidden_states
 
     def embed_forward(self, embed, attention_mask=None, output_all_encoded_layers=True):
         device = embed.device
@@ -202,30 +179,31 @@ class SANBertNetwork(nn.Module):
         elif fwd_type == 1:
             return self.embed_encode(input_ids, token_type_ids, attention_mask)
         else:
-            sequence_output, pooled_output, _ = self.encode(input_ids, token_type_ids, attention_mask)
+            last_hidden_state, all_hidden_states = self.encode(input_ids, token_type_ids, attention_mask)
         decoder_opt = self.decoder_opt[task_id]
         task_type = self.task_types[task_id]
         task_obj = tasks.get_task_obj(self.task_def_list[task_id])
         if task_obj is not None:
-            logits = task_obj.train_forward(sequence_output, pooled_output, premise_mask, hyp_mask, decoder_opt, self.dropout_list[task_id], self.scoring_list[task_id])
+            pooled_output = self.pooler(last_hidden_state)
+            logits = task_obj.train_forward(last_hidden_state, pooled_output, premise_mask, hyp_mask, decoder_opt, self.dropout_list[task_id], self.scoring_list[task_id])
             return logits
         elif task_type == TaskType.Span:
             assert decoder_opt != 1
-            sequence_output = self.dropout_list[task_id](sequence_output)
-            logits = self.scoring_list[task_id](sequence_output)
+            last_hidden_state = self.dropout_list[task_id](last_hidden_state)
+            logits = self.scoring_list[task_id](last_hidden_state)
             start_scores, end_scores = logits.split(1, dim=-1)
             start_scores = start_scores.squeeze(-1)
             end_scores = end_scores.squeeze(-1)
             return start_scores, end_scores
         elif task_type == TaskType.SeqenceLabeling:
-            pooled_output = sequence_output
+            pooled_output = last_hidden_state
             pooled_output = self.dropout_list[task_id](pooled_output)
             pooled_output = pooled_output.contiguous().view(-1, pooled_output.size(2))
             logits = self.scoring_list[task_id](pooled_output)
             return logits
         elif task_type == TaskType.MaskLM:
-            sequence_output = self.dropout_list[task_id](sequence_output)
-            logits = self.scoring_list[task_id](sequence_output)
+            last_hidden_state = self.dropout_list[task_id](last_hidden_state)
+            logits = self.scoring_list[task_id](last_hidden_state)
             return logits
         else:
             if decoder_opt == 1:
@@ -233,8 +211,8 @@ class SANBertNetwork(nn.Module):
                 assert max_query > 0
                 assert premise_mask is not None
                 assert hyp_mask is not None
-                hyp_mem = sequence_output[:, :max_query, :]
-                logits = self.scoring_list[task_id](sequence_output, hyp_mem, premise_mask, hyp_mask)
+                hyp_mem = last_hidden_state[:, :max_query, :]
+                logits = self.scoring_list[task_id](last_hidden_state, hyp_mem, premise_mask, hyp_mask)
             else:
                 pooled_output = self.dropout_list[task_id](pooled_output)
                 logits = self.scoring_list[task_id](pooled_output)
