@@ -9,5 +9,6 @@ MODEL_CLASSES = {
     "san": (BertConfig, SanModel, BertTokenizer),
     "electra": (ElectraConfig, ElectraModel, ElectraTokenizer),
     "t5": (T5Config, T5EncoderModel, T5Tokenizer),
-    "deberta": (DebertaConfig, DebertaModel, DebertaTokenizer)
+    "deberta": (DebertaConfig, DebertaModel, DebertaTokenizer),
+    "t5g": (T5Config, T5ForConditionalGeneration, T5Tokenizer),
 }

@@ -99,6 +99,78 @@ def get_raw_scores(dataset, preds):
                 f1_scores[qid] = max(compute_f1(a, a_pred) for a in gold_answers)
     return exact_scores, f1_scores
 
+def squadv1_evaluate_func(human, predictions):
+    f1 = exact_match = total = 0
+    for uid, answer in human.items():
+        if type(answer) is dict:
+            ground_truths = answer['text']
+        else:
+            ground_truths = [ans['text'] for ans in answer]
+        total += 1
+        if uid not in predictions:
+            message = 'Unanswered question ' + uid + \
+                        ' will receive score 0.'
+            print(message, file=sys.stderr)
+            continue
+        prediction = predictions[uid]
+        ground_truths = [normalize_answer(a) for a in ground_truths]
+        if not ground_truths:
+            # For unanswerable questions, only correct answer is empty string
+            ground_truths = ['']
+        exact_match += max(compute_exact(a, prediction) for a in ground_truths)
+        f1 += max(compute_f1(a, prediction) for a in ground_truths)
+    exact_match = 100.0 * exact_match / total
+    f1 = 100.0 * f1 / total
+    return str({'exact_match': exact_match, 'f1': f1})
+
+def squadv2_evaluate_func(human, predictions, na_probs=None, na_prob_thresh=1.0):
+    def _make_qid_to_has_ans(dataset):
+        qid_to_has_ans = {}
+        for uid, answer in dataset.items():
+            qid_to_has_ans[uid] = not answer['is_impossible']
+        return qid_to_has_ans
+    def _get_raw_scores(grounds, predictions):
+        exact_scores = {}
+        f1_scores = {}
+        for uid, answer in grounds.items():
+            if type(answer) is dict:
+                ground_truths = answer['text']
+            else:
+                ground_truths = [ans['text'] for ans in answer]
+            if uid not in predictions:
+                message = 'Unanswered question ' + uid + \
+                            ' will receive score 0.'
+                print(message, file=sys.stderr)
+                continue
+            ground_truths = [normalize_answer(a) for a in ground_truths]
+            if not ground_truths:
+                # For unanswerable questions, only correct answer is empty string
+                ground_truths = ['']
+            prediction = predictions[uid]
+            # Take max over all gold answers
+            exact_scores[uid] = max(compute_exact(a, prediction) for a in ground_truths)
+            f1_scores[uid] = max(compute_f1(a, prediction) for a in ground_truths)
+        return exact_scores, f1_scores
+    qid_to_has_ans = _make_qid_to_has_ans(human)    # maps qid to True/False
+    has_ans_qids = [k for k, v in qid_to_has_ans.items() if v]
+    no_ans_qids = [k for k, v in qid_to_has_ans.items() if not v]
+    exact_raw, f1_raw = _get_raw_scores(human, predictions)
+    has_na_prob_score = False if na_probs is None else True
+    if na_probs is None:
+        na_probs = {k: 0.0 for k in predictions}
+    exact_thresh = apply_no_ans_threshold(exact_raw, na_probs, qid_to_has_ans, na_prob_thresh)
+    f1_thresh = apply_no_ans_threshold(f1_raw, na_probs, qid_to_has_ans, na_prob_thresh)
+    out_eval = make_eval_dict(exact_thresh, f1_thresh)
+    if has_ans_qids:
+        has_ans_eval = make_eval_dict(exact_thresh, f1_thresh, qid_list=has_ans_qids)
+        merge_eval(out_eval, has_ans_eval, 'HasAns')
+    if no_ans_qids:
+        no_ans_eval = make_eval_dict(exact_thresh, f1_thresh, qid_list=no_ans_qids)
+        merge_eval(out_eval, no_ans_eval, 'NoAns')
+    if has_na_prob_score:
+        find_all_best_thresh(out_eval, predictions, exact_raw, f1_raw, na_probs, qid_to_has_ans)
+    return out_eval
+
 def apply_no_ans_threshold(scores, na_probs, qid_to_has_ans, na_prob_thresh):
     new_scores = {}
     for qid, s in scores.items():
@@ -267,31 +339,10 @@ def main():
     else:
         print(json.dumps(out_eval, indent=2))
 
-if __name__ == '__main__':
-    OPTS = parse_args()
-    if OPTS.out_image_dir:
-        import matplotlib
-        matplotlib.use('Agg')
-        import matplotlib.pyplot as plt 
-    main()
-
-def my_evaluation(dataset, preds, na_probs=None, na_prob_thresh=1.0):
-    has_na_prob_score = False if na_probs is None else True
-    if na_probs is None:
-        na_probs = {k: 0.0 for k in preds}
-    qid_to_has_ans = make_qid_to_has_ans(dataset)    # maps qid to True/False
-    has_ans_qids = [k for k, v in qid_to_has_ans.items() if v]
-    no_ans_qids = [k for k, v in qid_to_has_ans.items() if not v]
-    exact_raw, f1_raw = get_raw_scores(dataset, preds)
-    exact_thresh = apply_no_ans_threshold(exact_raw, na_probs, qid_to_has_ans, na_prob_thresh)
-    f1_thresh = apply_no_ans_threshold(f1_raw, na_probs, qid_to_has_ans, na_prob_thresh)
-    out_eval = make_eval_dict(exact_thresh, f1_thresh)
-    if has_ans_qids:
-        has_ans_eval = make_eval_dict(exact_thresh, f1_thresh, qid_list=has_ans_qids)
-        merge_eval(out_eval, has_ans_eval, 'HasAns')
-    if no_ans_qids:
-        no_ans_eval = make_eval_dict(exact_thresh, f1_thresh, qid_list=no_ans_qids)
-        merge_eval(out_eval, no_ans_eval, 'NoAns')
-    if has_na_prob_score:
-        find_all_best_thresh(out_eval, preds, exact_raw, f1_raw, na_probs, qid_to_has_ans)
-    return out_eval
+# if __name__ == '__main__':
+#     OPTS = parse_args()
+#     if OPTS.out_image_dir:
+#         import matplotlib
+#         matplotlib.use('Agg')
+#         import matplotlib.pyplot as plt 
+#     main()
