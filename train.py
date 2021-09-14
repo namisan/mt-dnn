@@ -152,6 +152,10 @@ def train_config(parser):
     parser.add_argument('--adv_epsilon', default=1e-6, type=float)
     parser.add_argument('--encode_mode', action='store_true', help="only encode test data")
     parser.add_argument('--debug', action='store_true', help="print debug info")
+
+    # transformer cache
+    parser.add_argument("--transformer_cache", default='.cache', type=str)
+
     return parser
 
 
@@ -223,19 +227,13 @@ def evaluation(model, datasets, data_list, task_defs, output_dir='checkpoints', 
                     from experiments.glue.glue_utils import submit
                     official_score_file = os.path.join(output_dir, '{}_{}_scores_{}.tsv'.format(dataset, test_prefix.lower(), updates_str))
                     submit(official_score_file, results, label_dict)
-def initialize_distributed(args):
+
+def initialize_distributed(logger, args):
     """Initialize torch.distributed."""
     args.rank = int(os.getenv('RANK', '0'))
     args.world_size = int(os.getenv("WORLD_SIZE", '1'))
-
-    if os.getenv('OMPI_COMM_WORLD_LOCAL_RANK'):
-        # We are using (OpenMPI) mpirun for launching distributed data parallel processes
-        local_rank = int(os.getenv('OMPI_COMM_WORLD_LOCAL_RANK'))
-        local_size = int(os.getenv('OMPI_COMM_WORLD_LOCAL_SIZE'))
-        args.local_rank = local_rank
-        args.rank = nodeid * local_size + local_rank
-        args.world_size = num_nodes * local_size
-    #args.batch_size = args.batch_size * args.world_size
+    batch_size_pre_gpu = int(args.batch_size / args.world_size)
+    print_message(logger, 'Batch Size Per GPU: {}'.format(batch_size_pre_gpu))
 
     device = args.rank % torch.cuda.device_count()
     if args.local_rank is not None:
@@ -271,7 +269,7 @@ def main():
     # set up dist
     device = torch.device("cuda")
     if args.local_rank > -1:
-        device = initialize_distributed(args)
+        device = initialize_distributed(logger, args)
     elif torch.cuda.is_available():
         device = torch.device("cuda")
     else:
