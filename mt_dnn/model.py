@@ -19,6 +19,8 @@ from mt_dnn.perturbation import SmartPerturbation
 from mt_dnn.loss import *
 from data_utils.task_def import TaskType, EncoderModelType
 from experiments.exp_def import TaskDef
+from data_utils.my_statics import DUMPY_STRING_FOR_EMPTY_ANS
+
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +64,7 @@ class MTDNNModel(object):
         self._setup_kd_lossmap(self.config)
         self._setup_adv_lossmap(self.config)
         self._setup_adv_training(self.config)
+        self._setup_tokenizer()
 
 
     def _setup_adv_training(self, config):
@@ -178,6 +181,14 @@ class MTDNNModel(object):
                 assert cs is not None
                 lc = LOSS_REGISTRY[cs](name='Adv Loss func of task {}: {}'.format(idx, cs))
                 self.adv_task_loss_criterion.append(lc)
+    
+    def _setup_tokenizer(self):
+        try:
+            from transformers import AutoTokenizer 
+            self.tokenizer = AutoTokenizer.from_pretrained(self.config['init_checkpoint'], cache_dir=self.config['transformer_cache'])
+        except:
+            self.tokenizer = None
+        
 
     def _to_cuda(self, tensor):
         if tensor is None: return tensor
@@ -197,6 +208,9 @@ class MTDNNModel(object):
         self.network.train()
         y = batch_data[batch_meta['label']]
         y = self._to_cuda(y) if self.config['cuda'] else y
+        if batch_meta['task_def']['task_type'] == TaskType.SeqenceGeneration:
+            seq_length = y.size(1)
+            y = y.view(-1)
 
         task_id = batch_meta['task_id']
         inputs = batch_data[:batch_meta['input_len']]
@@ -204,6 +218,8 @@ class MTDNNModel(object):
             inputs.append(None)
             inputs.append(None)
         inputs.append(task_id)
+        if 'y_token_id' in batch_meta:
+            inputs.append(batch_data[batch_meta['y_token_id']])
         weight = None
         if self.config.get('weighted_on', False):
             if self.config['cuda']:
@@ -221,6 +237,9 @@ class MTDNNModel(object):
             if isinstance(loss_criterion, RankCeCriterion) and batch_meta['pairwise_size'] > 1:
                 # reshape the logits for ranking.
                 loss = self.task_loss_criterion[task_id](logits, y, weight, ignore_index=-1, pairwise_size=batch_meta['pairwise_size'])
+            elif batch_meta['task_def']['task_type'] == TaskType.SeqenceGeneration:
+                weight = (1.0 / torch.sum((y > -1).float().view(-1, seq_length), 1, keepdim=True)).repeat(1, seq_length).view(-1)
+                loss = self.task_loss_criterion[task_id](logits, y, weight, ignore_index=-1)
             else:
                 loss = self.task_loss_criterion[task_id](logits, y, weight, ignore_index=-1)
 
@@ -321,6 +340,11 @@ class MTDNNModel(object):
             inputs.append(None)
             inputs.append(None)
         inputs.append(task_id)
+        if task_type == TaskType.SeqenceGeneration:
+            # y_idx, #3 -> gen
+            inputs.append(None)
+            inputs.append(3)
+
         score = self.mnetwork(*inputs)
         if task_obj is not None:
             score, predict = task_obj.test_predict(score)
@@ -349,13 +373,43 @@ class MTDNNModel(object):
                 final_predict.append(p[: valied_lenght[idx]])
             score = score.reshape(-1).tolist()
             return score, final_predict, batch_meta['label']
-        elif task_type == TaskType.Span:
-            start, end = score
+        elif task_type == TaskType.Span or task_type == TaskType.SpanYN:
             predictions = []
-            if self.config['encoder_type'] == EncoderModelType.BERT:
-                import experiments.squad.squad_utils as mrc_utils
-                scores, predictions = mrc_utils.extract_answer(batch_meta, batch_data, start, end, self.config.get('max_answer_len', 5), do_lower_case=self.config.get('do_lower_case', False))
-            return scores, predictions, batch_meta['answer']
+            features = []
+            for idx, offset in enumerate(batch_meta['offset_mapping']):
+                token_is_max_context = batch_meta['token_is_max_context'][idx] if batch_meta.get('token_is_max_context', None) else None
+                sample_id = batch_meta['uids'][idx]
+                if 'label' in batch_meta:
+                    feature = {'offset_mapping': offset, 'token_is_max_context': token_is_max_context, 'uid': sample_id, 'context': batch_meta['context'][idx], 'answer': batch_meta['answer'][idx], 'label': batch_meta['label'][idx]}
+                else:
+                    feature = {'offset_mapping': offset, 'token_is_max_context': token_is_max_context, 'uid': sample_id, 'context': batch_meta['context'][idx], 'answer': batch_meta['answer'][idx]}
+                if 'null_ans_index' in batch_meta:
+                    feature["null_ans_index"] = batch_meta["null_ans_index"]
+                features.append(feature)
+            start, end = score
+            start = start.contiguous()
+            start = start.data.cpu()
+            start = start.numpy().tolist()
+            end = end.contiguous()
+            end = end.data.cpu()
+            end = end.numpy().tolist()
+            return (start, end), predictions, features
+        elif task_type == TaskType.SeqenceGeneration:
+            predicts = self.tokenizer.batch_decode(score, skip_special_tokens=True)
+            predictions = {}
+            golds = {}
+            for idx, predict in enumerate(predicts):
+                sample_id = batch_meta['uids'][idx]
+                answer = batch_meta['answer'][idx]
+                predict = predict.strip()
+                if predict == DUMPY_STRING_FOR_EMPTY_ANS:
+                    predict = ""
+                predictions[sample_id] = predict
+                golds[sample_id] = answer
+            score = score.contiguous()
+            score = score.data.cpu()
+            score = score.numpy().tolist()
+            return score, predictions, golds
         else:
             raise ValueError("Unknown task_type: %s" % task_type)
         return score, predict, batch_meta['label']

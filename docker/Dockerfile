@@ -18,4 +18,6 @@ RUN pip install tensorboard
 RUN pip install future
 RUN pip install regex
 
+RUN pip install transformers==4.6.0
+
 RUN apt-get update && apt-get install -y wget unzip

@@ -65,8 +65,6 @@ class DistMultiTaskBatchSampler(Sampler):
                 else:
                     batch.extend([batch[0] for _ in range(self.world_size-len(batch) % self.world_size)])
             chunk_size = len(batch) // self.world_size
-            #print(self.rank)
-            #print(batch[self.rank * chunk_size: (self.rank+1) * chunk_size])
             yield batch[self.rank * chunk_size: (self.rank+1) * chunk_size]
 
     @staticmethod
@@ -116,16 +114,8 @@ class DistSingleTaskBatchSampler(Sampler):
         indices = iter(self._data)
         for batch in indices:
             task_id = self._dataset.get_task_id()
-            #batch = next(indices)
             batch = [(task_id, sample_id) for sample_id in batch]
             yield batch
-            #if len(batch) % self.world_size != 0:
-            #    if self.drop_last:
-            #        break
-            #    else:
-            #        batch.extend([batch[0] for _ in range(self.world_size-len(batch) % self.world_size)])
-            #chunk_size = len(batch) // self.world_size
-            #yield batch[self.rank * chunk_size: (self.rank+1) * chunk_size]
 
 class MultiTaskBatchSampler(BatchSampler):
     def __init__(self, datasets, batch_size, mix_opt, extra_task_ratio, bin_size=64, bin_on=False, bin_grow_ratio=0.5):
@@ -235,7 +225,7 @@ class DistTaskDataset(Dataset):
         return len(self._dataset) 
 
     def __getitem__(self, idx):
-        task_id, sample_id = idx
+        _, sample_id = idx
         return self._dataset[sample_id]
 
     def get_task_id(self):
@@ -435,9 +425,8 @@ class Collater:
         # If we convert object to dict in advance, DataLoader will do nothing
         batch_info['task_def'] = task_def.__dict__ 
         batch_info['pairwise_size'] = self.pairwise_size  # need for ranking task
-
         # add label
-        labels = [sample['label'] for sample in batch]
+        labels = [sample['label'] if 'label' in sample else None for sample in batch]
         task_obj = tasks.get_task_obj(task_def)
         if self.is_train:
             # in training model, label is used by Pytorch, so would be tensor
@@ -448,12 +437,35 @@ class Collater:
                 batch_data.append(torch.LongTensor(labels))
                 batch_info['label'] = len(batch_data) - 1
             elif task_type == TaskType.Span:
-                start = [sample['start_position'] for sample in batch]
-                end = [sample['end_position'] for sample in batch]
+                # support multi positions
+                start, end = [], []
+                for sample in batch:
+                    if type(sample['start_position']) is list and type(sample['end_position']):
+                        idx = random.choice(range(0, len(sample['start_position'])))
+                        start.append(sample['start_position'][idx])
+                        end.append(sample['end_position'][idx])
+                    else:
+                        start.append(sample['start_position'])
+                        end.append(sample['end_position'])
                 batch_data.append((torch.LongTensor(start), torch.LongTensor(end)))
                 # unify to one type of label
                 batch_info['label'] = len(batch_data) - 1
-                #batch_data.extend([torch.LongTensor(start), torch.LongTensor(end)])
+            elif task_type == TaskType.SpanYN:
+                # start = [sample['start_position'] for sample in batch]
+                # end = [sample['end_position'] for sample in batch]
+                start, end = [], []
+                for sample in batch:
+                    if type(sample['start_position']) is list and type(sample['end_position']):
+                        idx = random.choice(range(0, len(sample['start_position'])))
+                        start.append(sample['start_position'][idx])
+                        end.append(sample['end_position'][idx])
+                    else:
+                        start.append(sample['start_position'])
+                        end.append(sample['end_position'])
+                # start, end, yes/no
+                batch_data.append((torch.LongTensor(start), torch.LongTensor(end), torch.LongTensor(labels)))
+                # unify to one type of label
+                batch_info['label'] = len(batch_data) - 1
             elif task_type == TaskType.SeqenceLabeling:
                 batch_size = self._get_batch_size(batch)
                 tok_len = self._get_max_len(batch, key='token_id')
@@ -473,6 +485,15 @@ class Collater:
                 labels = torch.LongTensor([sample['nsp_lab'] for sample in batch])
                 batch_data.append((tlab, labels))
                 batch_info['label'] = len(batch_data) - 1
+            elif task_type == TaskType.SeqenceGeneration:
+                batch_size = self._get_batch_size(batch)
+                y_idxs = torch.LongTensor([sample['label'][:-1] for sample in batch])
+                label = torch.LongTensor([sample['label'][1:] for sample in batch])
+                label.masked_fill_(label==0, -1)
+                batch_data.append(y_idxs)
+                batch_info['y_token_id'] = len(batch_data) - 1
+                batch_data.append(label)
+                batch_info['label'] = len(batch_data) - 1
 
             # soft label generated by ensemble models for knowledge distillation
             if self.soft_label_on and 'softlabel' in batch[0]:
@@ -487,13 +508,15 @@ class Collater:
                 batch_info['label'] = labels
                 if task_type == TaskType.Ranking:
                     batch_info['true_label'] = [sample['true_label'] for sample in batch]
-                if task_type == TaskType.Span:
-                    batch_info['token_to_orig_map'] = [sample['token_to_orig_map'] for sample in batch]
-                    batch_info['token_is_max_context'] = [sample['token_is_max_context'] for sample in batch]
-                    batch_info['doc_offset'] = [sample['doc_offset'] for sample in batch]
-                    batch_info['doc'] = [sample['doc'] for sample in batch]
-                    batch_info['tokens'] = [sample['tokens'] for sample in batch]
+                if task_type == TaskType.Span or task_type == TaskType.SpanYN:
+                    batch_info['offset_mapping'] = [sample['offset_mapping'] for sample in batch]
+                    batch_info['token_is_max_context'] = [sample.get('token_is_max_context', None) for sample in batch]
+                    batch_info['context'] = [sample['context'] for sample in batch]
                     batch_info['answer'] = [sample['answer'] for sample in batch]
+                    batch_info['label'] = [sample['label'] if "label" in sample else None for sample in batch]
+                if task_type == TaskType.SeqenceGeneration:
+                    batch_info['answer'] = [sample['answer'] for sample in batch]
+
 
         batch_info['uids'] = [sample['uid'] for sample in batch]  # used in scoring
         return batch_info, batch_data
