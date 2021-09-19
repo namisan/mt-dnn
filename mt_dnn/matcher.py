@@ -34,7 +34,7 @@ class SANBertNetwork(nn.Module):
         config_class, model_class, _ = MODEL_CLASSES[literal_encoder_type]
         if not initial_from_local:
             # self.bert = model_class.from_pretrained(opt['init_checkpoint'], config=self.preloaded_config)
-            self.bert = model_class.from_pretrained(opt['init_checkpoint'])
+            self.bert = model_class.from_pretrained(opt['init_checkpoint'], cache_dir=opt['transformer_cache'])
         else:
             self.preloaded_config = config_class.from_dict(opt)  # load config from opt
             self.preloaded_config.output_hidden_states = True # return all hidden states
@@ -43,7 +43,7 @@ class SANBertNetwork(nn.Module):
         hidden_size = self.bert.config.hidden_size
 
         if opt.get('dump_feature', False):
-            self.opt = opt
+            self.config = opt
             return
         if opt['update_bert_opt'] > 0:
             for p in self.bert.parameters():
@@ -76,6 +76,9 @@ class SANBertNetwork(nn.Module):
             elif task_type == TaskType.Span:
                 assert decoder_opt != 1
                 out_proj = nn.Linear(hidden_size, 2)
+            elif task_type == TaskType.SpanYN:
+                assert decoder_opt != 1
+                out_proj = nn.Linear(hidden_size, 2)
             elif task_type == TaskType.SeqenceLabeling:
                 out_proj = nn.Linear(hidden_size, lab)
             elif task_type == TaskType.MaskLM:
@@ -84,13 +87,16 @@ class SANBertNetwork(nn.Module):
                     out_proj = MaskLmHeader(self.bert.embeddings.word_embeddings.weight)
                 else:
                     out_proj = MaskLmHeader(self.bert.embeddings.word_embeddings.weight)
+            elif task_type == TaskType.SeqenceGeneration:
+                # use orginal header
+                out_proj = None
             else:
                 if decoder_opt == 1:
                     out_proj = SANClassifier(hidden_size, hidden_size, lab, opt, prefix='answer', dropout=dropout)
                 else:
                     out_proj = nn.Linear(hidden_size, lab)
             self.scoring_list.append(out_proj)
-        self.opt = opt
+        self.config = opt
 
 
     def embed_encode(self, input_ids, token_type_ids=None, attention_mask=None):
@@ -100,24 +106,41 @@ class SANBertNetwork(nn.Module):
         return embedding_output
 
 
-    def encode(self, input_ids, token_type_ids, attention_mask, inputs_embeds=None):
+    def encode(self, input_ids, token_type_ids, attention_mask, inputs_embeds=None, y_input_ids=None):
         if self.encoder_type == EncoderModelType.T5:
-            outputs = self.bert(input_ids=input_ids, attention_mask=attention_mask, inputs_embeds=inputs_embeds)            
+            outputs = self.bert(input_ids=input_ids, attention_mask=attention_mask, inputs_embeds=inputs_embeds)
+            last_hidden_state = outputs.last_hidden_state
+            all_hidden_states = outputs.hidden_states # num_layers + 1 (embeddings)
+        elif self.encoder_type == EncoderModelType.T5G:
+            outputs = self.bert(input_ids=input_ids, attention_mask=attention_mask, decoder_input_ids=y_input_ids)
+            # return logits from LM header
+            last_hidden_state = outputs.logits
+            all_hidden_states = outputs.encoder_last_hidden_state # num_layers + 1 (embeddings)
         else:
             outputs = self.bert(input_ids=input_ids, token_type_ids=token_type_ids,
                                                             attention_mask=attention_mask, inputs_embeds=inputs_embeds)
-        last_hidden_state = outputs.last_hidden_state
-        all_hidden_states = outputs.hidden_states # num_layers + 1 (embeddings)
+            last_hidden_state = outputs.last_hidden_state
+            all_hidden_states = outputs.hidden_states # num_layers + 1 (embeddings)
         return last_hidden_state, all_hidden_states
 
-    def forward(self, input_ids, token_type_ids, attention_mask, premise_mask=None, hyp_mask=None, task_id=0, fwd_type=0, embed=None):
-        if fwd_type == 2:
+    def forward(self, input_ids, token_type_ids, attention_mask, premise_mask=None, hyp_mask=None, task_id=0, y_input_ids=None, fwd_type=0, embed=None):        
+        if fwd_type == 3:
+            generated = self.bert.generate(input_ids=input_ids,
+                attention_mask=attention_mask,
+                max_length=self.config['max_answer_len'], 
+                num_beams=self.config['num_beams'],
+                repetition_penalty=self.config['repetition_penalty'],
+                length_penalty=self.config['length_penalty'], 
+                early_stopping=True
+            )
+            return generated
+        elif fwd_type == 2:
             assert embed is not None
-            last_hidden_state, all_hidden_states = self.encode(None, token_type_ids, attention_mask, embed) 
+            last_hidden_state, all_hidden_states = self.encode(None, token_type_ids, attention_mask, embed, y_input_ids)
         elif fwd_type == 1:
             return self.embed_encode(input_ids, token_type_ids, attention_mask)
         else:
-            last_hidden_state, all_hidden_states = self.encode(input_ids, token_type_ids, attention_mask)
+            last_hidden_state, all_hidden_states = self.encode(input_ids, token_type_ids, attention_mask, y_input_ids=y_input_ids)
         decoder_opt = self.decoder_opt[task_id]
         task_type = self.task_types[task_id]
         task_obj = tasks.get_task_obj(self.task_def_list[task_id])
@@ -126,6 +149,14 @@ class SANBertNetwork(nn.Module):
             logits = task_obj.train_forward(last_hidden_state, pooled_output, premise_mask, hyp_mask, decoder_opt, self.dropout_list[task_id], self.scoring_list[task_id])
             return logits
         elif task_type == TaskType.Span:
+            assert decoder_opt != 1
+            last_hidden_state = self.dropout_list[task_id](last_hidden_state)
+            logits = self.scoring_list[task_id](last_hidden_state)
+            start_scores, end_scores = logits.split(1, dim=-1)
+            start_scores = start_scores.squeeze(-1)
+            end_scores = end_scores.squeeze(-1)
+            return start_scores, end_scores
+        elif task_type == TaskType.SpanYN:
             assert decoder_opt != 1
             last_hidden_state = self.dropout_list[task_id](last_hidden_state)
             logits = self.scoring_list[task_id](last_hidden_state)
@@ -142,6 +173,9 @@ class SANBertNetwork(nn.Module):
         elif task_type == TaskType.MaskLM:
             last_hidden_state = self.dropout_list[task_id](last_hidden_state)
             logits = self.scoring_list[task_id](last_hidden_state)
+            return logits
+        elif task_type == TaskType.SeqenceGeneration:
+            logits = last_hidden_state.view(-1, last_hidden_state.size(-1))
             return logits
         else:
             if decoder_opt == 1:

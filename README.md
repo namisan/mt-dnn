@@ -65,7 +65,7 @@ Posterior Differential Regularization with f-divergence for Improving Model Robu
    ```> docker pull allenlao/pytorch-mt-dnn:v0.5```
 
 2. Run docker </br>
-   ```> docker run -it --rm --runtime nvidia  allenlao/pytorch-mt-dnn:v0.5 bash``` </br>
+   ```> docker run -it --rm --runtime nvidia  allenlao/pytorch-mt-dnn:v1.2 bash``` </br>
    Please refer to the following link if you first use docker: https://docs.docker.com/
 
 ### Train a toy MT-DNN model
