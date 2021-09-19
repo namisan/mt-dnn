@@ -43,8 +43,8 @@ class CeCriterion(Criterion):
     def forward(self, input, target, weight=None, ignore_index=-1):
         """weight: sample weight
         """
-        if weight:
-            loss = torch.mean(F.cross_entropy(input, target, reduce=False, ignore_index=ignore_index) * weight)
+        if weight is not None:
+            loss = torch.sum(F.cross_entropy(input, target, reduce=False, reduction="none", ignore_index=ignore_index) * weight)
         else:
             loss = F.cross_entropy(input, target, ignore_index=ignore_index)
         loss = loss * self.alpha
@@ -210,7 +210,11 @@ class SpanCeCriterion(Criterion):
         """
         assert len(input) == 2
         start_input, end_input = input
-        start_target, end_target = target
+        if len(target) == 3:
+            start_target, end_target, _ = target
+        else:
+            assert len(target) == 2
+            start_target, end_target = target
         if weight:
             b = torch.mean(F.cross_entropy(start_input, start_target, reduce=False, ignore_index=ignore_index) * weight)
             e = torch.mean(F.cross_entropy(end_input, end_target, reduce=False, ignore_index=ignore_index) * weight)
@@ -218,6 +222,33 @@ class SpanCeCriterion(Criterion):
             b = F.cross_entropy(start_input, start_target, ignore_index=ignore_index)
             e = F.cross_entropy(end_input, end_target, ignore_index=ignore_index)
         loss = 0.5 * (b + e) * self.alpha
+        return loss
+
+class SpanYNCeCriterion(Criterion):
+    def __init__(self, alpha=1.0, name='Span Cross Entropy Criterion'):
+        super().__init__()
+        """This is for extractive MRC, e.g., SQuAD, ReCoRD ... etc
+        """
+        self.alpha = alpha
+        self.name = name
+
+    def forward(self, input, target, weight=None, ignore_index=-1):
+        """weight: sample weight
+        """
+        assert len(input) == 3
+        start_input, end_input, labels_input = input
+        # start/end/yesno
+        start_target, end_target, labels_target = target
+        if weight:
+            b = torch.mean(F.cross_entropy(start_input, start_target, reduce=False, ignore_index=ignore_index) * weight)
+            e = torch.mean(F.cross_entropy(end_input, end_target, reduce=False, ignore_index=ignore_index) * weight)
+            # yes/no
+            e = torch.mean(F.cross_entropy(labels_input, labels_target, reduce=False, ignore_index=ignore_index) * weight)
+        else:
+            b = F.cross_entropy(start_input, start_target, ignore_index=ignore_index)
+            e = F.cross_entropy(end_input, end_target, ignore_index=ignore_index)
+            c = F.cross_entropy(labels_input, labels_target, ignore_index=ignore_index)
+        loss = 0.5 * (b + e) * self.alpha + c
         return loss
 
 class MlmCriterion(Criterion):
