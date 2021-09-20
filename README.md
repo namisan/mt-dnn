@@ -108,10 +108,18 @@ Here, we provide two examples, STS-B and RTE. You can use similar scripts to fin
 1. Preprocess data </br>
    a) Download NER data to data/ner including: {train/valid/test}.txt </br>
    b) Convert NER data to the canonical format: ```> python experiments\ner\prepro.py --data data\ner --output_dir data\canonical_data``` </br>
-   c) Preprocess the canonical data to the MT-DNN format: ```> python prepro_std.py --do_lower_case --root_dir data\canonical_data --task_def experiments\ner\ner_task_def.yml --model bert-base-uncased``` </br>
+   c) Preprocess the canonical data to the MT-DNN format: ```> python prepro_std.py --root_dir data\canonical_data --task_def experiments\ner\ner_task_def.yml --model bert-base-uncased``` </br>
 
 2. Training </br>
-   ```> python train.py --data_dir <data-path> --init_checkpoint <bert/ner-model> --train_dataset ner --test_dataset ner --task_def experiments\ner\ner_task_def.yml```
+   ```> python train.py --data_dir <data-path> --init_checkpoint <bert-base-uncased> --train_dataset squad,squad-v2 --test_dataset squad,squad-v2 --task_def experiments\squad\squad_task_def.yml```
+
+### Question Answer Task
+1. Preprocess data </br>
+   a) Download SQuAD data to data/squad including: {train/valid}.txt and then change file name to: {squad_train/squad_dev}.json</br>
+   b) Convert data to the MT-DNN format: ```> python experiments\squad\squad_prepro.py  --root_dir data\canonical_data --task_def experiments\squad\squad_task_def.yml --model bert-base-uncased``` </br>
+
+2. Training </br>
+   ```> python train.py --data_dir <data-path> --init_checkpoint <bert-model> --train_dataset ner --test_dataset ner --task_def experiments\ner\ner_task_def.yml```
 
 ### SMART
 Adv training at the fine-tuning stages:
