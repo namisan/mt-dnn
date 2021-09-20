@@ -1,19 +1,33 @@
 squad:
-  data_format: MRC
+  data_format: CLUE_SPAN
   dropout_p: 0.1
   enable_san: false
   metric_meta:
-    - EmF1
-  n_class: 2
+    - EmF12
   task_type: Span
   loss: SpanCeCriterion
   kd_loss: MseCriterion
   adv_loss: SymKlCriterion
+  n_class: 2
   split_names:
-    - train
-    - dev
+  - train
+  - dev
 squad-v2:
-  data_format: MRC
+  data_format: CLUE_SPAN
+  dropout_p: 0.1
+  enable_san: false
+  metric_meta:
+    - EmF12
+  task_type: SpanYN
+  loss: SpanCeCriterion
+  kd_loss: MseCriterion
+  adv_loss: SymKlCriterion
+  n_class: 2
+  split_names:
+  - train
+  - dev
+record:
+  data_format: CLUE_SPAN
   dropout_p: 0.1
   enable_san: false
   metric_meta:
@@ -24,5 +38,5 @@ squad-v2:
   kd_loss: MseCriterion
   adv_loss: SymKlCriterion
   split_names:
-    - train
-    - dev
+  - train
+  - dev
