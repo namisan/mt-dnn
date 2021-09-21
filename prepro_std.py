@@ -10,7 +10,6 @@ from data_utils import load_data
 from data_utils.task_def import TaskType, DataFormat
 from data_utils.log_wrapper import create_logger
 from experiments.exp_def import TaskDefs
-from experiments.squad import squad_utils
 from transformers import AutoTokenizer
 
 
@@ -140,53 +139,6 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
                 features = {'uid': ids, 'label': label, 'token_id': input_ids, 'type_id': type_ids}
                 writer.write('{}\n'.format(json.dumps(features)))
 
-    def build_data_mrc(data, dump_path, max_seq_len=MRC_MAX_SEQ_LEN, tokenizer=None, label_mapper=None, is_training=True):
-        with open(dump_path, 'w', encoding='utf-8') as writer:
-            unique_id = 1000000000 # TODO: this is from BERT, needed to remove it...
-            for example_index, sample in enumerate(data):
-                ids = sample['uid']
-                doc = sample['premise']
-                query = sample['hypothesis']
-                label = sample['label']
-                doc_tokens, cw_map = squad_utils.token_doc(doc)
-                answer_start, answer_end, answer, is_impossible = squad_utils.parse_squad_label(label)
-                answer_start_adjusted, answer_end_adjusted = squad_utils.recompute_span(answer, answer_start, cw_map)
-                is_valid = squad_utils.is_valid_answer(doc_tokens, answer_start_adjusted, answer_end_adjusted, answer)
-                if not is_valid: continue
-                """
-                TODO --xiaodl: support RoBERTa
-                """
-                feature_list = squad_utils.mrc_feature(tokenizer,
-                                        unique_id,
-                                        example_index,
-                                        query,
-                                        doc_tokens,
-                                        answer_start_adjusted,
-                                        answer_end_adjusted,
-                                        is_impossible,
-                                        max_seq_len,
-                                        MAX_QUERY_LEN,
-                                        DOC_STRIDE,
-                                        answer_text=answer,
-                                        is_training=True)
-                unique_id += len(feature_list)
-                for feature in feature_list:
-                    so = json.dumps({'uid': ids,
-                                'token_id' : feature.input_ids,
-                                'mask': feature.input_mask,
-                                'type_id': feature.segment_ids,
-                                'example_index': feature.example_index,
-                                'doc_span_index':feature.doc_span_index,
-                                'tokens': feature.tokens,
-                                'token_to_orig_map': feature.token_to_orig_map,
-                                'token_is_max_context': feature.token_is_max_context,
-                                'start_position': feature.start_position,
-                                'end_position': feature.end_position,
-                                'label': feature.is_impossible,
-                                'doc': doc,
-                                'doc_offset': feature.doc_offset,
-                                'answer': [answer]})
-                    writer.write('{}\n'.format(so))
 
 
     if data_format == DataFormat.PremiseOnly:
@@ -203,8 +155,6 @@ def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
             data, dump_path, max_seq_len, tokenizer)
     elif data_format == DataFormat.Seqence:
         build_data_sequence(data, dump_path, max_seq_len, tokenizer, lab_dict)
-    elif data_format == DataFormat.MRC:
-        build_data_mrc(data, dump_path, max_seq_len, tokenizer)
     else:
         raise ValueError(data_format)
 

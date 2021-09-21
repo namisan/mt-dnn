@@ -17,13 +17,13 @@ class DataFormat(IntEnum):
     PremiseOnly = 1
     PremiseAndOneHypothesis = 2
     PremiseAndMultiHypothesis = 3
-    MRC = 4
-    Seqence = 5
-    MLM = 6
-    CLUE_CLASSIFICATION = 7
-    CLUE_SPAN = 8
-    CLUE_SEQ = 9
-    CLUE_GEN = 10 # generation
+#    MRC = 4 # changed to CLUE_SPAN
+    Seqence = 4
+    MLM = 5
+    CLUE_CLASSIFICATION = 6
+    CLUE_SPAN = 7
+    CLUE_SEQ = 8
+    CLUE_GEN = 9 # generation
 
 
 class EncoderModelType(IntEnum):
