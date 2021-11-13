@@ -124,13 +124,14 @@ def train_config(parser):
     # scheduler
     parser.add_argument('--have_lr_scheduler', dest='have_lr_scheduler', action='store_false')
     parser.add_argument('--multi_step_lr', type=str, default='10,20,30')
-    #parser.add_argument('--feature_based_on', action='store_true')
     parser.add_argument('--lr_gamma', type=float, default=0.5)
     parser.add_argument('--scheduler_type', type=str, default='ms', help='ms/rop/exp')
     parser.add_argument('--output_dir', default='checkpoint')
     parser.add_argument('--seed', type=int, default=2018,
                         help='random seed for data shuffling, embedding init, etc.')
     parser.add_argument('--grad_accumulation_step', type=int, default=1)
+
+    parser.add_argument('--feature_based_on', action='store_true')
 
     #fp 16
     parser.add_argument('--fp16', action='store_true',

@@ -229,7 +229,9 @@ class MTDNNModel(object):
 
         # fw to get logits
         logits = self.mnetwork(*inputs)
-
+        if "feature_based_on" in self.config and self.config["feature_based_on"]:
+            l2norm = logits[-1]
+            logits = logits[0]
         # compute loss
         loss = 0
         if self.task_loss_criterion[task_id] and (y is not None):
@@ -243,6 +245,10 @@ class MTDNNModel(object):
             else:
                 loss = self.task_loss_criterion[task_id](logits, y, weight, ignore_index=-1)
 
+        # L2Norm for feature based models
+        if "feature_based_on" in self.config and self.config["feature_based_on"]:
+            loss = loss + l2norm
+        
         # compute kd loss
         if self.config.get('mkd_opt', 0) > 0 and ('soft_label' in batch_meta):
             soft_labels = batch_meta['soft_label']
