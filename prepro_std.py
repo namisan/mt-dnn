@@ -11,6 +11,9 @@ from data_utils.task_def import TaskType, DataFormat
 from data_utils.log_wrapper import create_logger
 from experiments.exp_def import TaskDefs
 from transformers import AutoTokenizer
+from tqdm import tqdm
+from functools import partial
+import multiprocessing
 
 
 DEBUG_MODE = False
@@ -45,118 +48,104 @@ def feature_extractor(tokenizer, text_a, text_b=None, max_length=512, do_padding
         assert len(token_type_ids) == max_length, "Error with input length {} vs {}".format(len(token_type_ids), max_length)
     return input_ids, attention_mask, token_type_ids
 
+def extract_feature_premise_only(
+        sample, max_seq_len=MAX_SEQ_LEN, tokenizer=None):
+    """extract feature of single sentence tasks
+    """
+    input_ids, input_mask, type_ids = feature_extractor(tokenizer, sample['premise'], max_length=max_seq_len)
+    feature = {
+        'uid': sample['uid'],
+        'label': sample['label'],
+        'token_id': input_ids,
+        'type_id': type_ids,
+        'attention_mask': input_mask}
+    return feature
+
+def extract_feature_premise_and_one_hypo(
+        sample, max_seq_len=MAX_SEQ_LEN, tokenizer=None):
+        input_ids, input_mask, type_ids = feature_extractor(tokenizer, sample['premise'], text_b=sample['hypothesis'], max_length=max_seq_len)
+        feature = {
+            'uid': sample['uid'],
+            'label': sample['label'],
+            'token_id': input_ids,
+            'type_id': type_ids,
+            'attention_mask': input_mask}
+        return feature
+
+def extract_feature_premise_and_multi_hypo(
+        sample, max_seq_len=MAX_SEQ_LEN, tokenizer=None):
+        ids = sample['uid']
+        premise = sample['premise']
+        hypothesis_list = sample['hypothesis']
+        label = sample['label']
+        input_ids_list = []
+        type_ids_list = []
+        attention_mask_list = []
+        for hypothesis in hypothesis_list:
+            input_ids, input_mask, type_ids = feature_extractor(tokenizer,
+                                                                premise, hypothesis, max_length=max_seq_len)
+            input_ids_list.append(input_ids)
+            type_ids_list.append(type_ids)
+            attention_mask_list.append(input_mask)
+        feature = {
+            'uid': ids,
+            'label': label,
+            'token_id': input_ids_list,
+            'type_id': type_ids_list,
+            'ruid': sample['ruid'],
+            'olabel': sample['olabel'],
+            'attention_mask': attention_mask_list}
+        return feature
+
+def extract_feature_sequence(sample, max_seq_len=MAX_SEQ_LEN, tokenizer=None, label_mapper=None):
+    ids = sample['uid']
+    premise = sample['premise']
+    tokens = []
+    labels = []
+    for i, word in enumerate(premise):
+        subwords = tokenizer.tokenize(word)
+        tokens.extend(subwords)
+        for j in range(len(subwords)):
+            if j == 0:
+                labels.append(sample['label'][i])
+            else:
+                labels.append(label_mapper['X'])
+    if len(premise) >  max_seq_len - 2:
+        tokens = tokens[:max_seq_len - 2]
+        labels = labels[:max_seq_len - 2]
+
+    label = [label_mapper['CLS']] + labels + [label_mapper['SEP']]
+    input_ids = tokenizer.convert_tokens_to_ids([tokenizer.cls_token] + tokens + [tokenizer.sep_token])
+    assert len(label) == len(input_ids)
+    type_ids = [0] * len(input_ids)
+    feature = {'uid': ids, 'label': label, 'token_id': input_ids, 'type_id': type_ids}
+    return feature
+
 def build_data(data, dump_path, tokenizer, data_format=DataFormat.PremiseOnly,
-               max_seq_len=MAX_SEQ_LEN, lab_dict=None, do_padding=False, truncation=True):
-    def build_data_premise_only(
-            data, dump_path, max_seq_len=MAX_SEQ_LEN, tokenizer=None):
-        """Build data of single sentence tasks
-        """
-        with open(dump_path, 'w', encoding='utf-8') as writer:
-            for idx, sample in enumerate(data):
-                ids = sample['uid']
-                premise = sample['premise']
-                label = sample['label']
-                input_ids, input_mask, type_ids = feature_extractor(tokenizer, premise, max_length=max_seq_len)
-                features = {
-                    'uid': ids,
-                    'label': label,
-                    'token_id': input_ids,
-                    'type_id': type_ids,
-                    'attention_mask': input_mask}
-                writer.write('{}\n'.format(json.dumps(features)))
-
-    def build_data_premise_and_one_hypo(
-            data, dump_path, max_seq_len=MAX_SEQ_LEN, tokenizer=None):
-        """Build data of sentence pair tasks
-        """
-        with open(dump_path, 'w', encoding='utf-8') as writer:
-            for idx, sample in enumerate(data):
-                ids = sample['uid']
-                premise = sample['premise']
-                hypothesis = sample['hypothesis']
-                label = sample['label']
-                input_ids, input_mask, type_ids = feature_extractor(tokenizer, premise, text_b=hypothesis, max_length=max_seq_len)
-                features = {
-                    'uid': ids,
-                    'label': label,
-                    'token_id': input_ids,
-                    'type_id': type_ids,
-                    'attention_mask': input_mask}
-                writer.write('{}\n'.format(json.dumps(features)))
-
-    def build_data_premise_and_multi_hypo(
-            data, dump_path, max_seq_len=MAX_SEQ_LEN, tokenizer=None):
-        """Build QNLI as a pair-wise ranking task
-        """
-        with open(dump_path, 'w', encoding='utf-8') as writer:
-            for idx, sample in enumerate(data):
-                ids = sample['uid']
-                premise = sample['premise']
-                hypothesis_list = sample['hypothesis']
-                label = sample['label']
-                input_ids_list = []
-                type_ids_list = []
-                attention_mask_list = []
-                for hypothesis in hypothesis_list:
-                    input_ids, input_mask, type_ids = feature_extractor(tokenizer,
-                                                                        premise, hypothesis, max_length=max_seq_len)
-                    input_ids_list.append(input_ids)
-                    type_ids_list.append(type_ids)
-                    attention_mask_list.append(input_mask)
-                features = {
-                    'uid': ids,
-                    'label': label,
-                    'token_id': input_ids_list,
-                    'type_id': type_ids_list,
-                    'ruid': sample['ruid'],
-                    'olabel': sample['olabel'],
-                    'attention_mask': attention_mask_list}
-                writer.write('{}\n'.format(json.dumps(features)))
-
-    def build_data_sequence(data, dump_path, max_seq_len=MAX_SEQ_LEN, tokenizer=None, label_mapper=None):
-        with open(dump_path, 'w', encoding='utf-8') as writer:
-            for idx, sample in enumerate(data):
-                ids = sample['uid']
-                premise = sample['premise']
-                tokens = []
-                labels = []
-                for i, word in enumerate(premise):
-                    subwords = tokenizer.tokenize(word)
-                    tokens.extend(subwords)
-                    for j in range(len(subwords)):
-                        if j == 0:
-                            labels.append(sample['label'][i])
-                        else:
-                            labels.append(label_mapper['X'])
-                if len(premise) >  max_seq_len - 2:
-                    tokens = tokens[:max_seq_len - 2]
-                    labels = labels[:max_seq_len - 2]
-
-                label = [label_mapper['CLS']] + labels + [label_mapper['SEP']]
-                input_ids = tokenizer.convert_tokens_to_ids([tokenizer.cls_token] + tokens + [tokenizer.sep_token])
-                assert len(label) == len(input_ids)
-                type_ids = [0] * len(input_ids)
-                features = {'uid': ids, 'label': label, 'token_id': input_ids, 'type_id': type_ids}
-                writer.write('{}\n'.format(json.dumps(features)))
-
-
-
+               max_seq_len=MAX_SEQ_LEN, lab_dict=None, do_padding=False, truncation=True, workers=1):
     if data_format == DataFormat.PremiseOnly:
-        build_data_premise_only(
-            data,
-            dump_path,
-            max_seq_len,
-            tokenizer)
+        partial_feature = partial(extract_feature_premise_only, max_seq_len=max_seq_len, tokenizer=tokenizer)
     elif data_format == DataFormat.PremiseAndOneHypothesis:
-        build_data_premise_and_one_hypo(
-            data, dump_path, max_seq_len, tokenizer)
+        partial_feature = partial(extract_feature_premise_and_one_hypo, max_seq_len=max_seq_len, tokenizer=tokenizer)
     elif data_format == DataFormat.PremiseAndMultiHypothesis:
-        build_data_premise_and_multi_hypo(
-            data, dump_path, max_seq_len, tokenizer)
+        partial_feature = partial(extract_feature_premise_and_multi_hypo, max_seq_len=max_seq_len, tokenizer=tokenizer)
     elif data_format == DataFormat.Seqence:
-        build_data_sequence(data, dump_path, max_seq_len, tokenizer, lab_dict)
+        partial_feature = partial(extract_feature_sequence, max_seq_len=max_seq_len, tokenizer=tokenizer, label_mapper=lab_dict)
     else:
-        raise ValueError(data_format)
+        raise ValueError(data_format) 
+
+    if workers > 1:
+        with multiprocessing.Pool(processes=workers) as pool:
+            features = pool.map(partial_feature, data)
+        logger.info("begin to write features")
+        with open(dump_path, 'w', encoding='utf-8') as writer:
+            for feature in tqdm(features, total=len(features)):
+                writer.write('{}\n'.format(json.dumps(feature)))
+    else:
+        with open(dump_path, 'w', encoding='utf-8') as writer:
+            for sample in tqdm(data, total=len(data)):
+                feature = partial_feature(sample)
+                writer.write('{}\n'.format(json.dumps(feature))) 
 
 
 def parse_args():
@@ -169,7 +158,7 @@ def parse_args():
     parser.add_argument('--root_dir', type=str, default='data/canonical_data')
     parser.add_argument('--task_def', type=str, default="experiments/glue/glue_task_def.yml")
     parser.add_argument("--transformer_cache", default='.cache', type=str)
-
+    parser.add_argument('--workers', type=int, default=1)
     args = parser.parse_args()
     return args
 
@@ -203,7 +192,7 @@ def main(args):
                 dump_path,
                 tokenizer,
                 task_def.data_type,
-                lab_dict=task_def.label_vocab)
+                lab_dict=task_def.label_vocab, workers=args.workers)
 
 
 if __name__ == '__main__':
