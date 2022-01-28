@@ -168,6 +168,7 @@ def parse_args():
     parser.add_argument('--do_padding', action='store_true')
     parser.add_argument('--root_dir', type=str, default='data/canonical_data')
     parser.add_argument('--task_def', type=str, default="experiments/glue/glue_task_def.yml")
+    parser.add_argument("--transformer_cache", default='.cache', type=str)
 
     args = parser.parse_args()
     return args
@@ -178,7 +179,7 @@ def main(args):
     root = args.root_dir
     assert os.path.exists(root)
 
-    tokenizer = AutoTokenizer.from_pretrained(args.model)
+    tokenizer = AutoTokenizer.from_pretrained(args.model, cache_dir=args.transformer_cache)
 
     mt_dnn_root = os.path.join(root, args.model)
     if not os.path.isdir(mt_dnn_root):
