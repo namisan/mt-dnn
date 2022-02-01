@@ -2,7 +2,6 @@
 # Copyright (c) Microsoft. All rights reserved.
 import torch
 import math
-from torch.nn.functional import tanh, relu, prelu, leaky_relu, sigmoid, elu, selu
 from torch.nn.init import uniform, normal, eye, xavier_uniform, xavier_normal, kaiming_uniform, kaiming_normal, orthogonal
 
 def linear(x):
@@ -24,7 +23,7 @@ def activation(func_a):
     """Activation function wrapper
     """
     try:
-        f = eval(func_a)
+        f = eval("nn.{}".format(func_a))
     except:
         f = linear
     return f

@@ -123,7 +123,7 @@ class SANBertNetwork(nn.Module):
             all_hidden_states = outputs.hidden_states # num_layers + 1 (embeddings)
         return last_hidden_state, all_hidden_states
 
-    def forward(self, input_ids, token_type_ids, attention_mask, premise_mask=None, hyp_mask=None, task_id=0, y_input_ids=None, fwd_type=0, embed=None):        
+    def forward(self, input_ids, token_type_ids, attention_mask, premise_mask=None, hyp_mask=None, task_id=0, y_input_ids=None, fwd_type=0, embed=None):
         if fwd_type == 3:
             generated = self.bert.generate(input_ids=input_ids,
                 attention_mask=attention_mask,
