@@ -135,7 +135,6 @@ run_baseline*
 mt_dnn_models
 *pyc
 run_test/
-experiments/superglue
 int_test_data/glue/test_output/
 int_test_data/glue/input/prepro_std/
 /deploy
