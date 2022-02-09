@@ -1,3 +1,0 @@
-http://www.hlt.utdallas.edu/~vince/data/emnlp12/
-https://cogcomp.org/page/resource_view/96
-https://cs.nyu.edu/faculty/davise/papers/WSOld.html
