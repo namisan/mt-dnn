@@ -26,19 +26,19 @@ Improving Multi-Task Deep Neural Networks via Knowledge Distillation for Natural
 
 Liyuan Liu, Haoming Jiang, Pengcheng He, Weizhu Chen, Xiaodong Liu, Jianfeng Gao and Jiawei Han <br/>
 On the Variance of the Adaptive Learning Rate and Beyond <br/>
-[arXiv version](https://arxiv.org/abs/1908.03265) <br/>
+[ICLR 2020](https://openreview.net/pdf?id=rkgz2aEKDr) <br/>
 
 Haoming Jiang, Pengcheng He, Weizhu Chen, Xiaodong Liu, Jianfeng Gao and Tuo Zhao <br/>
 SMART: Robust and Efficient Fine-Tuning for Pre-trained Natural Language Models through Principled Regularized Optimization <br/>
-[arXiv version](https://arxiv.org/abs/1911.03437) <br/>
+[ACL 2020](https://aclanthology.org/2020.acl-main.197/) <br/>
 
 Xiaodong Liu, Yu Wang, Jianshu Ji, Hao Cheng, Xueyun Zhu, Emmanuel Awa, Pengcheng He, Weizhu Chen, Hoifung Poon, Guihong Cao, Jianfeng Gao<br/>
 The Microsoft Toolkit of Multi-Task Deep Neural Networks for Natural Language Understanding <br/>
-[arXiv version](https://arxiv.org/abs/2002.07972) <br/>
+[ACL 2020](https://aclanthology.org/2020.acl-demos.16/) <br/>
 
 Hao Cheng and Xiaodong Liu and Lis Pereira and Yaoliang Yu and Jianfeng Gao<br/>
 Posterior Differential Regularization with f-divergence for Improving Model Robustness <br/>
-[arXiv version](https://arxiv.org/abs/2010.12638) <br/>
+[NAACL 2021](https://aclanthology.org/2021.naacl-main.85/) <br/>
 
 
 ## Quickstart
@@ -187,9 +187,7 @@ We also used some code from: https://github.com/kevinduh/san_mrc <br/>
     title = "Multi-Task Deep Neural Networks for Natural Language Understanding",
     author = "Liu, Xiaodong and He, Pengcheng and Chen, Weizhu and Gao, Jianfeng",
     booktitle = "Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics",
-    month = jul,
     year = "2019",
-    address = "Florence, Italy",
     publisher = "Association for Computational Linguistics",
     url = "https://www.aclweb.org/anthology/P19-1441",
     pages = "4487--4496"
@@ -204,21 +202,19 @@ We also used some code from: https://github.com/kevinduh/san_mrc <br/>
 }
 
 
-@article{liu2019radam,
+@inproceedings{liu2019radam,
   title={On the Variance of the Adaptive Learning Rate and Beyond},
   author={Liu, Liyuan and Jiang, Haoming and He, Pengcheng and Chen, Weizhu and Liu, Xiaodong and Gao, Jianfeng and Han, Jiawei},
-  journal={arXiv preprint arXiv:1908.03265},
-  year={2019}
+  booktitle={International Conference on Learning Representations},
+  year={2020}
 }
 
-
-@article{jiang2019smart,
+@inproceedings{jiang2019smart,
   title={SMART: Robust and Efficient Fine-Tuning for Pre-trained Natural Language Models through Principled Regularized Optimization},
   author={Jiang, Haoming and He, Pengcheng and Chen, Weizhu and Liu, Xiaodong and Gao, Jianfeng and Zhao, Tuo},
-  journal={arXiv preprint arXiv:1911.03437},
-  year={2019}
+ booktitle = "Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics",
+  year={2020}
 }
-
 
 @article{liu2020mtmtdnn,
   title={The Microsoft Toolkit of Multi-Task Deep Neural Networks for Natural Language Understanding},
@@ -227,12 +223,22 @@ We also used some code from: https://github.com/kevinduh/san_mrc <br/>
   year={2020}
 }
 
+@inproceedings{liu2020mtmtdnn,
+    title = "The {M}icrosoft Toolkit of Multi-Task Deep Neural Networks for Natural Language Understanding",
+    author={Liu, Xiaodong and Wang, Yu and Ji, Jianshu and Cheng, Hao and Zhu, Xueyun and Awa, Emmanuel and He, Pengcheng and Chen, Weizhu and Poon, Hoifung and Cao, Guihong and Jianfeng Gao},
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2020.acl-demos.16",
+    year = "2020"
+}
 
 @article{cheng2020posterior,
   title={Posterior Differential Regularization with f-divergence for Improving Model Robustness},
   author={Cheng, Hao and Liu, Xiaodong and Pereira, Lis and Yu, Yaoliang and Gao, Jianfeng},
-  journal={arXiv preprint arXiv:2010.12638},
-  year={2020}
+  booktitle = "Proceedings of the 2021 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies",
+  year = "2021",
+  publisher = "Association for Computational Linguistics",
+  url = "https://aclanthology.org/2021.naacl-main.85",
+  doi = "10.18653/v1/2021.naacl-main.85",
 }
 ```
 ### Contact Information
