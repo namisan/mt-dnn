@@ -12,6 +12,7 @@ import numpy as np
 import torch
 from tqdm import tqdm
 
+
 def extract_encoding(model, data, use_cuda=True):
     if use_cuda:
         model.cuda()
@@ -22,28 +23,33 @@ def extract_encoding(model, data, use_cuda=True):
         sequence_output = model.encode(batch_info, batch_data)
         sequence_outputs.append(sequence_output)
         max_seq_len = max(max_seq_len, sequence_output.shape[1])
-    
+
     new_sequence_outputs = []
     for sequence_output in sequence_outputs:
-        new_sequence_output = torch.zeros(sequence_output.shape[0], max_seq_len, sequence_output.shape[2])
-        new_sequence_output[:, :sequence_output.shape[1], :] = sequence_output
+        new_sequence_output = torch.zeros(
+            sequence_output.shape[0], max_seq_len, sequence_output.shape[2]
+        )
+        new_sequence_output[:, : sequence_output.shape[1], :] = sequence_output
         new_sequence_outputs.append(new_sequence_output)
 
     return torch.cat(new_sequence_outputs)
+
 
 def reduce_multirc(uids, predictions, golds):
     assert len(uids) == len(predictions)
     assert len(uids) == len(golds)
     from collections import defaultdict
+
     predict_map = defaultdict(list)
     gold_map = defaultdict(list)
     for idx, uid in enumerate(uids):
-        blocks = uid.split('_')
+        blocks = uid.split("_")
         assert len(blocks) == 3
-        nuid = '_'.join(blocks[:-1])
+        nuid = "_".join(blocks[:-1])
         predict_map[uid].append(predictions[idx])
         gold_map[uid].append(golds[idx])
     return predict_map, gold_map
+
 
 def merge(src, tgt):
     def _mg(src, tgt):
@@ -72,7 +78,15 @@ def merge(src, tgt):
         return _mg(src, tgt)
 
 
-def eval_model(model, data, metric_meta, device, with_label=True, label_mapper=None, task_type=TaskType.Classification):
+def eval_model(
+    model,
+    data,
+    metric_meta,
+    device,
+    with_label=True,
+    label_mapper=None,
+    task_type=TaskType.Classification,
+):
     predictions = []
     golds = []
     scores = []
@@ -84,12 +98,16 @@ def eval_model(model, data, metric_meta, device, with_label=True, label_mapper=N
         scores = merge(score, scores)
         golds = merge(gold, golds)
         predictions = merge(pred, predictions)
-        ids = merge(batch_info['uids'], ids)
+        ids = merge(batch_info["uids"], ids)
 
     if task_type == TaskType.Span:
-        predictions, golds = postprocess_qa_predictions(golds, scores, version_2_with_negative=False)
+        predictions, golds = postprocess_qa_predictions(
+            golds, scores, version_2_with_negative=False
+        )
     elif task_type == TaskType.SpanYN:
-        predictions, golds = postprocess_qa_predictions(golds, scores, version_2_with_negative=True)
+        predictions, golds = postprocess_qa_predictions(
+            golds, scores, version_2_with_negative=True
+        )
     if with_label:
         metrics = calc_metrics(metric_meta, golds, predictions, scores, label_mapper)
     return metrics, predictions, scores, golds, ids

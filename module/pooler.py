@@ -2,8 +2,9 @@ import torch.nn as nn
 from module.common import activation
 from module.dropout_wrapper import DropoutWrapper
 
+
 class Pooler(nn.Module):
-    def __init__(self, hidden_size, dropout_p=0.1, actf='tanh'):
+    def __init__(self, hidden_size, dropout_p=0.1, actf="tanh"):
         super(Pooler, self).__init__()
         self.dense = nn.Linear(hidden_size, hidden_size)
         self.activation = activation(actf)

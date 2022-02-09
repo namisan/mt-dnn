@@ -5,7 +5,9 @@ from data_utils.metrics import calc_metrics
 from experiments.exp_def import TaskDefs
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--task_def", type=str, default="experiments/glue/glue_task_def.yml")
+parser.add_argument(
+    "--task_def", type=str, default="experiments/glue/glue_task_def.yml"
+)
 parser.add_argument("--task", type=str)
 parser.add_argument("--std_input", type=str)
 parser.add_argument("--score", type=str)
@@ -18,7 +20,9 @@ def generate_golds_predictions_scores(sample_id_2_pred_score_seg_dic, sample_obj
         sample_id, label = sample_obj["uid"], sample_obj["label"]
         sample_id_2_label_dic[sample_id] = label
 
-    assert set(sample_id_2_label_dic.keys()) == set(sample_id_2_pred_score_seg_dic.keys())
+    assert set(sample_id_2_label_dic.keys()) == set(
+        sample_id_2_pred_score_seg_dic.keys()
+    )
 
     golds = []
     predictions = []
@@ -29,6 +33,7 @@ def generate_golds_predictions_scores(sample_id_2_pred_score_seg_dic, sample_obj
         predictions.append(pred)
         scores.extend(score_seg)
     return golds, predictions, scores
+
 
 args = parser.parse_args()
 
@@ -43,7 +48,9 @@ task_type = task_def.task_type
 label_mapper = task_def.label_vocab
 sample_objs = load_data(args.std_input, data_type, task_type, label_mapper)
 
-golds, predictions, scores = generate_golds_predictions_scores(sample_id_2_pred_score_seg_dic, sample_objs)
+golds, predictions, scores = generate_golds_predictions_scores(
+    sample_id_2_pred_score_seg_dic, sample_objs
+)
 
 metrics = calc_metrics(task_def.metric_meta, golds, predictions, scores)
 print(metrics)

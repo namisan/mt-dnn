@@ -1,1 +1,1 @@
-DUMPY_STRING_FOR_EMPTY_ANS="no answer"
+DUMPY_STRING_FOR_EMPTY_ANS = "no answer"

@@ -1,5 +1,6 @@
 from transformers import *
 from module.san_model import SanModel
+
 MODEL_CLASSES = {
     "bert": (BertConfig, BertModel, BertTokenizer),
     "xlnet": (XLNetConfig, XLNetModel, XLNetTokenizer),

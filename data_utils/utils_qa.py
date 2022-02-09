@@ -26,28 +26,34 @@ from tqdm.auto import tqdm
 
 
 logger = logging.getLogger(__name__)
+
+
 def load_json(path):
-    with open(path, 'r', encoding='utf-8') as f:
+    with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
+
 
 def reduce_features_to_examples(features):
     examples = []
     exits_dict = set()
     for feature in features:
-        if feature['uid'] not in exits_dict:
-            examples.append({'uid': feature['uid'], 'context': feature['context']})
-            exits_dict.add(feature['uid'])
+        if feature["uid"] not in exits_dict:
+            examples.append({"uid": feature["uid"], "context": feature["context"]})
+            exits_dict.add(feature["uid"])
     return examples
+
 
 def extract_answers_from_features(features, is_v2=False, use_label=False):
     answers = {}
     exits_dict = set()
     for feature in features:
-        if feature['uid'] not in exits_dict:
-            answers[feature['uid']] = feature['answer']
-            if is_v2 and 'label' in feature:
-                answers[feature['uid']]['is_impossible'] = True if feature['label'] else False
-            exits_dict.add(feature['uid'])
+        if feature["uid"] not in exits_dict:
+            answers[feature["uid"]] = feature["answer"]
+            if is_v2 and "label" in feature:
+                answers[feature["uid"]]["is_impossible"] = (
+                    True if feature["label"] else False
+                )
+            exits_dict.add(feature["uid"])
     return answers
 
 
@@ -89,13 +95,17 @@ def postprocess_qa_predictions(
         is_world_process_zero (:obj:`bool`, `optional`, defaults to :obj:`True`):
             Whether this process is the main process or not (used to determine if logging/saves should be done).
     """
-    assert len(predictions) == 2, "`predictions` should be a tuple with two elements (start_logits, end_logits)."
+    assert (
+        len(predictions) == 2
+    ), "`predictions` should be a tuple with two elements (start_logits, end_logits)."
     all_start_logits, all_end_logits = predictions
 
-    assert len(predictions[0]) == len(features), f"Got {len(predictions[0])} predictions and {len(features)} features."
+    assert len(predictions[0]) == len(
+        features
+    ), f"Got {len(predictions[0])} predictions and {len(features)} features."
 
     examples = reduce_features_to_examples(features)
-    
+
     # Build a map example to its corresponding features.
     example_id_to_index = {example["uid"]: i for i, example in enumerate(examples)}
     features_per_example = collections.defaultdict(list)
@@ -110,7 +120,9 @@ def postprocess_qa_predictions(
 
     # Logging.
     logger.setLevel(logging.INFO if is_world_process_zero else logging.WARN)
-    logger.info(f"Post-processing {len(examples)} example predictions split into {len(features)} features.")
+    logger.info(
+        f"Post-processing {len(examples)} example predictions split into {len(features)} features."
+    )
 
     # Let's loop over all the examples!
     for example_index, example in enumerate(tqdm(examples)):
@@ -130,12 +142,19 @@ def postprocess_qa_predictions(
             offset_mapping = features[feature_index]["offset_mapping"]
             # Optional `token_is_max_context`, if provided we will remove answers that do not have the maximum context
             # available in the current feature.
-            token_is_max_context = features[feature_index].get("token_is_max_context", None)
+            token_is_max_context = features[feature_index].get(
+                "token_is_max_context", None
+            )
 
             # Update minimum null prediction.
             null_ans_index = features[feature_index].get("null_ans_index", 0)
-            feature_null_score = start_logits[null_ans_index] + end_logits[null_ans_index]
-            if min_null_prediction is None or min_null_prediction["score"] > feature_null_score:
+            feature_null_score = (
+                start_logits[null_ans_index] + end_logits[null_ans_index]
+            )
+            if (
+                min_null_prediction is None
+                or min_null_prediction["score"] > feature_null_score
+            ):
                 min_null_prediction = {
                     "offsets": (0, 0),
                     "score": feature_null_score,
@@ -144,7 +163,9 @@ def postprocess_qa_predictions(
                 }
 
             # Go through all possibilities for the `n_best_size` greater start and end logits.
-            start_indexes = np.argsort(start_logits)[-1 : -n_best_size - 1 : -1].tolist()
+            start_indexes = np.argsort(start_logits)[
+                -1 : -n_best_size - 1 : -1
+            ].tolist()
             end_indexes = np.argsort(end_logits)[-1 : -n_best_size - 1 : -1].tolist()
             for start_index in start_indexes:
                 for end_index in end_indexes:
@@ -158,15 +179,24 @@ def postprocess_qa_predictions(
                     ):
                         continue
                     # Don't consider answers with a length that is either < 0 or > max_answer_length.
-                    if end_index < start_index or end_index - start_index + 1 > max_answer_length:
+                    if (
+                        end_index < start_index
+                        or end_index - start_index + 1 > max_answer_length
+                    ):
                         continue
                     # Don't consider answer that don't have the maximum context available (if such information is
                     # provided).
-                    if token_is_max_context is not None and not token_is_max_context.get(str(start_index), False):
+                    if (
+                        token_is_max_context is not None
+                        and not token_is_max_context.get(str(start_index), False)
+                    ):
                         continue
                     prelim_predictions.append(
                         {
-                            "offsets": (offset_mapping[start_index][0], offset_mapping[end_index][1]),
+                            "offsets": (
+                                offset_mapping[start_index][0],
+                                offset_mapping[end_index][1],
+                            ),
                             "score": start_logits[start_index] + end_logits[end_index],
                             "start_logit": start_logits[start_index],
                             "end_logit": end_logits[end_index],
@@ -178,10 +208,14 @@ def postprocess_qa_predictions(
             null_score = min_null_prediction["score"]
 
         # Only keep the best `n_best_size` predictions.
-        predictions = sorted(prelim_predictions, key=lambda x: x["score"], reverse=True)[:n_best_size]
+        predictions = sorted(
+            prelim_predictions, key=lambda x: x["score"], reverse=True
+        )[:n_best_size]
 
         # Add back the minimum null prediction if it was removed because of its low score.
-        if version_2_with_negative and not any(p["offsets"] == (0, 0) for p in predictions):
+        if version_2_with_negative and not any(
+            p["offsets"] == (0, 0) for p in predictions
+        ):
             predictions.append(min_null_prediction)
 
         # Use the offsets to gather the answer text in the original context.
@@ -192,8 +226,12 @@ def postprocess_qa_predictions(
 
         # In the very rare edge case we have not a single non-null prediction, we create a fake prediction to avoid
         # failure.
-        if len(predictions) == 0 or (len(predictions) == 1 and predictions[0]["text"] == ""):
-            predictions.insert(0, {"text": "", "start_logit": 0.0, "end_logit": 0.0, "score": 0.0})
+        if len(predictions) == 0 or (
+            len(predictions) == 1 and predictions[0]["text"] == ""
+        ):
+            predictions.insert(
+                0, {"text": "", "start_logit": 0.0, "end_logit": 0.0, "score": 0.0}
+            )
 
         # Compute the softmax of all scores (we do it with numpy to stay independent from torch/tf in this file, using
         # the LogSumExp trick).
@@ -210,7 +248,7 @@ def postprocess_qa_predictions(
             all_predictions[example["uid"]] = predictions[0]["text"]
         else:
             # Otherwise we first need to find the best non-empty prediction.
-            #import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             if predictions:
                 best_non_null_pred = predictions[0]
                 for pred in predictions:
@@ -219,19 +257,31 @@ def postprocess_qa_predictions(
                         break
 
                 # Then we compare to the null prediction using the threshold.
-                score_diff = null_score - best_non_null_pred["start_logit"] - best_non_null_pred["end_logit"]
-                scores_diff_json[example["uid"]] = float(score_diff)  # To be JSON-serializable.
+                score_diff = (
+                    null_score
+                    - best_non_null_pred["start_logit"]
+                    - best_non_null_pred["end_logit"]
+                )
+                scores_diff_json[example["uid"]] = float(
+                    score_diff
+                )  # To be JSON-serializable.
                 if score_diff > null_score_diff_threshold:
                     all_predictions[example["uid"]] = ""
                 else:
                     all_predictions[example["uid"]] = best_non_null_pred["text"]
             else:
                 all_predictions[example["uid"]] = ""
-            
 
         # Make `predictions` JSON-serializable by casting np.float back to float.
         all_nbest_json[example["uid"]] = [
-            {k: (float(v) if isinstance(v, (np.float16, np.float32, np.float64)) else v) for k, v in pred.items()}
+            {
+                k: (
+                    float(v)
+                    if isinstance(v, (np.float16, np.float32, np.float64))
+                    else v
+                )
+                for k, v in pred.items()
+            }
             for pred in predictions
         ]
     answers = extract_answers_from_features(features, version_2_with_negative)

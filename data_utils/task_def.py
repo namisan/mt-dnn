@@ -1,12 +1,14 @@
 # Copyright (c) Microsoft. All rights reserved.
 
 from enum import IntEnum
+
+
 class TaskType(IntEnum):
     Classification = 1
     Regression = 2
     Ranking = 3
-    Span = 4 # squad v1
-    SpanYN = 5 # squad v2
+    Span = 4  # squad v1
+    SpanYN = 5  # squad v2
     SeqenceLabeling = 6
     MaskLM = 7
     SpanSeqenceLabeling = 8
@@ -17,13 +19,13 @@ class DataFormat(IntEnum):
     PremiseOnly = 1
     PremiseAndOneHypothesis = 2
     PremiseAndMultiHypothesis = 3
-#    MRC = 4 # changed to CLUE_SPAN
+    #    MRC = 4 # changed to CLUE_SPAN
     Seqence = 4
     MLM = 5
     CLUE_CLASSIFICATION = 6
     CLUE_SPAN = 7
     CLUE_SEQ = 8
-    CLUE_GEN = 9 # generation
+    CLUE_GEN = 9  # generation
 
 
 class EncoderModelType(IntEnum):

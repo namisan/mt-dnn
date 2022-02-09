@@ -5,6 +5,7 @@ import torch
 from torch.nn import Parameter
 from functools import wraps
 
+
 class EMA:
     def __init__(self, gamma, model):
         super(EMA, self).__init__()
@@ -17,14 +18,17 @@ class EMA:
         for name, para in self.model.named_parameters():
             if para.requires_grad:
                 self.shadow[name] = para.clone()
+
     def cuda(self):
         for k, v in self.shadow.items():
             self.shadow[k] = v.cuda()
 
     def update(self):
-        for name,para in self.model.named_parameters():
+        for name, para in self.model.named_parameters():
             if para.requires_grad:
-                self.shadow[name] = (1.0 - self.gamma) * para + self.gamma * self.shadow[name]
+                self.shadow[name] = (
+                    1.0 - self.gamma
+                ) * para + self.gamma * self.shadow[name]
 
     def swap_parameters(self):
         for name, para in self.model.named_parameters():
@@ -60,15 +64,14 @@ def _dummy(*args, **kwargs):
 
 
 class WeightNorm(torch.nn.Module):
-
     def __init__(self, weights, dim):
         super(WeightNorm, self).__init__()
         self.weights = weights
         self.dim = dim
 
     def compute_weight(self, module, name):
-        g = getattr(module, name + '_g')
-        v = getattr(module, name + '_v')
+        g = getattr(module, name + "_g")
+        v = getattr(module, name + "_v")
         return v * (g / _norm(v, self.dim))
 
     @staticmethod
@@ -78,16 +81,17 @@ class WeightNorm(torch.nn.Module):
         if issubclass(type(module), torch.nn.RNNBase):
             module.flatten_parameters = _dummy
         if weights is None:  # do for all weight params
-            weights = [w for w in module._parameters.keys() if 'weight' in w]
+            weights = [w for w in module._parameters.keys() if "weight" in w]
         fn = WeightNorm(weights, dim)
         for name in weights:
             if hasattr(module, name):
-                print('Applying weight norm to {} - {}'.format(str(module), name))
+                print("Applying weight norm to {} - {}".format(str(module), name))
                 weight = getattr(module, name)
                 del module._parameters[name]
                 module.register_parameter(
-                    name + '_g', Parameter(_norm(weight, dim).data))
-                module.register_parameter(name + '_v', Parameter(weight.data))
+                    name + "_g", Parameter(_norm(weight, dim).data)
+                )
+                module.register_parameter(name + "_v", Parameter(weight.data))
                 setattr(module, name, fn.compute_weight(module, name))
 
         module.register_forward_pre_hook(fn)
@@ -98,8 +102,8 @@ class WeightNorm(torch.nn.Module):
         for name in self.weights:
             weight = self.compute_weight(module)
             delattr(module, name)
-            del module._parameters[name + '_g']
-            del module._parameters[name + '_v']
+            del module._parameters[name + "_g"]
+            del module._parameters[name + "_v"]
             module.register_parameter(name, Parameter(weight.data))
 
     def __call__(self, module, inputs):

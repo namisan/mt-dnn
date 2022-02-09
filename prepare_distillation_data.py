@@ -4,10 +4,15 @@ from data_utils import load_score_file
 from experiments.exp_def import TaskDefs
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--task_def", type=str, default="experiments/glue/glue_task_def.yml")
+parser.add_argument(
+    "--task_def", type=str, default="experiments/glue/glue_task_def.yml"
+)
 parser.add_argument("--task", type=str)
-parser.add_argument("--add_soft_label", action="store_true",
-                    help="without this option, we replace hard label with soft label")
+parser.add_argument(
+    "--add_soft_label",
+    action="store_true",
+    help="without this option, we replace hard label with soft label",
+)
 
 parser.add_argument("--std_input", type=str)
 parser.add_argument("--score", type=str)
