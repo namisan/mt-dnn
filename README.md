@@ -4,7 +4,8 @@
 **New Release** <br/>
 We released Adversarial training for both LM pre-training/finetuning and f-divergence.
 
-Large-scale Adversarial training for LMs: [ALUM code](https://github.com/namisan/mt-dnn/blob/master/alum/README.md). <br/>
+Large-scale Adversarial training for LMs: [ALUM code](https://github.com/namisan/mt-dnn/tree/v0.2/alum). <br/>
+Hybrid Neural Network Model for Commonsense Reasoning: [HNN code](https://github.com/namisan/mt-dnn/tree/v0.2/hnn) <br/>
 If you want to use the old version, please use following cmd to clone the code: <br/>
 ```git clone -b v0.1 https://github.com/namisan/mt-dnn.git ```
 
@@ -23,12 +24,6 @@ Xiaodong Liu, Pengcheng He, Weizhu Chen and Jianfeng Gao<br/>
 Improving Multi-Task Deep Neural Networks via Knowledge Distillation for Natural Language Understanding <br/>
 [arXiv version](https://arxiv.org/abs/1904.09482) <br/>
 
-
-Pengcheng He, Xiaodong Liu, Weizhu Chen and Jianfeng Gao<br/>
-Hybrid Neural Network Model for Commonsense Reasoning <br/>
-[arXiv version](https://arxiv.org/abs/1907.11983) <br/>
-
-
 Liyuan Liu, Haoming Jiang, Pengcheng He, Weizhu Chen, Xiaodong Liu, Jianfeng Gao and Jiawei Han <br/>
 On the Variance of the Adaptive Learning Rate and Beyond <br/>
 [arXiv version](https://arxiv.org/abs/1908.03265) <br/>
@@ -40,10 +35,6 @@ SMART: Robust and Efficient Fine-Tuning for Pre-trained Natural Language Models 
 Xiaodong Liu, Yu Wang, Jianshu Ji, Hao Cheng, Xueyun Zhu, Emmanuel Awa, Pengcheng He, Weizhu Chen, Hoifung Poon, Guihong Cao, Jianfeng Gao<br/>
 The Microsoft Toolkit of Multi-Task Deep Neural Networks for Natural Language Understanding <br/>
 [arXiv version](https://arxiv.org/abs/2002.07972) <br/>
-
-Xiaodong Liu, Hao Cheng, Pengcheng He, Weizhu Chen, Yu Wang, Hoifung Poon and Jianfeng Gao<br/>
-Adversarial Training for Large Neural Language Models <br/>
-[arXiv version](https://arxiv.org/abs/2004.08994) <br/>
 
 Hao Cheng and Xiaodong Liu and Lis Pereira and Yaoliang Yu and Jianfeng Gao<br/>
 Posterior Differential Regularization with f-divergence for Improving Model Robustness <br/>
@@ -125,11 +116,6 @@ Here, we provide two examples, STS-B and RTE. You can use similar scripts to fin
 Adv training at the fine-tuning stages:
    ```> python train.py --data_dir <data-path> --init_checkpoint <bert/mt-dnn-model> --train_dataset mnli --test_dataset mnli_matched,mnli_mismatched --task_def experiments\glue\glue_task_def.yml --adv_train --adv_opt 1```
 
-
-### HNN
-The code to reproduce HNN is under `hnn` folder, to reproduce the results of HNN, run 
-
-```> hnn/script/hnn_train_large.sh```
 
 
 ### Extract embeddings
@@ -218,14 +204,6 @@ We also used some code from: https://github.com/kevinduh/san_mrc <br/>
 }
 
 
-@article{he2019hnn,
-  title={A Hybrid Neural Network Model for Commonsense Reasoning},
-  author={He, Pengcheng and Liu, Xiaodong and Chen, Weizhu and Gao, Jianfeng},
-  journal={arXiv preprint arXiv:1907.11983},
-  year={2019}
-}
-
-
 @article{liu2019radam,
   title={On the Variance of the Adaptive Learning Rate and Beyond},
   author={Liu, Liyuan and Jiang, Haoming and He, Pengcheng and Chen, Weizhu and Liu, Xiaodong and Gao, Jianfeng and Han, Jiawei},
@@ -249,13 +227,6 @@ We also used some code from: https://github.com/kevinduh/san_mrc <br/>
   year={2020}
 }
 
-
-@article{liu2020alum,
-  title={Adversarial Training for Large Neural Language Models},
-  author={Liu, Xiaodong and Cheng, Hao and He, Pengcheng and Chen, Weizhu and Wang, Yu and Poon, Hoifung and Gao, Jianfeng},
-  journal={arXiv preprint arXiv:2004.08994},
-  year={2020}
-}
 
 @article{cheng2020posterior,
   title={Posterior Differential Regularization with f-divergence for Improving Model Robustness},
