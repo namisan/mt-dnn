@@ -43,17 +43,13 @@ RUN pip install regex
 RUN pip install pyyaml
 RUN pip install pytest
 RUN pip install boto3
-RUN pip install fairseq==0.9.0
 RUN pip install tb-nightly
-RUN pip install sacrebleu
+RUN pip install tb-nightly
 RUN pip install seqeval==0.0.12
 RUN pip install transformers==4.6.0
 RUN pip install tensorboardX
 RUN pip install pytorch-pretrained-bert==v0.6.0
 RUN pip install more_itertools
-# install mpi
-ENV wdir /opt
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-WORKDIR ${wdir}
 RUN pwd
 WORKDIR /workspace
