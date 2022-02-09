@@ -37,6 +37,7 @@ class MTDNNTask:
             out_proj = nn.Linear(hidden_size, lab)
         return out_proj
     
+    # TODO redesign hypers
     @staticmethod
     def train_forward(sequence_output, pooled_output, premise_mask, hyp_mask, decoder_opt, dropout_layer, task_layer):
         if decoder_opt == 1:
@@ -148,3 +149,6 @@ class ClassificationTask(MTDNNTask):
         predict = np.argmax(score, axis=1).tolist()
         score = score.reshape(-1).tolist()
         return score, predict
+
+# TODO
+# Span/SpanYN/SeqenceLabeling/SeqenceGeneration

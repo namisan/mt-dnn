@@ -70,7 +70,7 @@ class SANBertNetwork(nn.Module):
             self.dropout_list.append(dropout)
             task_obj = tasks.get_task_obj(task_def)
             if task_obj is not None:
-                # quick hack
+                # Move this to task_obj
                 self.pooler = Pooler(hidden_size, dropout_p= opt['dropout_p'], actf=opt['pooler_actf'])
                 out_proj = task_obj.train_build_task_layer(decoder_opt, hidden_size, lab, opt, prefix='answer', dropout=dropout)
             elif task_type == TaskType.Span:
