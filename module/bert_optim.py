@@ -117,7 +117,7 @@ class Adamax(Optimizer):
                     clip_grad_norm_(p, group['max_grad_norm'])
 
                 # Update biased first moment estimate.
-                exp_avg.mul_(beta1).add_(1 - beta1, grad)
+                exp_avg.mul_(beta1).add_(grad, alpha=1 - beta1)
                 # Update the exponentially weighted infinity norm.
                 norm_buf = torch.cat([
                     exp_inf.mul_(beta2).unsqueeze(0),
@@ -235,7 +235,7 @@ class RAdam(Optimizer):
                     clip_grad_norm_(p, group['max_grad_norm'])
 
                 # Update biased first moment estimate.
-                exp_avg.mul_(beta1).add_(1 - beta1, grad)
+                exp_avg.mul_(beta1).add_(grad, alpha=1 - beta1)
                 exp_avg_sq.mul_(beta2).addcmul_(1 - beta2, grad, grad)
                 state['step'] += 1
 
