@@ -1,6 +1,6 @@
 ## Quickstart
 
-###Example of XNLI based on XLM-R
+### Example of XNLI based on XLM-R
 1. Download XNLI data </br>
 
 2. Prepro </br>
