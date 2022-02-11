@@ -1,3 +1,4 @@
+#pretrain config
 mlm:
   data_format: MLM
   enable_san: false
@@ -6,3 +7,5 @@ mlm:
   n_class: 30522
   task_type: MaskLM
   loss: MlmCriterion
+  kd_loss: MseCriterion
+  adv_loss: SymKlCriterion
