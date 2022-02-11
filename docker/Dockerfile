@@ -44,7 +44,6 @@ RUN pip install pyyaml
 RUN pip install pytest
 RUN pip install boto3
 RUN pip install tb-nightly
-RUN pip install tb-nightly
 RUN pip install seqeval==0.0.12
 RUN pip install transformers==4.6.0
 RUN pip install tensorboardX

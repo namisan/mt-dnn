@@ -210,7 +210,6 @@ def parse_args():
         default="bert-base-uncased",
         help="support all BERT and ROBERTA family supported by HuggingFace Transformers",
     )
-    parser.add_argument("--do_lower_case", action="store_true")
     parser.add_argument("--do_padding", action="store_true")
     parser.add_argument("--root_dir", type=str, default="data/canonical_data")
     parser.add_argument(
