@@ -1,0 +1,1 @@
+python extractor.py --finput experiments/dump_embedding/sample_data/pair-input.txt --foutput experiments/dump_embedding/sample_data/pair-output.json --bert_model bert-base-uncased --checkpoint mt_dnn_models/mt_dnn_base.pt

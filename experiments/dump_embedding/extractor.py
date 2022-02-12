@@ -6,13 +6,12 @@ import os
 import argparse
 import torch
 import json
-from pytorch_pretrained_bert.tokenization import BertTokenizer
+from transformers import AutoTokenizer
 from torch.utils.data import DataLoader
 from data_utils.log_wrapper import create_logger
 from data_utils.utils import set_environment
 from mt_dnn.batcher import Collater, SingleTaskDataset
 from mt_dnn.model import MTDNNModel
-from prepro_std import _truncate_seq_pair
 from data_utils.task_def import DataFormat, EncoderModelType
 
 logger = create_logger(__name__, to_disk=True, log_file="mt_dnn_feature_extractor.log")
@@ -45,22 +44,31 @@ def build_data(data, max_seq_len, is_train=True, tokenizer=None):
     rows = []
     for idx, sample in enumerate(data):
         ids = sample["uid"]
-        premise = tokenizer.tokenize(sample["premise"])
-        hypothesis = tokenizer.tokenize(sample["hypothesis"])
         label = sample["label"]
-        _truncate_seq_pair(premise, hypothesis, max_seq_len - 3)
-        input_ids = tokenizer.convert_tokens_to_ids(
-            ["[CLS]"] + hypothesis + ["[SEP]"] + premise + ["[SEP]"]
+        inputs = tokenizer(
+            sample["premise"],
+            sample["hypothesis"],
+            add_special_tokens=True,
+            max_length=max_seq_len,
+            truncation=True,
+            padding=False,
         )
-        type_ids = [0] * (len(hypothesis) + 2) + [1] * (len(premise) + 1)
-        features = {
-            "uid": ids,
-            "label": label,
-            "token_id": input_ids,
-            "type_id": type_ids,
-            "tokens": ["[CLS]"] + hypothesis + ["[SEP]"] + premise + ["[SEP]"],
-        }
-        rows.append(features)
+        input_ids = inputs["input_ids"]
+        token_type_ids = (
+            inputs["token_type_ids"] if "token_type_ids" in inputs else [0] * len(input_ids)
+        )
+
+        # The mask has 1 for real tokens and 0 for padding tokens. Only real
+        # tokens are attended to.
+        attention_mask = inputs["attention_mask"]
+        feature = {
+                "uid": ids,
+                "label": label,
+                "token_id": input_ids,
+                "type_id": token_type_ids,
+                #"tokens": ["[CLS]"] + sample["premise"] + ["[SEP]"] + sample["hypothesis"] + ["[SEP]"],
+            }
+        rows.append(feature)
     return rows
 
 
@@ -69,18 +77,29 @@ def build_data_single(data, max_seq_len, tokenizer=None):
     rows = []
     for idx, sample in enumerate(data):
         ids = sample["uid"]
-        premise = tokenizer.tokenize(sample["premise"])
         label = sample["label"]
-        if len(premise) > max_seq_len - 3:
-            premise = premise[: max_seq_len - 3]
-        input_ids = tokenizer.convert_tokens_to_ids(["[CLS]"] + premise + ["[SEP]"])
-        type_ids = [0] * (len(premise) + 2)
+        inputs = tokenizer(
+            sample["premise"],
+            None,
+            add_special_tokens=True,
+            max_length=max_seq_len,
+            truncation=True,
+            padding=False,
+        )
+        input_ids = inputs["input_ids"]
+        token_type_ids = (
+            inputs["token_type_ids"] if "token_type_ids" in inputs else [0] * len(input_ids)
+        )
+
+        # The mask has 1 for real tokens and 0 for padding tokens. Only real
+        # tokens are attended to.
+        attention_mask = inputs["attention_mask"]
+
         features = {
             "uid": ids,
             "label": label,
             "token_id": input_ids,
-            "type_id": type_ids,
-            "tokens": ["[CLS]"] + premise + ["[SEP]"],
+            "type_id": token_type_ids,
         }
         rows.append(features)
     return rows
@@ -204,12 +223,15 @@ def set_config(parser):
     parser.add_argument("--layers", default="10,11", type=str)
     parser.add_argument("--max_seq_length", default=512, type=int, help="")
     parser.add_argument("--batch_size", default=4, type=int)
+    parser.add_argument("--transformer_cache", default=".cache", type=str)
 
 
 def process_data(args):
-    tokenizer = BertTokenizer.from_pretrained(
-        args.bert_model, do_lower_case=args.do_lower_case
+
+    tokenizer = AutoTokenizer.from_pretrained(
+        args.bert_model, cache_dir=args.transformer_cache
     )
+
     path = args.finput
     data, is_single_sentence = load_data(path)
     if is_single_sentence:
@@ -249,7 +271,7 @@ def main():
     dump_data(data, fout_temp)
     collater = Collater(is_train=False, encoder_type=encoder_type)
     dataset = SingleTaskDataset(
-        fout_temp, False, maxlen=args.max_seq_length, data_type=data_type
+        fout_temp, False, maxlen=args.max_seq_length,
     )
     batcher = DataLoader(
         dataset,
@@ -284,7 +306,6 @@ def main():
             all_encoder_layers[idx].detach().cpu().numpy() for idx in layer_indexes
         ]
 
-        # import pdb; pdb.set_trace()
         uids = batch_meta["uids"]
         masks = batch_data[batch_meta["mask"]].detach().cpu().numpy().tolist()
         for idx, uid in enumerate(uids):
@@ -298,9 +319,7 @@ def main():
     with open(args.foutput, "w", encoding="utf-8") as writer:
         for sample in data:
             uid = sample["uid"]
-            tokens = sample["tokens"]
             feature = features_dict[uid]
-            feature["tokens"] = tokens
             feature["uid"] = uid
             writer.write("{}\n".format(json.dumps(feature)))
 
