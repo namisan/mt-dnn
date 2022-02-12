@@ -31,7 +31,7 @@ def compare_output(output_dir, expected_dir):
 
 def test_train():
     OUTPUT_DIR = r"run_test/checkpoint"
-    EXPECTED_DIR = r"sample_data/checkpoint"
+    EXPECTED_DIR = r"tests/sample_data/checkpoint"
 
     if os.access("./run_test", os.F_OK):
         shutil.rmtree("./run_test")

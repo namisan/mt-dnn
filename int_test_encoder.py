@@ -66,9 +66,3 @@ test_encoder(src_dir, checkpoint_path, encoder_type, target_dir, expected_dir)
 checkpoint_path = "bert-base-uncased"
 test_encoder(src_dir, checkpoint_path, encoder_type, target_dir, expected_dir)
 
-src_dir = "int_test_data/glue/input/encoder/roberta_cased_lower"
-checkpoint_path = "roberta-base"
-encoder_type = 2
-target_dir = "int_test_data/glue/test_output"
-expected_dir = "int_test_data/glue/expected/encoder/roberta_cased_lower"
-test_encoder(src_dir, checkpoint_path, encoder_type, target_dir, expected_dir)

@@ -1,0 +1,21 @@
+mnli:
+  data_format: PremiseAndOneHypothesis
+  dropout_p: 0
+  enable_san: false 
+  labels:
+  - contradiction
+  - neutral
+  - entailment
+  metric_meta:
+  - ACC
+  loss: CeCriterion
+  kd_loss: MseCriterion
+  adv_loss: SymKlCriterion
+  n_class: 3
+  split_names:
+  - train
+  - matched_dev
+  - mismatched_dev
+  - matched_test
+  - mismatched_test
+  task_type: Classification
