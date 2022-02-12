@@ -32,7 +32,6 @@ export ROOT_DIR="glue_app"
 export EPOCH=3
 export LR="5e-5"
 export OPTIM="adamax"
-export MAX_ANSWER_LEN=20
 export TASK_DEF="experiments/glue/glue_task_def.yml"
 export BS=${batch_size}
 
@@ -110,7 +109,7 @@ if [ ${num_gpus} -ge 2 ]; then
   export GPUS_PER_NODE=${num_gpus}
   export WORLD_SIZE=$(($GPUS_PER_NODE*$NNODES))
   export DISTRIBUTED_ARGS="--nproc_per_node $GPUS_PER_NODE --nnodes $NNODES --node_rank $NODE_RANK --master_addr $MASTER_ADDR --master_port $MASTER_PORT"
-  python -m torch.distributed.launch $DISTRIBUTED_ARGS train.py --data_dir=${data_dir}/${DD} --task_def=${TASK_DEF}  --train_dataset=${train_dataset} --test_dataset=${test_dataset} --init_checkpoint=${MD} --batch_size=${BS} --learning_rate=${LR} --epochs=${EPOCH} --encoder_type=${ED} --optimizer=${OPTIM} --output_dir=${output_dir} --log_file=${LOG_FILE} --max_answer_len=${MAX_ANSWER_LEN}
+  python -m torch.distributed.launch $DISTRIBUTED_ARGS train.py --data_dir=${data_dir}/${DD} --task_def=${TASK_DEF}  --train_dataset=${train_dataset} --test_dataset=${test_dataset} --init_checkpoint=${MD} --batch_size=${BS} --learning_rate=${LR} --epochs=${EPOCH} --encoder_type=${ED} --optimizer=${OPTIM} --output_dir=${output_dir} --log_file=${LOG_FILE}
 else
-  python train.py --data_dir=${data_dir}/${DD} --task_def=${TASK_DEF} --train_dataset=${train_dataset} --test_dataset=${test_dataset} --init_checkpoint=${MD} --batch_size=${BS} --learning_rate=${LR} --epochs=${EPOCH} --encoder_type=${ED} --optimizer=${OPTIM} --output_dir=${output_dir} --log_file=${LOG_FILE} --max_answer_len=${MAX_ANSWER_LEN}
+  python train.py --data_dir=${data_dir}/${DD} --task_def=${TASK_DEF} --train_dataset=${train_dataset} --test_dataset=${test_dataset} --init_checkpoint=${MD} --batch_size=${BS} --learning_rate=${LR} --epochs=${EPOCH} --encoder_type=${ED} --optimizer=${OPTIM} --output_dir=${output_dir} --log_file=${LOG_FILE}
 fi

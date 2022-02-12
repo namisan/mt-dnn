@@ -1,0 +1,27 @@
+scitail:
+  data_format: PremiseAndOneHypothesis
+  enable_san: false
+  labels:
+  - neutral
+  - entails
+  metric_meta:
+  - ACC
+  loss: CeCriterion
+  kd_loss: MseCriterion
+  adv_loss: SymKlCriterion
+  n_class: 2
+  task_type: Classification
+snli:
+  data_format: PremiseAndOneHypothesis
+  enable_san: false
+  labels:
+  - contradiction
+  - neutral
+  - entailment
+  metric_meta:
+  - ACC
+  loss: CeCriterion
+  kd_loss: MseCriterion
+  adv_loss: SymKlCriterion
+  n_class: 3
+  task_type: Classification
