@@ -9,8 +9,8 @@
 set -e
 
 
-if [[ $# -lt 5 ]]; then
-  echo "It requires 5 args to run the script and the current # of bash args: $#"
+if [[ $# -lt 6 ]]; then
+  echo "It requires 6 args to run the script and the current # of bash args: $#"
   echo "run_glue_finetune.sh <data_dir> <model_type> <model_size> <task> <batch-size> <num_gpus>"
   exit 1
 fi
