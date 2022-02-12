@@ -5,7 +5,8 @@
 # Note that this is a toy setting and please refer our paper for detailed hyper-parameters.
 ############################### 
 
-# TO be updated
+# cook GLUE data
+bash experiments/glue/prepro.sh
 
-python prepro.py
-python train.py
+# FT on rte
+export CUDA_VISIBLE_DEVICES=0,; bash experiments/glue/run_glue_finetuning.sh data/canonical_data/ bert base rte 16 1
