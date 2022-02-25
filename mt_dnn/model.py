@@ -11,8 +11,6 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.optim.lr_scheduler import *
 from data_utils.utils import AverageMeter
-from pytorch_pretrained_bert import BertAdam as Adam
-from module.bert_optim import Adamax, RAdam
 from mt_dnn.loss import LOSS_REGISTRY
 from mt_dnn.matcher import SANBertNetwork
 from mt_dnn.perturbation import SmartPerturbation
