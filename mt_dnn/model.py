@@ -1,6 +1,7 @@
 # coding=utf-8
 # Copyright (c) Microsoft. All rights reserved.
 import copy
+import imp
 import sys
 import torch
 import tasks
@@ -15,6 +16,7 @@ from mt_dnn.loss import LOSS_REGISTRY
 from mt_dnn.matcher import SANBertNetwork
 from mt_dnn.perturbation import SmartPerturbation
 from mt_dnn.loss import *
+from mt_dnn.optim import AdamaxW
 from data_utils.task_def import TaskType, EncoderModelType
 from experiments.exp_def import TaskDef
 from data_utils.my_statics import DUMPY_STRING_FOR_EMPTY_ANS
@@ -151,7 +153,6 @@ class MTDNNModel(object):
 
         # # set up scheduler
         self.scheduler = None
-        #import pdb; pdb.set_trace()
         scheduler_type = self.config['scheduler_type']
         warmup_steps = self.config['warmup'] * num_train_step
         if scheduler_type == 3:
