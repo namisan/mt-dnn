@@ -116,54 +116,23 @@ class MTDNNModel(object):
         return optimizer_parameters
 
     def _setup_optim(self, optimizer_parameters, state_dict=None, num_train_step=-1):
-        if self.config["optimizer"] == "sgd":
-            self.optimizer = optim.SGD(
-                optimizer_parameters,
-                self.config["learning_rate"],
-                weight_decay=self.config["weight_decay"],
-            )
-
-        elif self.config["optimizer"] == "adamax":
-            self.optimizer = Adamax(
-                optimizer_parameters,
-                self.config["learning_rate"],
-                warmup=self.config["warmup"],
-                t_total=num_train_step,
-                max_grad_norm=self.config["grad_clipping"],
-                schedule=self.config["warmup_schedule"],
-                weight_decay=self.config["weight_decay"],
-            )
-            if self.config.get("have_lr_scheduler", False):
-                self.config["have_lr_scheduler"] = False
-        elif self.config["optimizer"] == "radam":
-            self.optimizer = RAdam(
-                optimizer_parameters,
-                self.config["learning_rate"],
-                warmup=self.config["warmup"],
-                t_total=num_train_step,
-                max_grad_norm=self.config["grad_clipping"],
-                schedule=self.config["warmup_schedule"],
-                eps=self.config["adam_eps"],
-                weight_decay=self.config["weight_decay"],
-            )
-            if self.config.get("have_lr_scheduler", False):
-                self.config["have_lr_scheduler"] = False
-            # The current radam does not support FP16.
-            self.config["fp16"] = False
-        elif self.config["optimizer"] == "adam":
-            self.optimizer = Adam(
-                optimizer_parameters,
-                lr=self.config["learning_rate"],
-                warmup=self.config["warmup"],
-                t_total=num_train_step,
-                max_grad_norm=self.config["grad_clipping"],
-                schedule=self.config["warmup_schedule"],
-                weight_decay=self.config["weight_decay"],
-            )
-            if self.config.get("have_lr_scheduler", False):
-                self.config["have_lr_scheduler"] = False
+        if self.config['optimizer'] == 'sgd':
+            self.optimizer = optim.SGD(optimizer_parameters, self.config['learning_rate'],
+                                       weight_decay=self.config['weight_decay'])
+        elif self.config['optimizer'] == 'adamax':
+            self.optimizer = AdamaxW(optimizer_parameters,
+                                    lr=self.config['learning_rate'],
+                                    weight_decay=self.config['weight_decay'])
+        elif self.config['optimizer'] == 'adam':
+            self.optimizer = optim.AdamW(optimizer_parameters,
+                                    lr=self.config['learning_rate'],
+                                    weight_decay=self.config['weight_decay'])
         else:
-            raise RuntimeError("Unsupported optimizer: %s" % opt["optimizer"])
+            raise RuntimeError('Unsupported optimizer: %s' % opt['optimizer'])
+
+        if state_dict and 'optimizer' in state_dict:
+            self.optimizer.load_state_dict(state_dict['optimizer'])
+
 
         if state_dict and "optimizer" in state_dict:
             self.optimizer.load_state_dict(state_dict["optimizer"])
@@ -171,7 +140,6 @@ class MTDNNModel(object):
         if self.config["fp16"]:
             try:
                 from apex import amp
-
                 global amp
             except ImportError:
                 raise ImportError(
@@ -183,30 +151,39 @@ class MTDNNModel(object):
             self.network = model
             self.optimizer = optimizer
 
-        if self.config.get("have_lr_scheduler", False):
-            if self.config.get("scheduler_type", "rop") == "rop":
-                self.scheduler = ReduceLROnPlateau(
-                    self.optimizer,
-                    mode="max",
-                    factor=self.config["lr_gamma"],
-                    patience=3,
+        # # set up scheduler
+        self.scheduler = None
+        #import pdb; pdb.set_trace()
+        scheduler_type = self.config['scheduler_type']
+        warmup_steps = self.config['warmup'] * num_train_step
+        if scheduler_type == 3:
+            from transformers import get_polynomial_decay_schedule_with_warmup
+            self.scheduler = get_polynomial_decay_schedule_with_warmup(
+                self.optimizer,
+                num_warmup_steps=warmup_steps,
+                num_training_steps=num_train_step
                 )
-            elif self.config.get("scheduler_type", "rop") == "exp":
-                self.scheduler = ExponentialLR(
-                    self.optimizer, gamma=self.config.get("lr_gamma", 0.95)
+        if scheduler_type == 2:
+            from transformers import get_constant_schedule_with_warmup
+            self.scheduler = get_constant_schedule_with_warmup(
+                self.optimizer,
+                num_warmup_steps=warmup_steps
                 )
-            else:
-                milestones = [
-                    int(step)
-                    for step in self.config.get("multi_step_lr", "10,20,30").split(",")
-                ]
-                self.scheduler = MultiStepLR(
-                    self.optimizer,
-                    milestones=milestones,
-                    gamma=self.config.get("lr_gamma"),
+        elif scheduler_type == 1:
+            from transformers import get_cosine_schedule_with_warmup
+            self.scheduler = get_cosine_schedule_with_warmup(
+                self.optimizer,
+                num_warmup_steps=warmup_steps,
+                num_training_steps=num_train_step
                 )
         else:
-            self.scheduler = None
+            from transformers import get_linear_schedule_with_warmup
+            self.scheduler = get_linear_schedule_with_warmup(
+                self.optimizer,
+                num_warmup_steps=warmup_steps,
+                num_training_steps=num_train_step
+                )
+
 
     def _setup_lossmap(self, config):
         task_def_list: List[TaskDef] = config["task_def_list"]
@@ -408,6 +385,8 @@ class MTDNNModel(object):
             # reset number of the grad accumulation
             self.optimizer.step()
             self.optimizer.zero_grad()
+            if self.scheduler:
+                self.scheduler.step()
 
     def encode(self, batch_meta, batch_data):
         self.network.eval()

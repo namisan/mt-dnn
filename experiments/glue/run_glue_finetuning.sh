@@ -31,7 +31,7 @@ echo "GPU counts: ${num_gpus}"
 export ROOT_DIR="glue_app"
 export EPOCH=3
 export LR="5e-5"
-export OPTIM="adamw"
+export OPTIM="adamax"
 export TASK_DEF="experiments/glue/glue_task_def.yml"
 export BS=${batch_size}
 

@@ -167,13 +167,8 @@ def train_config(parser):
     parser.add_argument("--resume", action="store_true")
 
     # scheduler
-    parser.add_argument(
-        "--have_lr_scheduler", dest="have_lr_scheduler", action="store_false"
-    )
-    parser.add_argument("--multi_step_lr", type=str, default="10,20,30")
     # parser.add_argument('--feature_based_on', action='store_true')
-    parser.add_argument("--lr_gamma", type=float, default=0.5)
-    parser.add_argument("--scheduler_type", type=str, default="ms", help="ms/rop/exp")
+    parser.add_argument('--scheduler_type', type=int, default=0, help='0: linear, 1: cosine, 2 constant')
     parser.add_argument("--output_dir", default="checkpoint")
     parser.add_argument(
         "--seed",
