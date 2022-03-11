@@ -13,19 +13,20 @@ class TaskType(IntEnum):
     MaskLM = 7
     SpanSeqenceLabeling = 8
     SeqenceGeneration = 9
+    ClozeChoice = 10
 
 
 class DataFormat(IntEnum):
     PremiseOnly = 1
     PremiseAndOneHypothesis = 2
     PremiseAndMultiHypothesis = 3
-    #    MRC = 4 # changed to CLUE_SPAN
     Seqence = 4
     MLM = 5
     CLUE_CLASSIFICATION = 6
     CLUE_SPAN = 7
     CLUE_SEQ = 8
     CLUE_GEN = 9  # generation
+    ClozeChoice = 10 #
 
 
 class EncoderModelType(IntEnum):
