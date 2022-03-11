@@ -88,14 +88,6 @@ do
     do
       MYLANG="input$INPUT_TYPE"
       echo "BPE encoding $SPLIT/$MYLANG"
-      ## ***sentencepiece tokenizer for TNLR models***
-
-      #cat $TASK_DATA_FOLDER/processed/$SPLIT.raw.$MYLANG | \
-      #    python ../pretrain/multiprocessing_sp_encoder.py \
-      #      --sentencepiece-model $DICT/sp.model \
-      #      --vocab $DICT/dict.txt \
-      #    > $TASK_DATA_FOLDER/processed/$SPLIT.$MYLANG
-
       ## bpe for RoBERTa
       python -m examples.roberta.multiprocessing_bpe_encoder \
       --encoder-json encoder.json \
