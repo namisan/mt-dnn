@@ -161,9 +161,9 @@ def main(args):
     logger.info("Loaded {} COLA dev samples".format(len(cola_dev_data)))
     logger.info("Loaded {} COLA test samples".format(len(cola_test_data)))
 
-    stsb_train_data = load_sts(stsb_train_path)
-    stsb_dev_data = load_sts(stsb_dev_path)
-    stsb_test_data = load_sts(stsb_test_path, is_train=False)
+    stsb_train_data = load_stsb(stsb_train_path)
+    stsb_dev_data = load_stsb(stsb_dev_path)
+    stsb_test_data = load_stsb(stsb_test_path, is_train=False)
     logger.info("Loaded {} STS-B train samples".format(len(stsb_train_data)))
     logger.info("Loaded {} STS-B dev samples".format(len(stsb_dev_data)))
     logger.info("Loaded {} STS-B test samples".format(len(stsb_test_data)))

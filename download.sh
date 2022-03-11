@@ -60,16 +60,22 @@ rm -rf data
 ## Download SQuAD & SQuAD v2.0 data
 cd $DATA_DIR
 mkdir "squad"
-wget https://rajpurkar.github.io/SQuAD-explorer/dataset/train-v1.1.json -O $DATA_DIR/squad/train.json
-wget https://rajpurkar.github.io/SQuAD-explorer/dataset/dev-v1.1.json -O $DATA_DIR/squad/dev.json
+cd ..
+wget https://rajpurkar.github.io/SQuAD-explorer/dataset/train-v1.1.json -O squad/train.json
+wget https://rajpurkar.github.io/SQuAD-explorer/dataset/dev-v1.1.json -O squad/dev.json
 
 mkdir "squad_v2"
-wget https://rajpurkar.github.io/SQuAD-explorer/dataset/train-v2.0.json -O $DATA_DIR/squad_v2/train.json
-wget https://rajpurkar.github.io/SQuAD-explorer/dataset/dev-v2.0.json -O $DATA_DIR/squad_v2/dev.json
+wget https://rajpurkar.github.io/SQuAD-explorer/dataset/train-v2.0.json -O squad_v2/train.json
+wget https://rajpurkar.github.io/SQuAD-explorer/dataset/dev-v2.0.json -O squad_v2/dev.json
 
 # NER
-cd $DATA_DIR
 mkdir "ner"
 wget https://raw.githubusercontent.com/synalp/NER/master/corpus/CoNLL-2003/eng.train -O "ner/train.txt"
 wget https://raw.githubusercontent.com/synalp/NER/master/corpus/CoNLL-2003/eng.testa -O "ner/valid.txt"
 wget https://raw.githubusercontent.com/synalp/NER/master/corpus/CoNLL-2003/eng.testb -O "ner/test.txt"
+
+# SuperGLUE
+
+wget https://dl.fbaipublicfiles.com/glue/superglue/data/v2/combined.zip  -O superglue.zip 
+unzip superglue.zip
+cd ..
