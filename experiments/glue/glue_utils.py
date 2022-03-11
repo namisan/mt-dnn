@@ -305,7 +305,7 @@ def load_cola(file, header=True, is_train=True):
     return rows
 
 
-def load_sts(file, header=True, is_train=True):
+def load_stsb(file, header=True, is_train=True):
     rows = []
     cnt = 0
     with open(file, encoding="utf8") as f:
