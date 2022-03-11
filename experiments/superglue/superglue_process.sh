@@ -15,6 +15,7 @@ set -e
 # ***Download***
 # wget https://dl.fbaipublicfiles.com/glue/superglue/data/v2/combined.zip
 # unzip combined.zip
+# or sh download.sh in mt-dnn repo
 
 if [[ $# -ne 4 ]]; then
   echo "Run as following:"
@@ -118,18 +119,13 @@ do
       --workers 8 \
       --srcdict $DICT/dict.txt;
   done
-  if [[ "$TASK" !=  "STS-B" ]]
-  then
-    python ../../fairseq_cli/preprocess.py \
-      --only-source \
-      --trainpref "$TASK_DATA_FOLDER/processed/train.label" \
-      --validpref "${DEVPREF//LANG/'label'}" \
-      --destdir "${OUTPUT}/$TASK-bin/label" \
-      --workers 8;
-  else
-    # For STS-B output range is converted to be between: [0.0, 1.0]
-    mkdir -p "${OUTPUT}/$TASK-bin/label"
-    awk '{print $1 / 5.0 }' "$TASK_DATA_FOLDER/processed/train.label" > "${OUTPUT}/$TASK-bin/label/train.label"
-    awk '{print $1 / 5.0 }' "$TASK_DATA_FOLDER/processed/dev.label" > "${OUTPUT}/$TASK-bin/label/valid.label"
-  fi
+
+  # bin the data
+  python ../../fairseq_cli/preprocess.py \
+    --only-source \
+    --trainpref "$TASK_DATA_FOLDER/processed/train.label" \
+    --validpref "${DEVPREF//LANG/'label'}" \
+    --destdir "${OUTPUT}/$TASK-bin/label" \
+    --workers 8;
+
 done
