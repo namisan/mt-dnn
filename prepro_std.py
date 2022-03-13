@@ -148,6 +148,34 @@ def extract_feature_sequence(
     feature = {"uid": ids, "label": label, "token_id": input_ids, "type_id": type_ids}
     return feature
 
+def extract_feature_cloze_choice(
+    sample, max_seq_len=MAX_SEQ_LEN, tokenizer=None
+):
+    ids = sample["uid"]
+    premise = sample["premise"]
+    hypothesis_list = sample["hypothesis"]
+    label = sample["label"]
+    input_ids_list = []
+    type_ids_list = []
+    attention_mask_list = []
+    for hypothesis in hypothesis_list:
+        input_ids, input_mask, type_ids = feature_extractor(
+            tokenizer, premise, hypothesis, max_length=max_seq_len
+        )
+        input_ids_list.append(input_ids)
+        type_ids_list.append(type_ids)
+        attention_mask_list.append(input_mask)
+    feature = {
+        "uid": ids,
+        "label": label,
+        "token_id": input_ids_list,
+        "type_id": type_ids_list,
+        "olabel": sample["olabel"],
+        "attention_mask": attention_mask_list,
+        "choice": sample["choice"],
+        "answer": sample["answer"]
+    }
+    return feature
 
 def build_data(
     data,
@@ -182,6 +210,12 @@ def build_data(
             max_seq_len=max_seq_len,
             tokenizer=tokenizer,
             label_mapper=lab_dict,
+        )
+    elif data_format == DataFormat.ClozeChoice:
+        partial_feature = partial(
+            extract_feature_cloze_choice,
+            max_seq_len=max_seq_len,
+            tokenizer=tokenizer,
         )
     else:
         raise ValueError(data_format)
