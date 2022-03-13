@@ -163,13 +163,14 @@ def load_record_mtdnn(file):
                         label = 1 if orders[0] == 0 else 0
                         labels = [0, 0]
                         labels[label] = 1
-                        sample = {'uid': str(query_idx), 'premise': passage, 'hypothesis': [queries[0], queries[1]], 'label': labels, 'choice': "<SEP>".join(new_answers), "answer": str(list(answers_set))}
+                        sample = {'uid': str(query_idx), 'premise': passage, 'hypothesis': [queries[0], queries[1]], 'label': labels, 'choice': str(new_answers), "answer": str(list(answers_set))}
                         rows.append(sample)
                 else:
+                    entities_set = list(entities_set)
                     hypothesis = [query.replace("@placeholder", entity) for entity in entities_set]
                     label = [1 if entity in answers_set else 0 for entity in entities_set]
                     uid = str(query_idx)
-                    sample = {'uid': uid, 'premise': passage, 'hypothesis': hypothesis, 'label': label, "choice": "<SEP>".join(entities_set), "answer": str(list(answers_set))}
+                    sample = {'uid': uid, 'premise': passage, 'hypothesis': hypothesis, 'label': label, "choice": str(entities_set), "answer": str(list(answers_set))}
                     rows.append(sample)
     return rows
 
