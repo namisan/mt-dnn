@@ -62,5 +62,28 @@ def dump_rows(rows, out_path, data_format):
 
                         pdb.set_trace()
                 out_f.write("%s\t%s\t%s\n" % (row["uid"], row["label"], row["premise"]))
+            elif data_format == DataFormat.ClozeChoice:
+                for col in ["uid", "label", "premise"]:
+                    if "\t" in str(row[col]):
+                        import pdb
+                        pdb.set_trace()
+                hypothesis = row["hypothesis"]
+                for one_hypo in hypothesis:
+                    if "\t" in str(one_hypo):
+                        import pdb
+
+                        pdb.set_trace()
+                hypothesis = "\t".join(hypothesis)
+                out_f.write(
+                    "%s\t%s\t%s\t%s\t%s\t%s\n"
+                    % (
+                        row["uid"],
+                        row["choice"],
+                        row["answer"],
+                        row["label"],
+                        row["premise"],
+                        hypothesis,
+                    )
+                )
             else:
                 raise ValueError(data_format)

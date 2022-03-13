@@ -94,15 +94,20 @@ class SANBertNetwork(nn.Module):
                 out_proj = nn.Linear(hidden_size, 2)
             elif task_type == TaskType.SeqenceLabeling:
                 out_proj = nn.Linear(hidden_size, lab)
-            elif task_type == TaskType.MaskLM:
-                if opt["encoder_type"] == EncoderModelType.ROBERTA:
-                    # TODO: xiaodl
-                    out_proj = MaskLmHeader(self.bert.embeddings.word_embeddings.weight)
-                else:
-                    out_proj = MaskLmHeader(self.bert.embeddings.word_embeddings.weight)
+            # elif task_type == TaskType.MaskLM:
+            #     if opt["encoder_type"] == EncoderModelType.ROBERTA:
+            #         # TODO: xiaodl
+            #         out_proj = MaskLmHeader(self.bert.embeddings.word_embeddings.weight)
+            #     else:
+            #         out_proj = MaskLmHeader(self.bert.embeddings.word_embeddings.weight)
             elif task_type == TaskType.SeqenceGeneration:
                 # use orginal header
                 out_proj = None
+            elif task_type == TaskType.ClozeChoice:
+                self.pooler = Pooler(
+                    hidden_size, dropout_p=opt["dropout_p"], actf=opt["pooler_actf"]
+                )
+                out_proj = nn.Linear(hidden_size, lab)
             else:
                 if decoder_opt == 1:
                     out_proj = SANClassifier(
@@ -239,6 +244,11 @@ class SANBertNetwork(nn.Module):
             return logits
         elif task_type == TaskType.SeqenceGeneration:
             logits = last_hidden_state.view(-1, last_hidden_state.size(-1))
+            return logits
+        elif task_type == TaskType.ClozeChoice:
+            pooled_output = self.pooler(last_hidden_state)
+            pooled_output = self.dropout_list[task_id](pooled_output)
+            logits = self.scoring_list[task_id](pooled_output)
             return logits
         else:
             if decoder_opt == 1:
