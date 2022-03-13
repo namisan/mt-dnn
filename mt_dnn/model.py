@@ -500,6 +500,30 @@ class MTDNNModel(object):
             score = score.data.cpu()
             score = score.numpy().tolist()
             return score, predictions, golds
+        elif task_type == TaskType.ClozeChoice:
+            score = score.contiguous().view(-1)
+            score = score.data.cpu()
+            score = score.numpy()
+            copy_score = score.tolist()
+            answers = batch_meta["answer"]
+            choices = batch_meta["choice"]
+            chunks = batch_meta["pairwise_size"]
+            uids = batch_meta["uids"]
+            predictions = {}
+            golds = {}
+            for chunk in chunks:
+                uid = uids[0]
+                answer = eval(answers[0])
+                choice = eval(choices[0])
+                answers = answers[chunk:]
+                choices = choices[chunk:]
+                current_p = score[:chunk]
+                score = score[chunk:]
+                positive = np.argmax(current_p)
+                predict = choice[positive]
+                predictions[uid] = predict
+                golds[uid] = answer
+            return copy_score, predictions, golds            
         else:
             raise ValueError("Unknown task_type: %s" % task_type)
         return score, predict, batch_meta["label"]

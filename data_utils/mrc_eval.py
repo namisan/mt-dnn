@@ -138,9 +138,9 @@ def squadv1_evaluate_func(human, predictions):
     f1 = exact_match = total = 0
     for uid, answer in human.items():
         if type(answer) is dict:
-            ground_truths = answer["text"]
+            ground_truths = answer["text"] if "text" in answer else answer
         else:
-            ground_truths = [ans["text"] for ans in answer]
+            ground_truths = [ans["text"] if "text" in ans else ans for ans in answer]
         total += 1
         if uid not in predictions:
             message = "Unanswered question " + uid + " will receive score 0."
