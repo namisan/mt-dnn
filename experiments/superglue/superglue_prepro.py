@@ -50,6 +50,9 @@ def main(args):
     wic_dev_path = os.path.join(root, "WiC/val.jsonl")
     wic_test_path = os.path.join(root, "WiC/test.jsonl")
 
+    multirc_train_path = os.path.join(root, "MultiRC/train.jsonl")
+    multirc_dev_path = os.path.join(root, "MultiRC/val.jsonl")
+    multirc_test_path = os.path.join(root, "MultiRC/test.jsonl")
 
     ######################################
     # Loading DATA
@@ -90,12 +93,12 @@ def main(args):
     logger.info("Loaded {} WiC dev samples".format(len(wic_dev_data)))
     logger.info("Loaded {} WiC test samples".format(len(wic_test_data)))
 
-    wic_train_data = load_wic_mtdnn(wic_train_path)
-    wic_dev_data = load_wic_mtdnn(wic_dev_path)
-    wic_test_data = load_wic_mtdnn(wic_test_path)
-    logger.info("Loaded {} WiC train samples".format(len(wic_train_data)))
-    logger.info("Loaded {} WiC dev samples".format(len(wic_dev_data)))
-    logger.info("Loaded {} WiC test samples".format(len(wic_test_data)))
+    multirc_train_data = load_multirc_mtdnn(multirc_train_path)
+    multirc_dev_data = load_multirc_mtdnn(multirc_dev_path)
+    multirc_test_data = load_multirc_mtdnn(multirc_test_path)
+    logger.info("Loaded {} MultiRC train samples".format(len(multirc_train_data)))
+    logger.info("Loaded {} MultiRC dev samples".format(len(multirc_dev_data)))
+    logger.info("Loaded {} MultiRC test samples".format(len(multirc_test_data)))
 
     canonical_data_suffix = "canonical_data"
     canonical_data_root = os.path.join(root, canonical_data_suffix)
@@ -142,6 +145,13 @@ def main(args):
     dump_rows(wic_test_data, wic_test_fout, DataFormat.PremiseAndOneHypothesis)
     logger.info("done with WiC")
 
+    multirc_train_fout = os.path.join(canonical_data_root, "multirc_train.tsv")
+    multirc_dev_fout = os.path.join(canonical_data_root, "multirc_dev.tsv")
+    multirc_test_fout = os.path.join(canonical_data_root, "multirc_test.tsv")
+    dump_rows(multirc_train_data, multirc_train_fout, DataFormat.PremiseAndOneHypothesis)
+    dump_rows(multirc_dev_data, multirc_dev_fout, DataFormat.PremiseAndOneHypothesis)
+    dump_rows(multirc_test_data, multirc_test_fout, DataFormat.PremiseAndOneHypothesis)
+    logger.info("done with MultiRC")
 
 if __name__ == "__main__":
     args = parse_args()

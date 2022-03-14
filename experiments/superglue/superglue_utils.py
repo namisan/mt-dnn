@@ -57,6 +57,28 @@ def load_multirc(file):
                     rows.append(sample)
         return rows
 
+def load_multirc_mtdnn(file):
+    rows = []
+    with open(file, encoding="utf8") as f:
+        for line in f:
+            data = json.loads(line)
+            pidx = data['idx']
+            passage = data['passage']['text']
+            questionts = data['passage']['questions']
+            assert type(questionts) is list
+            for question in questionts:
+                q = question['question']
+                qidx = question['idx']
+                answers = question['answers']
+                for answer in answers:
+                    a = answer['text']
+                    aidx = answer['idx']
+                    label = answer['label'] if 'label' in answer else 0
+                    uid = "{}_{}_{}".format(pidx, qidx, aidx)
+                    sample = {'uid': uid, 'premise': passage, 'hypothesis': "{} {}".format(q, a), 'label': label}
+                    rows.append(sample)
+        return rows
+
 def load_wic(file):
     rows = []
     with open(file, encoding="utf8") as f:

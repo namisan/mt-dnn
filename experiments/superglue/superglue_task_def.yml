@@ -53,4 +53,14 @@ wic:
   kd_loss: MseCriterion
   adv_loss: SymKlCriterion
   n_class: 2
-  task_type: ClozeChoice
+  task_type: Classification
+multirc:
+  data_format: PremiseAndOneHypothesis
+  enable_san: false 
+  metric_meta:
+  - ACC
+  loss: CeCriterion
+  kd_loss: MseCriterion
+  adv_loss: SymKlCriterion
+  n_class: 2
+  task_type: Classification
