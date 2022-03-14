@@ -44,3 +44,13 @@ record:
   adv_loss: SymKlCriterion
   n_class: 1
   task_type: ClozeChoice
+wic:
+  data_format: PremiseAndOneHypothesis
+  enable_san: false 
+  metric_meta:
+  - ACC
+  loss: CeCriterion
+  kd_loss: MseCriterion
+  adv_loss: SymKlCriterion
+  n_class: 2
+  task_type: ClozeChoice

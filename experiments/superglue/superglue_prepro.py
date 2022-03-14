@@ -46,6 +46,11 @@ def main(args):
     record_dev_path = os.path.join(root, "ReCoRD/val.jsonl")
     record_test_path = os.path.join(root, "ReCoRD/test.jsonl")
 
+    wic_train_path = os.path.join(root, "WiC/train.jsonl")
+    wic_dev_path = os.path.join(root, "WiC/val.jsonl")
+    wic_test_path = os.path.join(root, "WiC/test.jsonl")
+
+
     ######################################
     # Loading DATA
     ######################################
@@ -78,6 +83,20 @@ def main(args):
     logger.info("Loaded {} Record dev samples".format(len(record_dev_data)))
     logger.info("Loaded {} Record test samples".format(len(record_test_data)))
 
+    wic_train_data = load_wic_mtdnn(wic_train_path)
+    wic_dev_data = load_wic_mtdnn(wic_dev_path)
+    wic_test_data = load_wic_mtdnn(wic_test_path)
+    logger.info("Loaded {} WiC train samples".format(len(wic_train_data)))
+    logger.info("Loaded {} WiC dev samples".format(len(wic_dev_data)))
+    logger.info("Loaded {} WiC test samples".format(len(wic_test_data)))
+
+    wic_train_data = load_wic_mtdnn(wic_train_path)
+    wic_dev_data = load_wic_mtdnn(wic_dev_path)
+    wic_test_data = load_wic_mtdnn(wic_test_path)
+    logger.info("Loaded {} WiC train samples".format(len(wic_train_data)))
+    logger.info("Loaded {} WiC dev samples".format(len(wic_dev_data)))
+    logger.info("Loaded {} WiC test samples".format(len(wic_test_data)))
+
     canonical_data_suffix = "canonical_data"
     canonical_data_root = os.path.join(root, canonical_data_suffix)
     if not os.path.isdir(canonical_data_root):
@@ -99,6 +118,14 @@ def main(args):
     dump_rows(boolq_test_data, boolq_test_fout, DataFormat.PremiseAndOneHypothesis)
     logger.info("done with boolq")
 
+    copa_train_fout = os.path.join(canonical_data_root, "copa_train.tsv")
+    copa_dev_fout = os.path.join(canonical_data_root, "copa_dev.tsv")
+    copa_test_fout = os.path.join(canonical_data_root, "copa_test.tsv")
+    dump_rows(copa_train_data, copa_train_fout, DataFormat.PremiseAndMultiHypothesis)
+    dump_rows(copa_dev_data, copa_dev_fout, DataFormat.PremiseAndMultiHypothesis)
+    dump_rows(copa_test_data, copa_test_fout, DataFormat.PremiseAndMultiHypothesis)
+    logger.info("done with record")
+
     record_train_fout = os.path.join(canonical_data_root, "record_train.tsv")
     record_dev_fout = os.path.join(canonical_data_root, "record_dev.tsv")
     record_test_fout = os.path.join(canonical_data_root, "record_test.tsv")
@@ -107,6 +134,13 @@ def main(args):
     dump_rows(record_test_data, record_test_fout, DataFormat.ClozeChoice)
     logger.info("done with record")
 
+    wic_train_fout = os.path.join(canonical_data_root, "wic_train.tsv")
+    wic_dev_fout = os.path.join(canonical_data_root, "wic_dev.tsv")
+    wic_test_fout = os.path.join(canonical_data_root, "wic_test.tsv")
+    dump_rows(wic_train_data, wic_train_fout, DataFormat.PremiseAndOneHypothesis)
+    dump_rows(wic_dev_data, wic_dev_fout, DataFormat.PremiseAndOneHypothesis)
+    dump_rows(wic_test_data, wic_test_fout, DataFormat.PremiseAndOneHypothesis)
+    logger.info("done with WiC")
 
 
 if __name__ == "__main__":

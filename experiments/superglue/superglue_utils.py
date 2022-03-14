@@ -72,6 +72,22 @@ def load_wic(file):
             rows.append(sample)
     return rows
 
+def load_wic_mtdnn(file):
+    rows = []
+    with open(file, encoding="utf8") as f:
+        for line in f:
+            data = json.loads(line)
+            label = data['label'] if 'label' in data else False
+            label = 1 if label else 0
+            uid = data['idx']
+            word = data['word']
+            premise = data['sentence1']
+            hyp = data['sentence2']
+            # the given word is placed at the begining of seq. 
+            sample = {'uid': uid, 'premise': "{} {}".format(word, premise), 'hypothesis': hyp, 'label': label}
+            rows.append(sample)
+    return rows
+
 def load_record(file):
     rows = []
     is_training =True if ("train" in file or "val" in file) else False
