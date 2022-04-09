@@ -42,12 +42,14 @@ def load_data(file_path, task_def):
                 "premise": eval(fields[2]),
             }
 
-        elif data_format == DataFormat.MRC:
+        elif data_format == DataFormat.ClozeChoice:
             row = {
                 "uid": fields[0],
-                "label": fields[1],
-                "premise": fields[2],
-                "hypothesis": fields[3],
+                "choice": fields[1],
+                "answer": fields[2],
+                "label": fields[3],
+                "premise": fields[4],
+                "hypothesis": fields[5:],
             }
         else:
             raise ValueError(data_format)
@@ -68,7 +70,10 @@ def load_data(file_path, task_def):
         elif task_type == TaskType.SeqenceLabeling:
             assert type(row["label"]) is list
             row["label"] = [label_dict[label] for label in row["label"]]
-
+        elif task_type == TaskType.ClozeChoice:
+            labels = eval(row["label"])
+            row["label"] = int(np.argmax(labels))
+            row["olabel"] = labels
         rows.append(row)
     return rows
 

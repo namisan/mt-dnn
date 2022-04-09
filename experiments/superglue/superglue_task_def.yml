@@ -1,0 +1,66 @@
+boolq:
+  data_format: PremiseAndOneHypothesis
+  dropout_p: 0.1
+  enable_san: false
+  metric_meta:
+  - ACC
+  loss: CeCriterion
+  kd_loss: MseCriterion
+  adv_loss: SymKlCriterion
+  n_class: 2
+  task_type: Classification
+copa:
+  data_format: PremiseAndMultiHypothesis
+  enable_san: false 
+  metric_meta:
+  - ACC
+  loss: RankCeCriterion
+  kd_loss: MseCriterion
+  adv_loss: SymKlCriterion
+  n_class: 1
+  task_type: Ranking
+cb:
+  data_format: PremiseAndOneHypothesis
+  dropout_p: 0.1
+  enable_san: false 
+  labels:
+  - contradiction
+  - neutral
+  - entailment
+  metric_meta:
+  - ACC
+  loss: CeCriterion
+  kd_loss: MseCriterion
+  adv_loss: SymKlCriterion
+  n_class: 3
+  task_type: Classification
+record:
+  data_format: ClozeChoice
+  enable_san: false 
+  metric_meta:
+  - EmF1
+  loss: RankCeCriterion
+  kd_loss: MseCriterion
+  adv_loss: SymKlCriterion
+  n_class: 1
+  task_type: ClozeChoice
+wic:
+  data_format: PremiseAndOneHypothesis
+  enable_san: false 
+  metric_meta:
+  - ACC
+  loss: CeCriterion
+  kd_loss: MseCriterion
+  adv_loss: SymKlCriterion
+  n_class: 2
+  task_type: Classification
+multirc:
+  data_format: PremiseAndOneHypothesis
+  enable_san: false 
+  metric_meta:
+  - ACC
+  loss: CeCriterion
+  kd_loss: MseCriterion
+  adv_loss: SymKlCriterion
+  n_class: 2
+  task_type: Classification

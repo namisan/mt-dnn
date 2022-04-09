@@ -1,5 +1,6 @@
 # coding=utf-8
 # Copyright (c) Microsoft. All rights reserved.
+from copy import deepcopy
 import sys
 import json
 import torch
@@ -366,11 +367,8 @@ class SingleTaskDataset(Dataset):
         if task_type == TaskType.MaskLM:
 
             def load_mlm_data(path):
-                from pytorch_pretrained_bert.tokenization import BertTokenizer
-
-                tokenizer = BertTokenizer.from_pretrained(
-                    bert_model, do_lower_case=do_lower_case
-                )
+                from transformers import AutoTokenizer
+                tokenizer =  AutoTokenizer.from_pretrained(bert_model, cache_dir=".cache")
                 vocab_words = list(tokenizer.vocab.keys())
                 data = load_loose_json(path)
                 docs = []
@@ -502,25 +500,26 @@ class Collater:
 
     def rebatch(self, batch):
         newbatch = []
+        sizes = []
         for sample in batch:
             size = len(sample["token_id"])
+            sizes.append(size)
             self.pairwise_size = size
             assert size == len(sample["type_id"])
             for idx in range(0, size):
                 token_id = sample["token_id"][idx]
                 type_id = sample["type_id"][idx]
-                uid = sample["ruid"][idx]
+                attention_mask = sample["attention_mask"][idx]
+                uid = sample["ruid"][idx] if "ruid" in sample else sample["uid"]
                 olab = sample["olabel"][idx]
-                newbatch.append(
-                    {
-                        "uid": uid,
-                        "token_id": token_id,
-                        "type_id": type_id,
-                        "label": sample["label"],
-                        "true_label": olab,
-                    }
-                )
-        return newbatch
+                new_sample = deepcopy(sample)
+                new_sample["uid"] = uid
+                new_sample["token_id"] = token_id
+                new_sample["type_id"] = type_id
+                new_sample["attention_mask"] = attention_mask
+                new_sample["true_label"] = olab
+                newbatch.append(new_sample)
+        return newbatch, sizes
 
     def __if_pair__(self, data_type):
         return data_type in [
@@ -540,8 +539,8 @@ class Collater:
         data_type = task_def.data_type
         batch = new_batch
 
-        if task_type == TaskType.Ranking:
-            batch = self.rebatch(batch)
+        if task_type == TaskType.Ranking or task_type == TaskType.ClozeChoice:
+            batch, chunk_sizes = self.rebatch(batch)
 
         # prepare model input
         batch_info, batch_data = self._prepare_model_input(batch, data_type)
@@ -561,7 +560,7 @@ class Collater:
             if task_obj is not None:
                 batch_data.append(task_obj.train_prepare_label(labels))
                 batch_info["label"] = len(batch_data) - 1
-            elif task_type == TaskType.Ranking:
+            elif task_type == TaskType.Ranking or task_type == TaskType.ClozeChoice:
                 batch_data.append(torch.LongTensor(labels))
                 batch_info["label"] = len(batch_data) - 1
             elif task_type == TaskType.Span:
@@ -648,6 +647,14 @@ class Collater:
                     batch_info["true_label"] = [
                         sample["true_label"] for sample in batch
                     ]
+                if task_type == TaskType.ClozeChoice:
+                    batch_info["answer"] = [
+                        sample["answer"] for sample in batch
+                    ]
+                    batch_info["choice"] = [
+                        sample["choice"] for sample in batch
+                    ]
+                    batch_info["pairwise_size"] = chunk_sizes
                 if task_type == TaskType.Span or task_type == TaskType.SpanYN:
                     batch_info["offset_mapping"] = [
                         sample["offset_mapping"] for sample in batch
