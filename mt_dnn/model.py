@@ -284,20 +284,6 @@ class MTDNNModel(object):
                     ignore_index=-1,
                     pairwise_size=batch_meta["pairwise_size"],
                 )
-            elif batch_meta["task_def"]["task_type"] == TaskType.SeqenceGeneration:
-                weight = (
-                    (
-                        1.0
-                        / torch.sum(
-                            (y > -1).float().view(-1, seq_length), 1, keepdim=True
-                        )
-                    )
-                    .repeat(1, seq_length)
-                    .view(-1)
-                )
-                loss = self.task_loss_criterion[task_id](
-                    logits, y, weight, ignore_index=-1
-                )
             else:
                 loss = self.task_loss_criterion[task_id](
                     logits, y, weight, ignore_index=-1
