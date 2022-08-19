@@ -13,7 +13,9 @@ class TaskType(IntEnum):
     MaskLM = 7
     SpanSeqenceLabeling = 8
     SeqenceGeneration = 9
-    ClozeChoice = 10
+    SeqenceGenerationMRC = 10
+    EncSeqenceGeneration = 11
+    ClozeChoice = 12
 
 
 class DataFormat(IntEnum):
