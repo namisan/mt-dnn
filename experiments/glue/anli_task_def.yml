@@ -1,0 +1,42 @@
+anli:
+  data_format: PremiseAndOneHypothesis
+  dropout_p: 0.1
+  enable_san: false 
+  labels:
+  - c
+  - n
+  - e
+  metric_meta:
+  - ACC
+  loss: CeCriterion
+  kd_loss: MseCriterion
+  adv_loss: SymKlCriterion
+  n_class: 3
+  split_names:
+  - r1_train
+  - r1_dev
+  - r1_test
+  - r2_train
+  - r2_dev
+  - r2_test
+  - r3_train
+  - r3_dev
+  - r3_test
+  task_type: Classification
+fever:
+  data_format: PremiseAndOneHypothesis
+  dropout_p: 0.1
+  enable_san: false 
+  labels:
+  - contradiction
+  - neutral
+  - entailment
+  metric_meta:
+  - ACC
+  loss: CeCriterion
+  kd_loss: MseCriterion
+  adv_loss: SymKlCriterion
+  n_class: 2
+  split_names:
+  - train
+  task_type: Classification
