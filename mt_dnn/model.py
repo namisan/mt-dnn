@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 class MTDNNModel(object):
-    def __init__(self, opt, device=None, state_dict=None, num_train_step=-1):
+    def __init__(self, opt, device=None, state_dict=None, num_train_step=-1, tokenizer=None):
         self.config = opt
         self.updates = (
             state_dict["updates"] if state_dict and "updates" in state_dict else 0
@@ -71,11 +71,11 @@ class MTDNNModel(object):
             self.mnetwork = nn.DataParallel(self.network)
         else:
             self.mnetwork = self.network
+        self.tokenizer = tokenizer
         self._setup_lossmap(self.config)
         self._setup_kd_lossmap(self.config)
         self._setup_adv_lossmap(self.config)
         self._setup_adv_training(self.config)
-        self._setup_tokenizer()
 
     def _setup_adv_training(self, config):
         self.adv_teacher = None
@@ -216,16 +216,16 @@ class MTDNNModel(object):
                 )
                 self.adv_task_loss_criterion.append(lc)
 
-    def _setup_tokenizer(self):
-        try:
-            from transformers import AutoTokenizer
+    # def _setup_tokenizer(self):
+    #     try:
+    #         from transformers import AutoTokenizer
 
-            self.tokenizer = AutoTokenizer.from_pretrained(
-                self.config["init_checkpoint"],
-                cache_dir=self.config["transformer_cache"],
-            )
-        except:
-            self.tokenizer = None
+    #         self.tokenizer = AutoTokenizer.from_pretrained(
+    #             self.config["init_checkpoint"],
+    #             cache_dir=self.config["transformer_cache"],
+    #         )
+    #     except:
+    #         self.tokenizer = None
 
     def _to_cuda(self, tensor):
         if tensor is None:
@@ -247,7 +247,6 @@ class MTDNNModel(object):
         y = batch_data[batch_meta["label"]]
         y = self._to_cuda(y) if self.config["cuda"] else y
         if batch_meta["task_def"]["task_type"] == TaskType.SeqenceGeneration:
-            seq_length = y.size(1)
             y = y.view(-1)
 
         task_id = batch_meta["task_id"]
@@ -470,7 +469,7 @@ class MTDNNModel(object):
             end = end.data.cpu()
             end = end.numpy().tolist()
             return (start, end), predictions, features
-        elif task_type == TaskType.SeqenceGeneration:
+        elif task_type == TaskType.SeqenceGenerationMRC:
             predicts = self.tokenizer.batch_decode(score, skip_special_tokens=True)
             predictions = {}
             golds = {}
@@ -482,6 +481,20 @@ class MTDNNModel(object):
                     predict = ""
                 predictions[sample_id] = predict
                 golds[sample_id] = answer
+            score = score.contiguous()
+            score = score.data.cpu()
+            score = score.numpy().tolist()
+            return score, predictions, golds
+        elif task_type == TaskType.SeqenceGeneration:
+            predicts = self.tokenizer.batch_decode(score, skip_special_tokens=True)
+            predictions = []
+            golds = []
+            for idx, predict in enumerate(predicts):
+                sample_id = batch_meta["uids"][idx]
+                answer = batch_meta["answer"][idx]
+                predict = predict.strip()
+                predictions.append(predict)
+                golds.append(answer)
             score = score.contiguous()
             score = score.data.cpu()
             score = score.numpy().tolist()
