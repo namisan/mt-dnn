@@ -28,6 +28,7 @@ from mt_dnn.batcher import (
 )
 from mt_dnn.batcher import DistTaskDataset
 from mt_dnn.model import MTDNNModel
+from data_utils.tokenizer_utils import create_tokenizer
 
 
 def model_config(parser):
@@ -127,6 +128,7 @@ def data_config(parser):
         help=">0 to turn on knowledge distillation, requires 'softlabel' column in input data",
     )
     parser.add_argument("--do_padding", action="store_true")
+    parser.add_argument("--tokenizer", default=None, type=str)
     return parser
 
 
@@ -236,6 +238,7 @@ logger = create_logger(__name__, to_disk=True, log_file=log_path)
 task_defs = TaskDefs(args.task_def)
 encoder_type = args.encoder_type
 
+tokenizer = create_tokenizer(args.tokenizer, args.transformer_cache) if args.tokenizer else None
 
 def dump(path, data):
     with open(path, "w") as f:
@@ -407,6 +410,14 @@ def main():
     task_def_list = []
     dropout_list = []
     printable = args.local_rank in [-1, 0]
+    
+    # these tokens are only used in generation task 
+    pad_token_id, eos_token_id, unk_token_id = 0, 1, 2
+
+    if tokenizer:
+        pad_token_id = tokenizer.pad_token_id if tokenizer.pad_token_id else 0
+        eos_token_id = tokenizer.eos_token_id if tokenizer.eos_token_id else 1
+        unk_token_id = tokenizer.unk_token_id if tokenizer.unk_token_id else 2
 
     train_datasets = []
     for dataset in args.train_datasets:
@@ -434,6 +445,9 @@ def main():
         soft_label=args.mkd_opt > 0,
         max_seq_len=args.max_seq_len,
         do_padding=args.do_padding,
+        padding_token_id=pad_token_id,
+        eos_token_id=eos_token_id,
+        unk_token_id=unk_token_id
     )
     multi_task_train_dataset = MultiTaskDataset(train_datasets)
     if args.local_rank != -1:
@@ -471,6 +485,9 @@ def main():
         encoder_type=encoder_type,
         max_seq_len=args.max_seq_len,
         do_padding=args.do_padding,
+        padding_token_id=pad_token_id,
+        eos_token_id=eos_token_id,
+        unk_token_id=unk_token_id
     )
     for dataset in args.test_datasets:
         prefix = dataset.split("_")[0]
@@ -619,7 +636,8 @@ def main():
     opt.update(config)
 
     model = MTDNNModel(
-        opt, device=device, state_dict=state_dict, num_train_step=num_all_batches
+        opt, device=device, state_dict=state_dict, num_train_step=num_all_batches,
+        tokenizer=tokenizer
     )
     if args.resume and args.model_ckpt:
         print_message(logger, "loading model from {}".format(args.model_ckpt))
@@ -663,7 +681,6 @@ def main():
             batch_meta, batch_data = Collater.patch_data(device, batch_meta, batch_data)
             task_id = batch_meta["task_id"]
             model.update(batch_meta, batch_data)
-
             if (model.updates) % (args.log_per_updates) == 0 or model.updates == 1:
                 ramaining_time = str(
                     (datetime.now() - start)

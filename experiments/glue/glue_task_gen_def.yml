@@ -1,0 +1,102 @@
+mnli:
+  data_format: PremiseAndOneHypothesis
+  dropout_p: 0.1
+  enable_san: false 
+  task_type: SeqenceGeneration
+  metric_meta:
+  - ACC
+  loss: CeCriterion
+  kd_loss: MseCriterion
+  adv_loss: SymKlCriterion
+  n_class: 3
+  split_names:
+  - train
+  - matched_dev
+  - mismatched_dev
+  - matched_test
+  - mismatched_test
+mrpc:
+  data_format: PremiseAndOneHypothesis
+  enable_san: false
+  n_class: 2
+  metric_meta:
+  - ACC
+  - F1
+  loss: CeCriterion
+  kd_loss: MseCriterion
+  adv_loss: SymKlCriterion
+  task_type: SeqenceGeneration
+qnli:
+  data_format: PremiseAndOneHypothesis
+  enable_san: false
+  n_class: 2
+  metric_meta:
+  - ACC
+  loss: CeCriterion
+  kd_loss: MseCriterion
+  adv_loss: SymKlCriterion
+  task_type: SeqenceGeneration
+qqp:
+  data_format: PremiseAndOneHypothesis
+  enable_san: false
+  n_class: 2 
+  metric_meta:
+  - ACC
+  - F1
+  loss: CeCriterion
+  kd_loss: MseCriterion
+  adv_loss: SymKlCriterion
+  task_type: SeqenceGeneration
+rte:
+  data_format: PremiseAndOneHypothesis
+  enable_san: false
+  n_class: 2
+  metric_meta:
+  - ACC
+  loss: CeCriterion
+  kd_loss: MseCriterion
+  adv_loss: SymKlCriterion
+  task_type: SeqenceGeneration
+sst:
+  data_format: PremiseOnly
+  enable_san: false
+  metric_meta:
+  - ACC
+  n_class: 2
+  loss: CeCriterion
+  kd_loss: MseCriterion
+  adv_loss: SymKlCriterion
+  task_type: SeqenceGeneration
+stsb:
+  data_format: PremiseAndOneHypothesis
+  enable_san: false
+  n_class: 1
+  metric_meta:
+  - Pearson
+  - Spearman
+  loss: MseCriterion
+  kd_loss: MseCriterion
+  adv_loss: MseCriterion
+  task_type: SeqenceGeneration
+wnli:
+  data_format: PremiseAndOneHypothesis
+  enable_san: false 
+  metric_meta:
+  - ACC
+  n_class: 2
+  loss: CeCriterion
+  kd_loss: MseCriterion
+  adv_loss: SymKlCriterion
+  task_type: SeqenceGeneration
+cola:
+  data_format: PremiseOnly
+  dropout_p: 0.05
+  enable_san: false
+  n_class: 2
+  metric_meta:
+  - ACC
+  - MCC
+  loss: CeCriterion
+  kd_loss: MseCriterion
+  adv_loss: SymKlCriterion
+  task_type: SeqenceGeneration
