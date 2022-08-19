@@ -636,7 +636,8 @@ def main():
     opt.update(config)
 
     model = MTDNNModel(
-        opt, device=device, state_dict=state_dict, num_train_step=num_all_batches
+        opt, device=device, state_dict=state_dict, num_train_step=num_all_batches,
+        tokenizer=tokenizer
     )
     if args.resume and args.model_ckpt:
         print_message(logger, "loading model from {}".format(args.model_ckpt))
@@ -680,7 +681,6 @@ def main():
             batch_meta, batch_data = Collater.patch_data(device, batch_meta, batch_data)
             task_id = batch_meta["task_id"]
             model.update(batch_meta, batch_data)
-
             if (model.updates) % (args.log_per_updates) == 0 or model.updates == 1:
                 ramaining_time = str(
                     (datetime.now() - start)

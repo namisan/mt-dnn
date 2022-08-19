@@ -216,17 +216,6 @@ class MTDNNModel(object):
                 )
                 self.adv_task_loss_criterion.append(lc)
 
-    # def _setup_tokenizer(self):
-    #     try:
-    #         from transformers import AutoTokenizer
-
-    #         self.tokenizer = AutoTokenizer.from_pretrained(
-    #             self.config["init_checkpoint"],
-    #             cache_dir=self.config["transformer_cache"],
-    #         )
-    #     except:
-    #         self.tokenizer = None
-
     def _to_cuda(self, tensor):
         if tensor is None:
             return tensor
