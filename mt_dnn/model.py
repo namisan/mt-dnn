@@ -256,6 +256,8 @@ class MTDNNModel(object):
         # fw to get logits
         logits = self.mnetwork(*inputs)
 
+        ignore_index = batch_meta.get("ignore_index", -1)
+
         # compute loss
         loss = 0
         if self.task_loss_criterion[task_id] and (y is not None):
@@ -269,12 +271,12 @@ class MTDNNModel(object):
                     logits,
                     y,
                     weight,
-                    ignore_index=-1,
+                    ignore_index=ignore_index,
                     pairwise_size=batch_meta["pairwise_size"],
                 )
             else:
                 loss = self.task_loss_criterion[task_id](
-                    logits, y, weight, ignore_index=-1
+                    logits, y, weight, ignore_index=ignore_index
                 )
 
         # compute kd loss
@@ -285,7 +287,7 @@ class MTDNNModel(object):
             )
             kd_lc = self.kd_task_loss_criterion[task_id]
             kd_loss = (
-                kd_lc(logits, soft_labels, weight, ignore_index=-1) if kd_lc else 0
+                kd_lc(logits, soft_labels, weight, ignore_index=ignore_index) if kd_lc else 0
             )
             loss = loss + kd_loss
 
