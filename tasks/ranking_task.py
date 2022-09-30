@@ -51,10 +51,10 @@ class RankingTask(MTDNNTask):
         return {"batch": newbatch, "chunk_sizes": sizes}
 
     @staticmethod
-    def test_predict(score):
+    def test_predict(score, batch_meta):
         score = F.softmax(score, dim=1)
         score = score.data.cpu()
         score = score.numpy()
         predict = np.argmax(score, axis=1).tolist()
         score = score.reshape(-1).tolist()
-        return score, predict
+        return score, predict, batch_meta['label'], batch_meta['uids']

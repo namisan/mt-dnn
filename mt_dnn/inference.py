@@ -94,11 +94,11 @@ def eval_model(
     metrics = {}
     for (batch_info, batch_data) in tqdm(data, total=len(data)):
         batch_info, batch_data = Collater.patch_data(device, batch_info, batch_data)
-        score, pred, gold = model.predict(batch_info, batch_data)
+        score, pred, gold, uids = model.predict(batch_info, batch_data)
         scores = merge(score, scores)
         golds = merge(gold, golds)
         predictions = merge(pred, predictions)
-        ids = merge(batch_info["uids"], ids)
+        ids = merge(uids, ids)
 
     if task_type == TaskType.Span:
         predictions, golds = postprocess_qa_predictions(

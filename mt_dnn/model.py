@@ -396,20 +396,7 @@ class MTDNNModel(object):
 
         score = self.mnetwork(*inputs)
         if task_obj is not None:
-            score, predict = task_obj.test_predict(score)
-        elif task_type == TaskType.Ranking:
-            score = score.contiguous().view(-1, batch_meta["pairwise_size"])
-            assert task_type == TaskType.Ranking
-            score = F.softmax(score, dim=1)
-            score = score.data.cpu()
-            score = score.numpy()
-            predict = np.zeros(score.shape, dtype=int)
-            positive = np.argmax(score, axis=1)
-            for idx, pos in enumerate(positive):
-                predict[idx, pos] = 1
-            predict = predict.reshape(-1).tolist()
-            score = score.reshape(-1).tolist()
-            return score, predict, batch_meta["true_label"]
+            return task_obj.test_predict(score, batch_meta)
         elif task_type == TaskType.SeqenceLabeling:
             mask = batch_data[batch_meta["mask"]]
             score = score.contiguous()

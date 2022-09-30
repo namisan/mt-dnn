@@ -23,7 +23,6 @@ class MTDNNTask:
     def input_is_valid_sample(sample, max_len):
          return len(sample['token_id']) <= max_len 
         
-
     @staticmethod
     def train_prepare_label(labels):
         raise NotImplementedError()
@@ -64,7 +63,7 @@ class MTDNNTask:
         batch_info['label'] = labels
     
     @staticmethod
-    def test_predict(score):
+    def test_predict(score, batch_meta):
         raise NotImplementedError()
 
 def register_task(name):
