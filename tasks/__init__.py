@@ -1,9 +1,13 @@
+import os
+import importlib
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
+from copy import deepcopy
 from data_utils.task_def import TaskType
 from module.san import SANClassifier
+
 
 TASK_REGISTRY = {}
 TASK_CLASS_NAMES = set()
@@ -24,7 +28,10 @@ class MTDNNTask:
     def train_prepare_label(labels):
         raise NotImplementedError()
 
-    
+    @staticmethod
+    def prepare_input(batch):
+        return {"batch": batch}
+
     @staticmethod
     def train_prepare_soft_label(softlabels):
         raise NotImplementedError()
@@ -59,7 +66,6 @@ class MTDNNTask:
     @staticmethod
     def test_predict(score):
         raise NotImplementedError()
-
 
 def register_task(name):
     """
@@ -97,58 +103,10 @@ def get_task_obj(task_def):
     
     return task_cls(task_def)
 
-@register_task('Regression')            
-class RegressionTask(MTDNNTask):
-    def __init__(self, task_def):
-        super().__init__(task_def)
-
-    def input_parse_label(self, label: str):
-        return float(label)
-
-    @staticmethod
-    def train_prepare_label(labels):
-        return torch.FloatTensor(labels)
-
-    @staticmethod
-    def train_prepare_soft_label(softlabels):
-        return torch.FloatTensor(softlabels)
-
-    @staticmethod
-    def test_predict(score):
-        score = score.data.cpu()
-        score = score.numpy()
-        predict = np.argmax(score, axis=1).tolist()
-        score = score.reshape(-1).tolist()
-        return score, predict
-
-@register_task('Classification')
-class ClassificationTask(MTDNNTask):
-    def __init__(self, task_def):
-        super().__init__(task_def)
-
-    def input_parse_label(self, label: str):
-        label_dict = self._task_def.label_vocab
-        if label_dict is not None:
-            return label_dict[label]
-        else:
-            return int(label)
-
-    @staticmethod
-    def train_prepare_label(labels):
-        return torch.LongTensor(labels)
-
-    @staticmethod
-    def train_prepare_soft_label(softlabels):
-        return torch.FloatTensor(softlabels)
-
-    @staticmethod
-    def test_predict(score):
-        score = F.softmax(score, dim=1)
-        score = score.data.cpu()
-        score = score.numpy()
-        predict = np.argmax(score, axis=1).tolist()
-        score = score.reshape(-1).tolist()
-        return score, predict
+for file in sorted(os.listdir(os.path.dirname(__file__))):
+    if file.endswith(".py") and not file.startswith("_"):
+        file_name = file[: file.find(".py")]
+        importlib.import_module("tasks." + file_name)
 
 # TODO
 # Span/SpanYN/SeqenceLabeling/SeqenceGeneration

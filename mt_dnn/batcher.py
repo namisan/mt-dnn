@@ -508,29 +508,6 @@ class Collater:
                     )
         return batch_info, batch_data
 
-    def rebatch(self, batch):
-        newbatch = []
-        sizes = []
-        for sample in batch:
-            size = len(sample["token_id"])
-            sizes.append(size)
-            self.pairwise_size = size
-            assert size == len(sample["type_id"])
-            for idx in range(0, size):
-                token_id = sample["token_id"][idx]
-                type_id = sample["type_id"][idx]
-                attention_mask = sample["attention_mask"][idx]
-                uid = sample["ruid"][idx] if "ruid" in sample else sample["uid"]
-                olab = sample["olabel"][idx]
-                new_sample = deepcopy(sample)
-                new_sample["uid"] = uid
-                new_sample["token_id"] = token_id
-                new_sample["type_id"] = type_id
-                new_sample["attention_mask"] = attention_mask
-                new_sample["true_label"] = olab
-                newbatch.append(new_sample)
-        return newbatch, sizes
-
     def __if_pair__(self, data_type):
         return data_type in [
             DataFormat.PremiseAndOneHypothesis,
@@ -548,9 +525,11 @@ class Collater:
         task_type = task_def.task_type
         data_type = task_def.data_type
         batch = new_batch
-
-        if task_type == TaskType.Ranking or task_type == TaskType.ClozeChoice:
-            batch, chunk_sizes = self.rebatch(batch)
+        task_obj = tasks.get_task_obj(task_def)
+        new_batch = task_obj.prepare_input(batch)
+        assert "batch" in new_batch
+        batch = new_batch["batch"]
+        chunk_sizes = new_batch["chunk_sizes"] if "chunk_sizes" in new_batch else None
 
         # prepare model input
         batch_info, batch_data = self._prepare_model_input(batch, data_type)
@@ -561,10 +540,11 @@ class Collater:
         # the conversion logic also convert Enum to repr(Enum), which is a string and undesirable
         # If we convert object to dict in advance, DataLoader will do nothing
         batch_info["task_def"] = task_def.__dict__
-        batch_info["pairwise_size"] = self.pairwise_size  # need for ranking task
+        # ranking or other task
+        if chunk_sizes:
+            batch_info["pairwise_size"] = chunk_sizes[0] if len(set(chunk_sizes)) == 1 else chunk_sizes
         # add label
         labels = [sample["label"] if "label" in sample else None for sample in batch]
-        task_obj = tasks.get_task_obj(task_def)
         if self.is_train:
             # in training model, label is used by Pytorch, so would be tensor
             if task_obj is not None:
