@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.parameter import Parameter
 import copy
-from pytorch_pretrained_bert.modeling import BertEmbeddings, BertLayerNorm, BertConfig
+from transformers.models.bert.modeling_bert import BertEmbeddings, BertConfig
 from module.similarity import SelfAttnWrapper
 from module.dropout_wrapper import DropoutWrapper
 
@@ -24,7 +24,7 @@ class SanLayer(nn.Module):
             dropout=dropout,
             batch_first=True,
         )
-        self._layer_norm = BertLayerNorm(num_hid, eps=1e-12)
+        self._layer_norm = nn.LayerNorm(num_hid, eps=1e-12)
         self.rnn_type = rnn_type
         self.num_hid = num_hid
         self.ndirections = 1 + int(bidirect)
@@ -79,7 +79,6 @@ class SanPooler(nn.Module):
 
     def forward(self, hidden_states, attention_mask):
         """
-
         Arguments:
             hidden_states {FloatTensor} -- shape (batch, seq_len, hidden_size)
             attention_mask {ByteTensor} -- 1 indicates padded token
@@ -111,14 +110,11 @@ class SanModel(nn.Module):
         output_all_encoded_layers=True,
     ):
         """[summary]
-
         Arguments:
             input_ids {LongTensor} -- shape [batch_size, seq_len]
-
         Keyword Arguments:
             token_type_ids {LongTensor} -- shape [batch_size, seq_len]
             attention_mask {LongTensor} -- 0 indicates padding tokens
-
         Returns: Tuple of (sequence_output, pooled_output)
         """
         if attention_mask is None:
