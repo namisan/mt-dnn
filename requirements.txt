@@ -3,7 +3,6 @@ torch==1.5.0
 tqdm
 colorlog
 boto3
-pytorch-pretrained-bert==v0.6.0
 regex
 scikit-learn
 pyyaml
@@ -14,4 +13,4 @@ tensorboard
 future
 apex
 seqeval==0.0.12
-transformers==4.6.0
+transformers==4.20.0
