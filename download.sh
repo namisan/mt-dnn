@@ -60,7 +60,7 @@ rm -rf data
 ## Download SQuAD & SQuAD v2.0 data
 cd $DATA_DIR
 mkdir "squad"
-cd ..
+
 wget https://rajpurkar.github.io/SQuAD-explorer/dataset/train-v1.1.json -O squad/train.json
 wget https://rajpurkar.github.io/SQuAD-explorer/dataset/dev-v1.1.json -O squad/dev.json
 
@@ -76,6 +76,7 @@ wget https://raw.githubusercontent.com/synalp/NER/master/corpus/CoNLL-2003/eng.t
 
 # SuperGLUE
 
+cd $DATA_DIR
 wget https://dl.fbaipublicfiles.com/glue/superglue/data/v2/combined.zip  -O superglue.zip 
 unzip superglue.zip
 cd ..
