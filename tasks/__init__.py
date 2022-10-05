@@ -7,6 +7,7 @@ import numpy as np
 from copy import deepcopy
 from data_utils.task_def import TaskType
 from module.san import SANClassifier
+from module.pooler import Pooler
 
 
 TASK_REGISTRY = {}
@@ -36,17 +37,23 @@ class MTDNNTask:
         raise NotImplementedError()
 
     @staticmethod
-    def train_build_task_layer(decoder_opt, hidden_size, lab, opt, prefix, dropout):
-        if decoder_opt == 1:
-            out_proj = SANClassifier(hidden_size, hidden_size, lab, opt, prefix, dropout=dropout)
+    def train_build_task_layer(hidden_size, task_def=None, opt=None, prefix="answer"):
+        if task_def.enable_san:
+            proj = SANClassifier(hidden_size, hidden_size, task_def.n_class, opt, prefix, dropout=task_def.get("dropout_p", 0.0))
         else:
-            out_proj = nn.Linear(hidden_size, lab)
-        return out_proj
+            proj = nn.Linear(hidden_size, task_def.n_class)
+        task_layer = nn.Sequential(
+            Pooler(
+                hidden_size, dropout_p=task_def.dropout_p, actf=task_def.actf
+            ),
+            proj
+        )
+        return task_layer
     
     # TODO redesign hypers
     @staticmethod
-    def train_forward(sequence_output, pooled_output, premise_mask, hyp_mask, decoder_opt, dropout_layer, task_layer):
-        if decoder_opt == 1:
+    def train_forward(sequence_output, premise_mask, hyp_mask, task_layer=None, enable_san=False):
+        if enable_san:
             max_query = hyp_mask.size(1)
             assert max_query > 0
             assert premise_mask is not None
@@ -54,8 +61,7 @@ class MTDNNTask:
             hyp_mem = sequence_output[:, :max_query, :]
             logits = task_layer(sequence_output, hyp_mem, premise_mask, hyp_mask)
         else:
-            pooled_output = dropout_layer(pooled_output)
-            logits = task_layer(pooled_output)
+            logits = task_layer(sequence_output)
         return logits
     
     @staticmethod
