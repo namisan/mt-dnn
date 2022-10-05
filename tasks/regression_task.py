@@ -24,7 +24,7 @@ class RegressionTask(MTDNNTask):
         return torch.FloatTensor(softlabels)
 
     @staticmethod
-    def test_predict(score, **kwargs):
+    def test_predict(score, batch_meta):
         score = score.data.cpu()
         score = score.numpy()
         predict = np.argmax(score, axis=1).tolist()
