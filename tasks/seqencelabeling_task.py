@@ -21,7 +21,8 @@ class SeqenceLabelingTask(MTDNNTask):
         return labels
 
     @staticmethod
-    def train_prepare_label(labels):
+    def train_prepare_label(batch, **kwargs):
+        labels = [sample["label"] if "label" in sample else None for sample in batch]
         batch_size = len(labels)
         tok_len = max([len(lab) for lab in labels])
         tlab = torch.LongTensor(batch_size, tok_len).fill_(-1)
@@ -53,7 +54,7 @@ class SeqenceLabelingTask(MTDNNTask):
         return task_layer(sequence_output)
 
     @staticmethod
-    def test_predict(score, batch_meta):
+    def test_predict(score, batch_meta, tokenizer=None):
         mask = batch_meta["mask"]
         score = score.contiguous()
         score = score.data.cpu()

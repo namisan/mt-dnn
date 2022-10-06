@@ -25,7 +25,7 @@ class MTDNNTask:
          return len(sample['token_id']) <= max_len 
         
     @staticmethod
-    def train_prepare_label(labels):
+    def train_prepare_label(batch, **kwargs):
         raise NotImplementedError()
 
     @staticmethod
@@ -65,11 +65,11 @@ class MTDNNTask:
         return logits
     
     @staticmethod
-    def test_prepare_label(batch_info, labels):
-        batch_info['label'] = labels
+    def test_prepare_label(batch_info, batch):
+        batch_info['label'] = [sample["label"] if "label" in sample else None for sample in batch]
     
     @staticmethod
-    def test_predict(score, batch_meta):
+    def test_predict(score, batch_meta, tokenizer=None):
         raise NotImplementedError()
 
 def register_task(name):
@@ -112,6 +112,3 @@ for file in sorted(os.listdir(os.path.dirname(__file__))):
     if file.endswith(".py") and not file.startswith("_"):
         file_name = file[: file.find(".py")]
         importlib.import_module("tasks." + file_name)
-
-# TODO
-# Span/SpanYN/SeqenceLabeling/SeqenceGeneration

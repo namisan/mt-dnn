@@ -68,7 +68,7 @@ class SpanClassificationTask(MTDNNTask):
 
 
     @staticmethod
-    def test_predict(score, batch_meta):
+    def test_predict(score, batch_meta, tokenizer=None):
         predictions = []
         features = []
         uids = []

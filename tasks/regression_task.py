@@ -16,15 +16,15 @@ class RegressionTask(MTDNNTask):
         return float(label)
 
     @staticmethod
-    def train_prepare_label(labels):
-        return torch.FloatTensor(labels)
+    def train_prepare_label(batch, **kwargs):
+        return torch.FloatTensor([sample["label"] if "label" in sample else None for sample in batch])
 
     @staticmethod
     def train_prepare_soft_label(softlabels):
         return torch.FloatTensor(softlabels)
 
     @staticmethod
-    def test_predict(score, batch_meta):
+    def test_predict(score, batch_meta, tokenizer=None):
         score = score.data.cpu()
         score = score.numpy()
         predict = np.argmax(score, axis=1).tolist()

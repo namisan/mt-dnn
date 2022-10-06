@@ -20,8 +20,8 @@ class RankingTask(MTDNNTask):
             return int(label)
 
     @staticmethod
-    def train_prepare_label(labels):
-        return torch.LongTensor(labels)
+    def train_prepare_label(batch, **kwargs):
+        return torch.LongTensor([sample["label"] if "label" in sample else None for sample in batch])
 
     @staticmethod
     def train_prepare_soft_label(softlabels):
@@ -51,7 +51,7 @@ class RankingTask(MTDNNTask):
         return {"batch": newbatch, "chunk_sizes": sizes}
 
     @staticmethod
-    def test_predict(score, batch_meta):
+    def test_predict(score, batch_meta, tokenizer=None):
         score = F.softmax(score, dim=1)
         score = score.data.cpu()
         score = score.numpy()
