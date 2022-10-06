@@ -33,6 +33,7 @@ mnli:
   task_type: Classification
 mrpc:
   data_format: PremiseAndOneHypothesis
+  dropout_p: 0.1
   enable_san: false 
   metric_meta:
   - ACC
@@ -43,6 +44,7 @@ mrpc:
   n_class: 2
   task_type: Classification
 qnli:
+  dropout_p: 0.1
   data_format: PremiseAndOneHypothesis
   enable_san: false 
   labels:
@@ -56,6 +58,7 @@ qnli:
   n_class: 2
   task_type: Classification
 qqp:
+  dropout_p: 0.1
   data_format: PremiseAndOneHypothesis
   enable_san: false 
   metric_meta:
@@ -67,6 +70,7 @@ qqp:
   n_class: 2
   task_type: Classification
 rte:
+  dropout_p: 0.1
   data_format: PremiseAndOneHypothesis
   enable_san: false
   labels:
@@ -80,6 +84,7 @@ rte:
   n_class: 2
   task_type: Classification
 sst:
+  dropout_p: 0.1
   data_format: PremiseOnly
   enable_san: false
   metric_meta:
@@ -90,6 +95,7 @@ sst:
   n_class: 2
   task_type: Classification
 stsb:
+  dropout_p: 0.1
   data_format: PremiseAndOneHypothesis
   enable_san: false
   metric_meta:
@@ -101,6 +107,7 @@ stsb:
   adv_loss: MseCriterion
   task_type: Regression
 wnli:
+  dropout_p: 0.1
   data_format: PremiseAndOneHypothesis
   enable_san: false 
   metric_meta:
