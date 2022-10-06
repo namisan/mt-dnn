@@ -59,7 +59,6 @@ def main(args):
     train_fout = os.path.join(bert_root, "ner_train.tsv")
     dev_fout = os.path.join(bert_root, "ner_dev.tsv")
     test_fout = os.path.join(bert_root, "ner_test.tsv")
-
     dump_rows(train_data, train_fout, DataFormat.Seqence)
     dump_rows(dev_data, dev_fout, DataFormat.Seqence)
     dump_rows(test_data, test_fout, DataFormat.Seqence)
