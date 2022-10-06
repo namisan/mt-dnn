@@ -7,6 +7,7 @@ import torch
 import random
 import numpy as np
 from shutil import copyfile
+from collections import Sequence
 from data_utils.task_def import TaskType, DataFormat
 from data_utils.task_def import EncoderModelType
 import tasks
@@ -543,65 +544,31 @@ class Collater:
         # ranking or other task
         if chunk_sizes:
             batch_info["pairwise_size"] = chunk_sizes[0] if len(set(chunk_sizes)) == 1 else chunk_sizes
+        
+        # update padding tokens
+        kwargs = {
+            "padding_token_id": self.padding_token_id,
+            "eos_token_id": self.eos_token_id,
+            "max_answer_seq_len": self.max_answer_seq_len
+        }
+
         # add label
-        labels = [sample["label"] if "label" in sample else None for sample in batch]
         if self.is_train:
             # in training model, label is used by Pytorch, so would be tensor
             if task_obj is not None:
-                batch_data.append(task_obj.train_prepare_label(labels))
-                batch_info["label"] = len(batch_data) - 1
-            elif task_type == TaskType.Ranking or task_type == TaskType.ClozeChoice:
-                batch_data.append(torch.LongTensor(labels))
-                batch_info["label"] = len(batch_data) - 1
-            elif task_type == TaskType.Span:
-                # support multi positions
-                start, end = [], []
-                for sample in batch:
-                    if type(sample["start_position"]) is list and type(
-                        sample["end_position"]
-                    ):
-                        idx = random.choice(range(0, len(sample["start_position"])))
-                        start.append(sample["start_position"][idx])
-                        end.append(sample["end_position"][idx])
-                    else:
-                        start.append(sample["start_position"])
-                        end.append(sample["end_position"])
-                batch_data.append((torch.LongTensor(start), torch.LongTensor(end)))
-                # unify to one type of label
-                batch_info["label"] = len(batch_data) - 1
-            elif task_type == TaskType.SpanYN:
-                # start = [sample['start_position'] for sample in batch]
-                # end = [sample['end_position'] for sample in batch]
-                start, end = [], []
-                for sample in batch:
-                    if type(sample["start_position"]) is list and type(
-                        sample["end_position"]
-                    ):
-                        idx = random.choice(range(0, len(sample["start_position"])))
-                        start.append(sample["start_position"][idx])
-                        end.append(sample["end_position"][idx])
-                    else:
-                        start.append(sample["start_position"])
-                        end.append(sample["end_position"])
-                # start, end, yes/no
-                batch_data.append(
-                    (
-                        torch.LongTensor(start),
-                        torch.LongTensor(end),
-                        torch.LongTensor(labels),
-                    )
-                )
-                # unify to one type of label
-                batch_info["label"] = len(batch_data) - 1
-            elif task_type == TaskType.SeqenceLabeling:
-                batch_size = self._get_batch_size(batch)
-                tok_len = self._get_max_len(batch, key="token_id")
-                tlab = torch.LongTensor(batch_size, tok_len).fill_(-1)
-                for i, label in enumerate(labels):
-                    ll = len(label)
-                    tlab[i, :ll] = torch.LongTensor(label)
-                batch_data.append(tlab)
-                batch_info["label"] = len(batch_data) - 1
+                labels = task_obj.train_prepare_label(batch, **kwargs)
+                if isinstance(labels, Sequence) and task_type == TaskType.SeqenceGeneration:
+                    batch_data.append(labels[0])
+                    batch_info["y_token_id"] = len(batch_data) - 1
+                    batch_data.append(labels[1])
+                    batch_info["label"] = len(batch_data) - 1
+                    batch_info["ignore_index"] = self.padding_token_id
+                else: 
+                    batch_data.append(task_obj.train_prepare_label(batch))
+                    batch_info["label"] = len(batch_data) - 1
+            # elif task_type == TaskType.ClozeChoice:
+            #     batch_data.append(torch.LongTensor(labels))
+            #     batch_info["label"] = len(batch_data) - 1
             elif task_type == TaskType.MaskLM:
                 batch_size = self._get_batch_size(batch)
                 tok_len = self._get_max_len(batch, key="token_id")
@@ -612,25 +579,6 @@ class Collater:
                 labels = torch.LongTensor([sample["nsp_lab"] for sample in batch])
                 batch_data.append((tlab, labels))
                 batch_info["label"] = len(batch_data) - 1
-            elif task_type == TaskType.SeqenceGeneration:
-                batch_size = self._get_batch_size(batch)
-                max_answer_seq_len = self.max_answer_seq_len if self.do_padding else max(len(x["label"]) for x in batch)
-                y_idxs = torch.LongTensor(batch_size, max_answer_seq_len).fill_(self.padding_token_id)
-                label = torch.LongTensor(batch_size, max_answer_seq_len).fill_(self.padding_token_id)
-                for i, sample in enumerate(batch):
-                    max_len = min(len(sample["label"]), max_answer_seq_len)
-                    local_label = sample["label"]
-                    #eos = local_label[-1]
-                    if len(sample["label"]) > max_len:
-                        eos = local_label[-1]
-                        local_label = local_label[: max_len - 2] + [self.eos_token_id, self.padding_token_id]
-                    y_idxs[i][:max_len] = torch.LongTensor(local_label)
-                    label[i][:max_len] = torch.LongTensor(local_label[1:] + [self.padding_token_id])
-                batch_data.append(y_idxs)
-                batch_info["y_token_id"] = len(batch_data) - 1
-                batch_data.append(label)
-                batch_info["label"] = len(batch_data) - 1
-                batch_info["ignore_index"] = self.padding_token_id
 
             # soft label generated by ensemble models for knowledge distillation
             if self.soft_label_on and "softlabel" in batch[0]:
@@ -640,7 +588,7 @@ class Collater:
         else:
             # in test model, label would be used for evaluation
             if task_obj is not None:
-                task_obj.test_prepare_label(batch_info, labels)
+                task_obj.test_prepare_label(batch_info, batch)
             else:
                 batch_info["label"] = labels
                 if task_type == TaskType.Ranking:
@@ -655,23 +603,7 @@ class Collater:
                         sample["choice"] for sample in batch
                     ]
                     batch_info["pairwise_size"] = chunk_sizes
-                if task_type == TaskType.Span or task_type == TaskType.SpanYN:
-                    batch_info["offset_mapping"] = [
-                        sample["offset_mapping"] for sample in batch
-                    ]
-                    batch_info["token_is_max_context"] = [
-                        sample.get("token_is_max_context", None) for sample in batch
-                    ]
-                    batch_info["context"] = [sample["context"] for sample in batch]
-                    batch_info["answer"] = [sample["answer"] for sample in batch]
-                    batch_info["label"] = [
-                        sample["label"] if "label" in sample else None
-                        for sample in batch
-                    ]
-                if task_type == TaskType.SeqenceGeneration:
-                    batch_info["answer"] = [sample["answer"] for sample in batch]
-
-        batch_info["uids"] = [sample["uid"] for sample in batch]  # used in scoring
+        batch_info["uids"] = [sample["uid"] for sample in batch]  # used for scoring
         return batch_info, batch_data
 
     def _get_max_len(self, batch, key="token_id"):

@@ -100,13 +100,9 @@ def eval_model(
         predictions = merge(pred, predictions)
         ids = merge(uids, ids)
 
-    if task_type == TaskType.Span:
+    if task_type == TaskType.SpanClassification or task_type == TaskType.SpanClassificationYN:
         predictions, golds = postprocess_qa_predictions(
-            golds, scores, version_2_with_negative=False
-        )
-    elif task_type == TaskType.SpanYN:
-        predictions, golds = postprocess_qa_predictions(
-            golds, scores, version_2_with_negative=True
+            golds, scores, version_2_with_negative=(task_type == TaskType.SpanClassificationYN)
         )
 
     if with_label:

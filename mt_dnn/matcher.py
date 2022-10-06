@@ -14,13 +14,6 @@ import tasks
 from experiments.exp_def import TaskDef
 
 
-def generate_decoder_opt(enable_san, max_opt):
-    opt_v = 0
-    if enable_san and max_opt < 2:
-        opt_v = max_opt
-    return opt_v
-
-
 class SANBertNetwork(nn.Module):
     def __init__(self, opt, bert_config=None, initial_from_local=False):
         super(SANBertNetwork, self).__init__()
@@ -67,14 +60,6 @@ class SANBertNetwork(nn.Module):
                 out_proj = task_obj.train_build_task_layer(
                     hidden_size, task_def, opt
                 )
-            elif task_type == TaskType.Span:
-                assert decoder_opt != 1
-                out_proj = nn.Linear(hidden_size, 2)
-            elif task_type == TaskType.SpanYN:
-                assert decoder_opt != 1
-                out_proj = nn.Linear(hidden_size, 2)
-            elif task_type == TaskType.SeqenceLabeling:
-                out_proj = nn.Linear(hidden_size, lab)
             elif task_type == TaskType.SeqenceGeneration:
                 # use orginal header
                 out_proj = None
@@ -84,18 +69,7 @@ class SANBertNetwork(nn.Module):
                 )
                 out_proj = nn.Linear(hidden_size, lab)
             else:
-                pass
-                # if decoder_opt == 1:
-                #     out_proj = SANClassifier(
-                #         hidden_size,
-                #         hidden_size,
-                #         lab,
-                #         opt,
-                #         prefix="answer",
-                #         dropout=dropout,
-                #     )
-                # else:
-                #     out_proj = nn.Linear(hidden_size, lab)
+                raise NotImplementedError()
             self.scoring_list.append(out_proj)
         self.config = opt
 
@@ -188,51 +162,10 @@ class SANBertNetwork(nn.Module):
                 enable_san=task_obj._task_def.enable_san
             )
             return logits
-        elif task_type == TaskType.Span:
-            assert decoder_opt != 1
-            last_hidden_state = self.dropout_list[task_id](last_hidden_state)
-            logits = self.scoring_list[task_id](last_hidden_state)
-            start_scores, end_scores = logits.split(1, dim=-1)
-            start_scores = start_scores.squeeze(-1)
-            end_scores = end_scores.squeeze(-1)
-            return start_scores, end_scores
-        elif task_type == TaskType.SpanYN:
-            assert decoder_opt != 1
-            last_hidden_state = self.dropout_list[task_id](last_hidden_state)
-            logits = self.scoring_list[task_id](last_hidden_state)
-            start_scores, end_scores = logits.split(1, dim=-1)
-            start_scores = start_scores.squeeze(-1)
-            end_scores = end_scores.squeeze(-1)
-            return start_scores, end_scores
-        elif task_type == TaskType.SeqenceLabeling:
-            pooled_output = last_hidden_state
-            pooled_output = self.dropout_list[task_id](pooled_output)
-            pooled_output = pooled_output.contiguous().view(-1, pooled_output.size(2))
-            logits = self.scoring_list[task_id](pooled_output)
-            return logits
-        elif task_type == TaskType.MaskLM:
-            last_hidden_state = self.dropout_list[task_id](last_hidden_state)
-            logits = self.scoring_list[task_id](last_hidden_state)
-            return logits
-        elif task_type == TaskType.SeqenceGeneration:
-            logits = last_hidden_state.view(-1, last_hidden_state.size(-1))
-            return logits
         elif task_type == TaskType.ClozeChoice:
             pooled_output = self.pooler(last_hidden_state)
             pooled_output = self.dropout_list[task_id](pooled_output)
             logits = self.scoring_list[task_id](pooled_output)
             return logits
         else:
-            if decoder_opt == 1:
-                max_query = hyp_mask.size(1)
-                assert max_query > 0
-                assert premise_mask is not None
-                assert hyp_mask is not None
-                hyp_mem = last_hidden_state[:, :max_query, :]
-                logits = self.scoring_list[task_id](
-                    last_hidden_state, hyp_mem, premise_mask, hyp_mask
-                )
-            else:
-                pooled_output = self.dropout_list[task_id](pooled_output)
-                logits = self.scoring_list[task_id](pooled_output)
-            return logits
+            raise NotImplementedError()
