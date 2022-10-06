@@ -395,71 +395,13 @@ class MTDNNModel(object):
             inputs.append(3)
 
         score = self.mnetwork(*inputs)
+
+        if task_type == TaskType.SeqenceLabeling:
+            batch_meta["mask"] = batch_data[batch_meta["mask"]]
+
         if task_obj is not None:
-            score, predict = task_obj.test_predict(score)
-        elif task_type == TaskType.Ranking:
-            score = score.contiguous().view(-1, batch_meta["pairwise_size"])
-            assert task_type == TaskType.Ranking
-            score = F.softmax(score, dim=1)
-            score = score.data.cpu()
-            score = score.numpy()
-            predict = np.zeros(score.shape, dtype=int)
-            positive = np.argmax(score, axis=1)
-            for idx, pos in enumerate(positive):
-                predict[idx, pos] = 1
-            predict = predict.reshape(-1).tolist()
-            score = score.reshape(-1).tolist()
-            return score, predict, batch_meta["true_label"]
-        elif task_type == TaskType.SeqenceLabeling:
-            mask = batch_data[batch_meta["mask"]]
-            score = score.contiguous()
-            score = score.data.cpu()
-            score = score.numpy()
-            predict = np.argmax(score, axis=1).reshape(mask.size()).tolist()
-            valied_lenght = mask.sum(1).tolist()
-            final_predict = []
-            for idx, p in enumerate(predict):
-                final_predict.append(p[: valied_lenght[idx]])
-            score = score.reshape(-1).tolist()
-            return score, final_predict, batch_meta["label"]
-        elif task_type == TaskType.Span or task_type == TaskType.SpanYN:
-            predictions = []
-            features = []
-            for idx, offset in enumerate(batch_meta["offset_mapping"]):
-                token_is_max_context = (
-                    batch_meta["token_is_max_context"][idx]
-                    if batch_meta.get("token_is_max_context", None)
-                    else None
-                )
-                sample_id = batch_meta["uids"][idx]
-                if "label" in batch_meta:
-                    feature = {
-                        "offset_mapping": offset,
-                        "token_is_max_context": token_is_max_context,
-                        "uid": sample_id,
-                        "context": batch_meta["context"][idx],
-                        "answer": batch_meta["answer"][idx],
-                        "label": batch_meta["label"][idx],
-                    }
-                else:
-                    feature = {
-                        "offset_mapping": offset,
-                        "token_is_max_context": token_is_max_context,
-                        "uid": sample_id,
-                        "context": batch_meta["context"][idx],
-                        "answer": batch_meta["answer"][idx],
-                    }
-                if "null_ans_index" in batch_meta:
-                    feature["null_ans_index"] = batch_meta["null_ans_index"]
-                features.append(feature)
-            start, end = score
-            start = start.contiguous()
-            start = start.data.cpu()
-            start = start.numpy().tolist()
-            end = end.contiguous()
-            end = end.data.cpu()
-            end = end.numpy().tolist()
-            return (start, end), predictions, features
+            return task_obj.test_predict(score, batch_meta, tokenizer=self.tokenizer)
+            
         elif task_type == TaskType.SeqenceGenerationMRC:
             predicts = self.tokenizer.batch_decode(score, skip_special_tokens=True)
             predictions = {}
@@ -472,20 +414,6 @@ class MTDNNModel(object):
                     predict = ""
                 predictions[sample_id] = predict
                 golds[sample_id] = answer
-            score = score.contiguous()
-            score = score.data.cpu()
-            score = score.numpy().tolist()
-            return score, predictions, golds
-        elif task_type == TaskType.SeqenceGeneration:
-            predicts = self.tokenizer.batch_decode(score, skip_special_tokens=True)
-            predictions = []
-            golds = []
-            for idx, predict in enumerate(predicts):
-                sample_id = batch_meta["uids"][idx]
-                answer = batch_meta["answer"][idx]
-                predict = predict.strip()
-                predictions.append(predict)
-                golds.append(answer)
             score = score.contiguous()
             score = score.data.cpu()
             score = score.numpy().tolist()

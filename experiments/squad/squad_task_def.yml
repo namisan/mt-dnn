@@ -3,8 +3,8 @@ squad:
   dropout_p: 0.1
   enable_san: false
   metric_meta:
-    - EmF12
-  task_type: Span
+    - EmF1
+  task_type: SpanClassification
   loss: SpanCeCriterion
   kd_loss: MseCriterion
   adv_loss: SymKlCriterion
@@ -18,7 +18,7 @@ squad-v2:
   enable_san: false
   metric_meta:
     - EmF12
-  task_type: SpanYN
+  task_type: SpanClassificationYN
   loss: SpanCeCriterion
   kd_loss: MseCriterion
   adv_loss: SymKlCriterion
@@ -33,7 +33,7 @@ record:
   metric_meta:
     - EmF1
   n_class: 2
-  task_type: Span
+  task_type: SpanClassification
   loss: SpanCeCriterion
   kd_loss: MseCriterion
   adv_loss: SymKlCriterion

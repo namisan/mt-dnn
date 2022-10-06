@@ -21,6 +21,7 @@ class TaskDef(dict):
         loss,
         kd_loss,
         adv_loss,
+        actf,
     ):
         """
         :param label_vocab: map string label to numbers.
@@ -41,6 +42,7 @@ class TaskDef(dict):
         self.loss = loss
         self.kd_loss = kd_loss
         self.adv_loss = adv_loss
+        self.actf = actf
 
     @classmethod
     def from_dict(cls, dict_rep):
@@ -61,6 +63,7 @@ class TaskDefs:
         loss_map = {}
         kd_loss_map = {}
         adv_loss_map = {}
+        actf_map = {}
 
         for task, task_def in self._task_def_dic.items():
             assert "_" not in task, (
@@ -106,6 +109,13 @@ class TaskDefs:
                 adv_loss_map[task] = loss_crt
             else:
                 adv_loss_map[task] = None
+            
+            # activation
+            if "actf" in task_def:
+                actf = task_def["actf"]
+                actf_map[task] = actf
+            else:
+                actf_map[task] = None
 
         self._global_map = global_map
         self._n_class_map = n_class_map
@@ -118,6 +128,7 @@ class TaskDefs:
         self._loss_map = loss_map
         self._kd_loss_map = kd_loss_map
         self._adv_loss_map = adv_loss_map
+        self._actf_map = actf_map
 
         self._task_def_dic = {}
 
@@ -139,5 +150,6 @@ class TaskDefs:
                 self._loss_map[task_name],
                 self._kd_loss_map[task_name],
                 self._adv_loss_map[task_name],
+                self._actf_map[task_name]
             )
         return self._task_def_dic[task_name]

@@ -7,8 +7,8 @@ class TaskType(IntEnum):
     Classification = 1
     Regression = 2
     Ranking = 3
-    Span = 4  # squad v1
-    SpanYN = 5  # squad v2
+    SpanClassification = 4  # squad v1
+    SpanClassificationYN = 5  # squad v2
     SeqenceLabeling = 6
     MaskLM = 7
     SpanSeqenceLabeling = 8

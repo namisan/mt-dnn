@@ -5,7 +5,7 @@ mnli:
   task_type: SeqenceGeneration
   metric_meta:
   - ACC
-  loss: CeCriterion
+  loss: SeqCeCriterion
   kd_loss: MseCriterion
   adv_loss: SymKlCriterion
   n_class: 3
@@ -22,7 +22,7 @@ mrpc:
   metric_meta:
   - ACC
   - F1
-  loss: CeCriterion
+  loss: SeqCeCriterion
   kd_loss: MseCriterion
   adv_loss: SymKlCriterion
   task_type: SeqenceGeneration
@@ -32,7 +32,7 @@ qnli:
   n_class: 2
   metric_meta:
   - ACC
-  loss: CeCriterion
+  loss: SeqCeCriterion
   kd_loss: MseCriterion
   adv_loss: SymKlCriterion
   task_type: SeqenceGeneration
@@ -43,7 +43,7 @@ qqp:
   metric_meta:
   - ACC
   - F1
-  loss: CeCriterion
+  loss: SeqCeCriterion
   kd_loss: MseCriterion
   adv_loss: SymKlCriterion
   task_type: SeqenceGeneration
@@ -53,7 +53,7 @@ rte:
   n_class: 2
   metric_meta:
   - ACC
-  loss: CeCriterion
+  loss: SeqCeCriterion
   kd_loss: MseCriterion
   adv_loss: SymKlCriterion
   task_type: SeqenceGeneration
@@ -63,7 +63,7 @@ sst:
   metric_meta:
   - ACC
   n_class: 2
-  loss: CeCriterion
+  loss: SeqCeCriterion
   kd_loss: MseCriterion
   adv_loss: SymKlCriterion
   task_type: SeqenceGeneration
@@ -84,7 +84,7 @@ wnli:
   metric_meta:
   - ACC
   n_class: 2
-  loss: CeCriterion
+  loss: SeqCeCriterion
   kd_loss: MseCriterion
   adv_loss: SymKlCriterion
   task_type: SeqenceGeneration
@@ -96,7 +96,7 @@ cola:
   metric_meta:
   - ACC
   - MCC
-  loss: CeCriterion
+  loss: SeqCeCriterion
   kd_loss: MseCriterion
   adv_loss: SymKlCriterion
   task_type: SeqenceGeneration

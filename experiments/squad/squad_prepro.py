@@ -7,6 +7,8 @@ import argparse
 import json
 import sys
 from tqdm.auto import tqdm
+from sys import path
+path.append(os.getcwd())
 from data_utils.task_def import TaskType, DataFormat
 from data_utils.log_wrapper import create_logger
 from experiments.exp_def import TaskDefs, EncoderModelType
@@ -19,7 +21,7 @@ DOC_STRIDE = 128
 MAX_QUERY_LEN = 64
 
 logger = create_logger(
-    __name__, to_disk=True, log_file="mt_dnn_clues_data_proc_{}.log".format(MAX_SEQ_LEN)
+    __name__, to_disk=True, log_file="mt_dnn_squad_data_proc_{}.log".format(MAX_SEQ_LEN)
 )
 
 
@@ -159,7 +161,6 @@ def prepare_train_feature(
     tokenizer,
     samples,
     output_path,
-    data_type=DataFormat.CLUE_CLASSIFICATION,
     max_seq_length=384,
     doc_stride=128,
     pad_on_right=True,
@@ -278,9 +279,10 @@ def prepare_train_feature(
                     "type_id": tokenized_examples["token_type_ids"][i]
                     if "token_type_ids" in tokenized_examples
                     else len(tokenized_examples["input_ids"][i]) * [0],
-                    "start_position": tokenized_examples["start_positions"][i],
-                    "end_position": tokenized_examples["end_positions"][i],
-                    "label": tokenized_examples["label"][i],
+                    "label": [tokenized_examples["start_positions"][i],  tokenized_examples["end_positions"][i], tokenized_examples["label"][i]], # start, end, yesno
+                    # "start_position": tokenized_examples["start_positions"][i],
+                    # "end_position": tokenized_examples["end_positions"][i],
+                    # "label": tokenized_examples["label"][i],
                 }
                 writer.write("{}\n".format(json.dumps(sample)))
 
