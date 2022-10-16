@@ -122,7 +122,7 @@ def data_config(parser):
     parser.add_argument("--test_datasets", default="mnli_matched,mnli_mismatched")
     parser.add_argument("--glue_format_on", action="store_true")
     parser.add_argument(
-        "--mkd-opt",
+        "--mkd_opt",
         type=int,
         default=0,
         help=">0 to turn on knowledge distillation, requires 'softlabel' column in input data",
