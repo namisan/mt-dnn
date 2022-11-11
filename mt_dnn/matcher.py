@@ -49,8 +49,10 @@ class SANBertNetwork(nn.Module):
 
         task_def_list = opt["task_def_list"]
         self.task_def_list = task_def_list
+
         # create output header
         self.scoring_list = nn.ModuleList()
+
         for task_id in range(len(task_def_list)):
             task_def: TaskDef = task_def_list[task_id]
             lab = task_def.n_class
@@ -60,9 +62,7 @@ class SANBertNetwork(nn.Module):
                 out_proj = task_obj.train_build_task_layer(
                     hidden_size, task_def, opt
                 )
-            elif task_type == TaskType.SeqenceGeneration:
-                # use orginal header
-                out_proj = None
+
             elif task_type == TaskType.ClozeChoice:
                 self.pooler = Pooler(
                     hidden_size, dropout_p=opt["dropout_p"], actf=opt["pooler_actf"]
