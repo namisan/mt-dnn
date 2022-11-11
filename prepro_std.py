@@ -10,10 +10,10 @@ from data_utils import load_data
 from data_utils.task_def import TaskType, DataFormat
 from data_utils.log_wrapper import create_logger
 from experiments.exp_def import TaskDefs
-from transformers import AutoTokenizer
 from tqdm import tqdm
 from functools import partial
 import multiprocessing
+from data_utils.tokenizer_utils import create_tokenizer
 
 
 DEBUG_MODE = False
@@ -259,9 +259,8 @@ def main(args):
     # hyper param
     root = args.root_dir
     assert os.path.exists(root)
-
-    tokenizer = AutoTokenizer.from_pretrained(
-        args.model, cache_dir=args.transformer_cache
+    tokenizer = create_tokenizer(
+        args.model, transformer_cache=args.transformer_cache
     )
 
     mt_dnn_root = os.path.join(root, args.model)
