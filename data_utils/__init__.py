@@ -56,7 +56,7 @@ def load_data(file_path, task_def):
 
         task_obj = tasks.get_task_obj(task_def)
         if task_obj is not None:
-            row["label"] = task_obj.input_parse_label(row["label"])l
+            row["label"] = task_obj.input_parse_label(row["label"])
         elif task_type == TaskType.SeqenceLabeling:
             assert type(row["label"]) is list
             row["label"] = [label_dict[label] for label in row["label"]]
