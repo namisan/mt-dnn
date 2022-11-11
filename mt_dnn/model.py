@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 
 class MTDNNModel(object):
     def __init__(self, opt, device=None, state_dict=None, num_train_step=-1, tokenizer=None):
+        self.tokenizer =tokenizer
         self.config = opt
         self.updates = (
             state_dict["updates"] if state_dict and "updates" in state_dict else 0
@@ -38,40 +39,47 @@ class MTDNNModel(object):
         self.emb_val = AverageMeter()
         self.eff_perturb = AverageMeter()
         self.initial_from_local = True if state_dict else False
+        # if self.config["local_rank"] not in [-1, 0]:
         model = SANBertNetwork(opt, initial_from_local=self.initial_from_local)
         self.total_param = sum(
             [p.nelement() for p in model.parameters() if p.requires_grad]
         )
-        if opt["cuda"]:
-            if self.config["local_rank"] != -1:
-                model = model.to(self.device)
-            else:
-                model = model.to(self.device)
+        if opt["cuda"] and (not self.config["deepspeed"]):
+            model = model.to(self.device)
         self.network = model
         if state_dict:
-            missing_keys, unexpected_keys = self.network.load_state_dict(
-                state_dict["state"], strict=False
-            )
-
+            if 'state' in state_dict:
+                missing_keys, unexpected_keys = self.network.load_state_dict(
+                    state_dict["state"], strict=False
+                )
+                print("missing_keys:{}".format(missing_keys))
+                print(unexpected_keys)
+            else:
+                missing_keys, unexpected_keys = self.network.bert.load_state_dict(
+                    state_dict, strict=False
+                )
+                # print("missing_keys:{}".format(missing_keys))
+                # print(unexpected_keys)
         optimizer_parameters = self._get_param_groups()
+
         self._setup_optim(optimizer_parameters, state_dict, num_train_step)
         self.optimizer.zero_grad()
 
         # if self.config["local_rank"] not in [-1, 0]:
         #    torch.distributed.barrier()
-
-        if self.config["local_rank"] != -1:
+        if self.config["deepspeed"]:
+            pass
+        elif self.config["local_rank"] != -1:
             self.mnetwork = torch.nn.parallel.DistributedDataParallel(
                 self.network,
                 device_ids=[self.config["local_rank"]],
                 output_device=self.config["local_rank"],
-                find_unused_parameters=True,
+                find_unused_parameters=self.config.get("not_find_unused_parameters", False), # turn on during debugging
             )
         elif self.config["multi_gpu_on"]:
             self.mnetwork = nn.DataParallel(self.network)
         else:
             self.mnetwork = self.network
-        self.tokenizer = tokenizer
         self._setup_lossmap(self.config)
         self._setup_kd_lossmap(self.config)
         self._setup_adv_lossmap(self.config)
@@ -137,7 +145,7 @@ class MTDNNModel(object):
         if state_dict and "optimizer" in state_dict:
             self.optimizer.load_state_dict(state_dict["optimizer"])
 
-        if self.config["fp16"]:
+        if self.config["fp16"] and not self.config["deepspeed"]:
             try:
                 from apex import amp
                 global amp
@@ -183,6 +191,19 @@ class MTDNNModel(object):
                 num_training_steps=num_train_step
                 )
 
+        if self.config["deepspeed"]:
+            import deepspeed
+            import json
+            with open(self.config["deepspeed_config"], 'r') as fd:
+                ds_config = json.load(fd)
+            network, optimizer, _, _ = deepspeed.initialize(
+                                        model=self.network,
+                                        optimizer=self.optimizer,
+                                        model_parameters=optimizer_parameters,
+                                        config=ds_config,
+            )
+            self.optimizer = optimizer
+            self.mnetwork = network
 
     def _setup_lossmap(self, config):
         task_def_list: List[TaskDef] = config["task_def_list"]
@@ -339,7 +360,9 @@ class MTDNNModel(object):
 
         # scale loss
         loss = loss / self.config.get("grad_accumulation_step", 1)
-        if self.config["fp16"]:
+        if self.config["deepspeed"]:
+            self.mnetwork.backward(loss)
+        elif self.config["fp16"]:
             with amp.scale_loss(loss, self.optimizer) as scaled_loss:
                 scaled_loss.backward()
         else:
@@ -347,7 +370,7 @@ class MTDNNModel(object):
         self.local_updates += 1
         if self.local_updates % self.config.get("grad_accumulation_step", 1) == 0:
             if self.config["global_grad_clipping"] > 0:
-                if self.config["fp16"]:
+                if self.config["fp16"] and not self.config["deepspeed"]:
                     torch.nn.utils.clip_grad_norm_(
                         amp.master_params(self.optimizer),
                         self.config["global_grad_clipping"],
@@ -360,6 +383,7 @@ class MTDNNModel(object):
             # reset number of the grad accumulation
             self.optimizer.step()
             self.optimizer.zero_grad()
+            torch.cuda.empty_cache()
             if self.scheduler:
                 self.scheduler.step()
 

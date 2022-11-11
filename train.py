@@ -29,7 +29,8 @@ from mt_dnn.batcher import (
 from mt_dnn.batcher import DistTaskDataset
 from mt_dnn.model import MTDNNModel
 from data_utils.tokenizer_utils import create_tokenizer
-
+# deepspeed
+import deepspeed
 
 def model_config(parser):
     parser.add_argument("--update_bert_opt", default=0, type=int)
@@ -213,6 +214,12 @@ def train_config(parser):
     # transformer cache
     parser.add_argument("--transformer_cache", default=".cache", type=str)
 
+    # deepspeed
+    parser = deepspeed.add_config_arguments(parser)
+    # shared DDP
+    parser.add_argument("--shared_ddp", action="store_true")
+    # pad for faster training
+    parser.add_argument("--pad_to_multiple_of", default=0, type=int)
     return parser
 
 
@@ -366,12 +373,15 @@ def initialize_distributed(logger, args):
     master_ip = os.getenv("MASTER_ADDR", "localhost")
     master_port = os.getenv("MASTER_PORT", "6600")
     init_method += master_ip + ":" + master_port
-    torch.distributed.init_process_group(
-        backend=args.backend,
-        world_size=args.world_size,
-        rank=args.rank,
-        init_method=init_method,
-    )
+    if args.deepspeed:
+        deepspeed.init_distributed()
+    else:
+        torch.distributed.init_process_group(
+            backend=args.backend,
+            world_size=args.world_size,
+            rank=args.rank,
+            init_method=init_method,
+        )
     return device
 
 
@@ -392,13 +402,15 @@ def print_message(logger, message, level=0):
 
 def main():
     # set up dist
-    device = torch.device("cuda")
-    if args.local_rank > -1:
+    if args.deepspeed:
+        if torch.cuda.device_count() > 1:
+            device = initialize_distributed(logger, args)
+        else:
+            device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+    elif args.local_rank != -1:
         device = initialize_distributed(logger, args)
-    elif torch.cuda.is_available():
-        device = torch.device("cuda")
     else:
-        device = torch.device("cpu")
+        device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
     opt = vars(args)
     # update data dir
