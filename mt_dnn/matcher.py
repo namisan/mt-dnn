@@ -87,7 +87,10 @@ class SANBertNetwork(nn.Module):
         inputs_embeds=None,
         y_input_ids=None,
     ):
-        if self.encoder_type == EncoderModelType.T5:
+        if (self.encoder_type == EncoderModelType.T5 or
+        self.encoder_type == EncoderModelType.OPT or
+        self.encoder_type == EncoderModelType.OPTG
+        ):
             outputs = self.bert(
                 input_ids=input_ids,
                 attention_mask=attention_mask,

@@ -41,3 +41,5 @@ class EncoderModelType(IntEnum):
     ELECTRA = 7
     T5 = 8
     T5G = 9
+    OPTG = 10
+    OPT = 11

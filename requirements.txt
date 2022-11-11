@@ -14,3 +14,4 @@ future
 apex
 seqeval==0.0.12
 transformers==4.20.0
+deepspeed
