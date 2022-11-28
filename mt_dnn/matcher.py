@@ -28,9 +28,19 @@ class SANBertNetwork(nn.Module):
         config_class, model_class, _ = MODEL_CLASSES[literal_encoder_type]
         if not initial_from_local:
             # self.bert = model_class.from_pretrained(opt['init_checkpoint'], config=self.preloaded_config)
+            torch.distributed.barrier()
             self.bert = model_class.from_pretrained(
                 opt["init_checkpoint"], cache_dir=opt["transformer_cache"]
             )
+            # if opt['local_rank'] not in [-1, 0]:
+            #     self.bert = model_class.from_pretrained(
+            #         opt["init_checkpoint"], cache_dir=opt["transformer_cache"]
+            #     )
+            # else:
+            #     torch.distributed.barrier()
+            #     self.bert = model_class.from_pretrained(
+            #         opt["init_checkpoint"], cache_dir=opt["transformer_cache"]
+            #     )
         else:
             self.preloaded_config = config_class.from_dict(opt)  # load config from opt
             self.preloaded_config.output_hidden_states = (
