@@ -41,3 +41,7 @@ class EncoderModelType(IntEnum):
     ELECTRA = 7
     T5 = 8
     T5G = 9
+    MSRT5G = 10
+    MSRT5 = 11
+    MSRLONGT5G = 12
+    MSRLONGT5 = 13
