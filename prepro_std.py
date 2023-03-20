@@ -1,3 +1,4 @@
+
 # coding=utf-8
 # Copyright (c) Microsoft. All rights reserved.
 import yaml
@@ -10,7 +11,7 @@ from data_utils import load_data
 from data_utils.task_def import TaskType, DataFormat
 from data_utils.log_wrapper import create_logger
 from experiments.exp_def import TaskDefs
-from transformers import AutoTokenizer
+from data_utils.tokenizer_utils import create_tokenizer
 from tqdm import tqdm
 from functools import partial
 import multiprocessing
@@ -30,7 +31,7 @@ logger = create_logger(
 def feature_extractor(tokenizer, text_a, text_b=None, max_length=512, do_padding=False):
     inputs = tokenizer(
         text_a,
-        text_b,
+        text_pair=text_b,
         add_special_tokens=True,
         max_length=max_length,
         truncation=True,
@@ -249,6 +250,7 @@ def parse_args():
     parser.add_argument(
         "--task_def", type=str, default="experiments/glue/glue_task_def.yml"
     )
+    parser.add_argument("--do_lower", action="store_true")
     parser.add_argument("--transformer_cache", default=".cache", type=str)
     parser.add_argument("--workers", type=int, default=1)
     args = parser.parse_args()
@@ -260,9 +262,7 @@ def main(args):
     root = args.root_dir
     assert os.path.exists(root)
 
-    tokenizer = AutoTokenizer.from_pretrained(
-        args.model, cache_dir=args.transformer_cache
-    )
+    tokenizer = create_tokenizer(args.model, args.transformer_cache, do_lower_case=args.do_lower)
 
     mt_dnn_root = os.path.join(root, args.model)
     if not os.path.isdir(mt_dnn_root):
