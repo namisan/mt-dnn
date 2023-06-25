@@ -10,7 +10,7 @@ if [ ! -d ${BERT_DIR}  ]; then
 fi
 
 ## Download MT-DNN models
-wget https://mrc.blob.core.windows.net/mt-dnn-model/mt_dnn_base.pt -O "${BERT_DIR}/mt_dnn_base_uncased.pt"
+wget https://mrc.blob.core.windows.net/mt-dnn-model/mt_dnn_bert_model_base.pt -O "${BERT_DIR}/mt_dnn_base_uncased.pt"
 wget https://mrc.blob.core.windows.net/mt-dnn-model/mt_dnn_large.pt -O "${BERT_DIR}/mt_dnn_large_uncased.pt"
 wget https://mrc.blob.core.windows.net/mt-dnn-model/msr-longt5pp.zip -O "${BERT_DIR}/msr-longt5pp.zip" 
 ## MT-DNN-KD
