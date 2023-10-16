@@ -9,7 +9,8 @@ Hybrid Neural Network Model for Commonsense Reasoning: [HNN code](https://github
 If you want to use the old version, please use following cmd to clone the code: <br/>
 ```git clone -b v0.1 https://github.com/namisan/mt-dnn.git ```
 
-
+**Update** <br/>
+Due to policy change of the company, we don't have a public storage for model sharing. We're actively looking for a solution. 
 
 # Multi-Task Deep Neural Networks for Natural Language Understanding
 
