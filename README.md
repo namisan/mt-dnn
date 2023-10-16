@@ -10,7 +10,7 @@ If you want to use the old version, please use following cmd to clone the code: 
 ```git clone -b v0.1 https://github.com/namisan/mt-dnn.git ```
 
 **Update** <br/>
-Due to policy change of the company, we don't have a public storage for model sharing. We're actively looking for a solution. 
+We regret to inform you that due the policy changing, it no longer provides a public storage for model sharing. We are working hard to find a solution.
 
 # Multi-Task Deep Neural Networks for Natural Language Understanding
 
