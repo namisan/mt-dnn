@@ -106,6 +106,18 @@ class SANBertNetwork(nn.Module):
             all_hidden_states = (
                 outputs.encoder_last_hidden_state
             )  # num_layers + 1 (embeddings)
+        elif self.encoder_type == EncoderModelType.MISTRAL or \
+            self.encoder_type == EncoderModelType.MIXTRAL:
+            outputs = self.bert(
+                input_ids=input_ids,
+                attention_mask=attention_mask,
+                labels=y_input_ids,
+            )
+            # return logits from LM header
+            last_hidden_state = outputs.logits
+            all_hidden_states = (
+                outputs.encoder_last_hidden_state
+            )  # num_layers + 1 (embeddings)
         else:
             outputs = self.bert(
                 input_ids=input_ids,

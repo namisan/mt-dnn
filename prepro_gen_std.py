@@ -62,13 +62,16 @@ def feature_extractor(tokenizer, text_a, text_b=None, max_length=512, do_padding
 def label_tokenize(tokenizer, text, max_label_length=MRC_MAX_GEN_LEN):
     inputs = tokenizer(
         text,
-        add_special_tokens=True,
+        add_special_tokens=False,
         max_length=max_label_length,
         truncation=True,
     )
     input_ids = inputs["input_ids"]
+
     if type(tokenizer) is transformers.models.t5.tokenization_t5_fast.T5TokenizerFast:
         input_ids = [tokenizer.pad_token_id] + input_ids +  [tokenizer.eos_token_id]
+    elif type(tokenizer) is transformers.models.llama.tokenization_llama_fast.LlamaTokenizerFast:
+        input_ids = [tokenizer.bos_token_id] + input_ids +  [tokenizer.eos_token_id]
     else:
         input_ids = [tokenizer._convert_token_to_id("[CLS]")] + input_ids +  [tokenizer._convert_token_to_id("[SEP]")]
 

@@ -60,6 +60,12 @@ if [ ${model_type} == "t5g" ]; then
   MD="t5-${model_size}"
   DD="t5-${model_size}"
   ED=9
+  TOK="t5-base"
+elif [ ${model_type} == "mistral" ]; then
+  MD="mistralai/Mistral-7B-v0.1"
+  DD="mistralai/Mistral-7B-v0.1"
+  TOK="mistralai/Mistral-7B-v0.1"
+  ED=13
 else
   echo "Currently only support t5 generative finetuning"
   echo "Unknown model ${model_type}"
@@ -90,7 +96,7 @@ if [ ${num_gpus} -ge 2 ]; then
  export GPUS_PER_NODE=${num_gpus}
  export WORLD_SIZE=$(($GPUS_PER_NODE*$NNODES))
  export DISTRIBUTED_ARGS="--nproc_per_node $GPUS_PER_NODE --nnodes $NNODES --node_rank $NODE_RANK --master_addr $MASTER_ADDR --master_port $MASTER_PORT"
- python -m torch.distributed.launch $DISTRIBUTED_ARGS train.py --data_dir=${data_dir}/${DD} --task_def=${TASK_DEF}  --train_dataset=${train_dataset} --test_dataset=${test_dataset} --init_checkpoint=${MD} --batch_size=${BS} --learning_rate=${LR} --epochs=${EPOCH} --encoder_type=${ED} --optimizer=${OPTIM} --output_dir=${output_dir} --log_file=${LOG_FILE} --tokenizer t5-base
+ python -m torch.distributed.launch $DISTRIBUTED_ARGS train.py --data_dir=${data_dir}/${DD} --task_def=${TASK_DEF}  --train_dataset=${train_dataset} --test_dataset=${test_dataset} --init_checkpoint=${MD} --batch_size=${BS} --learning_rate=${LR} --epochs=${EPOCH} --encoder_type=${ED} --optimizer=${OPTIM} --output_dir=${output_dir} --log_file=${LOG_FILE} --tokenizer ${TOK}
 else
- python train.py --data_dir=${data_dir}/${DD} --task_def=${TASK_DEF} --train_dataset=${train_dataset} --test_dataset=${test_dataset} --init_checkpoint=${MD} --batch_size=${BS} --learning_rate=${LR} --epochs=${EPOCH} --encoder_type=${ED} --optimizer=${OPTIM} --output_dir=${output_dir} --log_file=${LOG_FILE} --tokenizer t5-base
+ python train.py --data_dir=${data_dir}/${DD} --task_def=${TASK_DEF} --train_dataset=${train_dataset} --test_dataset=${test_dataset} --init_checkpoint=${MD} --batch_size=${BS} --learning_rate=${LR} --epochs=${EPOCH} --encoder_type=${ED} --optimizer=${OPTIM} --output_dir=${output_dir} --log_file=${LOG_FILE} --tokenizer ${TOK}
 fi

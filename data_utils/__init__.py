@@ -5,7 +5,7 @@ from data_utils.task_def import TaskType, DataFormat
 import tasks
 
 
-def load_data(file_path, task_def):
+def load_data(file_path, task_def, raw_label=False):
     data_format = task_def.data_type
     task_type = task_def.task_type
     label_dict = task_def.label_vocab
@@ -56,16 +56,27 @@ def load_data(file_path, task_def):
 
         task_obj = tasks.get_task_obj(task_def)
         if task_obj is not None:
-            row["label"] = task_obj.input_parse_label(row["label"])
+            row["label"] = row["label"] if raw_label else task_obj.input_parse_label(row["label"])
+        elif task_type == TaskType.Ranking:
+            labels = row["label"].split(",")
+            if label_dict is not None:
+                labels = [label if raw_label else label_dict[label] for label in labels]
+            else:
+                labels = [float(label) for label in labels]
+            row["label"] = int(np.argmax(labels))
+            row["olabel"] = labels
+        elif task_type == TaskType.Span:
+            pass  # don't process row label
         elif task_type == TaskType.SeqenceLabeling:
             assert type(row["label"]) is list
-            row["label"] = [label_dict[label] for label in row["label"]]
+            row["label"] = [label if raw_label else label_dict[label] for label in row["label"]]
         elif task_type == TaskType.ClozeChoice:
             labels = eval(row["label"])
             row["label"] = int(np.argmax(labels))
             row["olabel"] = labels
         rows.append(row)
     return rows
+
 
 
 def load_score_file(score_path, n_class):

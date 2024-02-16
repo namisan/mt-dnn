@@ -5,13 +5,12 @@ from transformers import (
     XLMRobertaConfig, XLMRobertaModel, XLMRobertaTokenizer,
     ElectraConfig, ElectraModel, ElectraTokenizer,
     T5Config, T5EncoderModel, T5ForConditionalGeneration, T5Tokenizer,
-    DebertaConfig, DebertaModel, DebertaTokenizer
+    DebertaConfig, DebertaModel, DebertaTokenizer,
+    MistralConfig, MistralModel, MistralForCausalLM, LlamaTokenizer,
 )
 from module.san_model import SanModel
-from msrt5.modeling_t5 import MSRT5ForConditionalGeneration, MSRT5EncoderModel
-from msrt5.configuration import MSRT5Config
-from msrt5.tokenization_t5 import MSRT5Tokenizer
-
+from mixtral.modeling_mixtral import MixtralModel, MixtralForCausalLM
+from mixtral.configuration_mixtral import MixtralConfig 
 MODEL_CLASSES = {
     "bert": (BertConfig, BertModel, BertTokenizer),
     "roberta": (RobertaConfig, RobertaModel, RobertaTokenizer),
@@ -22,6 +21,8 @@ MODEL_CLASSES = {
     "t5": (T5Config, T5EncoderModel, T5Tokenizer),
     "deberta": (DebertaConfig, DebertaModel, DebertaTokenizer),
     "t5g": (T5Config, T5ForConditionalGeneration, T5Tokenizer),
-    "msrt5g": (MSRT5Config, MSRT5ForConditionalGeneration, MSRT5Tokenizer),
-    "msrt5": (MSRT5Config, MSRT5EncoderModel, MSRT5Tokenizer),
+    # "msrt5g": (MSRT5Config, MSRT5ForConditionalGeneration, MSRT5Tokenizer),
+    # "msrt5": (MSRT5Config, MSRT5EncoderModel, MSRT5Tokenizer),
+    "mistral": (MistralConfig, MistralForCausalLM, LlamaTokenizer),
+    "mixtral": (MixtralConfig, MixtralForCausalLM, LlamaTokenizer)
 }

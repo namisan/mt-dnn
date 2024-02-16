@@ -45,3 +45,5 @@ class EncoderModelType(IntEnum):
     MSRT5 = 11
     MSRLONGT5G = 12
     MSRLONGT5 = 13
+    MISTRAL = 14
+    MIXTRAL = 15
