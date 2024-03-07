@@ -129,6 +129,8 @@ def data_config(parser):
     )
     parser.add_argument("--do_padding", action="store_true")
     parser.add_argument("--tokenizer", default=None, type=str)
+    parser.add_argument("--dataloader_num_workers", type=int, default=2)
+
     return parser
 
 
@@ -474,6 +476,7 @@ def main():
         batch_sampler=multi_task_batch_sampler,
         collate_fn=train_collater.collate_fn,
         pin_memory=args.cuda,
+        num_workers=args.dataloader_num_workers
     )
 
     opt["task_def_list"] = task_def_list
@@ -520,6 +523,7 @@ def main():
                     batch_sampler=single_task_batch_sampler,
                     collate_fn=test_collater.collate_fn,
                     pin_memory=args.cuda,
+                    num_workers=args.dataloader_num_workers
                 )
             else:
                 dev_data = DataLoader(
@@ -527,6 +531,7 @@ def main():
                     batch_size=args.batch_size_eval,
                     collate_fn=test_collater.collate_fn,
                     pin_memory=args.cuda,
+                    num_workers=args.dataloader_num_workers
                 )
         dev_data_list.append(dev_data)
 
