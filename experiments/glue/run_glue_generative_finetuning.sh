@@ -65,7 +65,12 @@ elif [ ${model_type} == "mistral" ]; then
   MD="mistralai/Mistral-7B-v0.1"
   DD="mistralai/Mistral-7B-v0.1"
   TOK="mistralai/Mistral-7B-v0.1"
-  ED=13
+  ED=14
+elif [ ${model_type} == "mixtral" ]; then
+  MD="mistralai/Mixtral-8x7B-v0.1"
+  DD="mistralai/Mistral-7B-v0.1"
+  TOK="mistralai/Mixtral-8x7B-v0.1"
+  ED=15
 else
   echo "Currently only support t5 generative finetuning"
   echo "Unknown model ${model_type}"
